@@ -6,12 +6,12 @@
 /*   By: melperri <melperri@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/04/04 18:13:33 by melperri          #+#    #+#             */
-/*   Updated: 2022/04/05 18:19:15 by rvalton          ###   ########.fr       */
+/*   Updated: 2022/04/05 18:28:26 by rvalton          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "SimpleSocket.hpp"
 
 int	main() {
-	return 0;
+	return 1;
 }
