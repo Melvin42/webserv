@@ -1,46 +1,64 @@
-#include <stdio.h>
-#include <sys/socket.h>
-#include <unistd.h>
-#include <stdlib.h>
+#include <arpa/inet.h>
+#include <netdb.h>
 #include <netinet/in.h>
-#include <string.h>
+#include <unistd.h>
+#include <iostream>
+#include <cstdlib>
+#include <cstring>
 
-#define PORT 8081
+#define MAX_MSG 100
+#define MSG_ARRAY_SIZE (MAX_MSG + 3)
+#define PORT 8080
 
-int	main(void) {
-	int	server_fd;
-	if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-		perror("cannot create socket");
-		return 0;
+int	main() {
+
+	int	listenSocket;
+	listenSocket = socket(AF_INET, SOCK_STREAM, 0);
+	if (listenSocket < 0) {
+		std::cerr << "cannot create socket\n";
+		exit(1);
 	}
-	struct sockaddr_in	address;
-	memset((char *)&address, 0, sizeof(address));
-	address.sin_family = AF_INET;
-	address.sin_addr.s_addr = INADDR_ANY;
-	address.sin_port = htons(PORT);
-	memset(address.sin_zero, '\0', sizeof(address.sin_zero));
-	if (bind(server_fd, (struct sockaddr *)&address, sizeof(address))) {
-		perror("bind failed");
-		return 0;
+
+	struct sockaddr_in serverAddress;
+	serverAddress.sin_family = AF_INET;
+	serverAddress.sin_addr.s_addr = htonl(INADDR_ANY);
+	serverAddress.sin_port = htons(PORT);
+	if (bind(listenSocket, (struct sockaddr *) &serverAddress,
+				sizeof(serverAddress)) < 0) {
+		std::cerr << "bind failed\n";
+		exit(1);
 	}
-	if (listen(server_fd, 0) < 0) {
-		perror("listen failed");
-		exit(EXIT_FAILURE);
-	}
-	int	new_socket;
-	int	addrlen = sizeof(address);
-	long	valread;
-	const char	*hello = "HTTP/1.1 200 OK\nContent-Type: text/html\nContent-Length: 115\n\n<html><head><title>Temperature</title></head><body>{\"humidity\":81%,\"airtemperature\":23.5C}</p></body></html>\r\n";
+
+
+	listen(listenSocket, 0);
+	std::cout << "Attente de requete sur le port: " << PORT << "\n";
+
+	socklen_t	clientAddressLength;
+	struct sockaddr_in	clientAddress;
+	const char *msg = "HTTP/1.0 200 OK\r\nServer: CPi\r\nContent-type: text/html\r\n\r\n<html><head><title>Temperature</title></head><body>{\"humidity\":81%, \"airtemperature\":23.5C}</p></body></html>\r\n";
+	char	buffer[2048];
 	while (1) {
-		if ((new_socket = accept(server_fd, (struct sockaddr *)&address,
-			(socklen_t *)&addrlen)) < 0) {
-			perror("accept failed");
-			exit(EXIT_FAILURE);
+		int	client_fd = accept(listenSocket,
+				(struct sockaddr *) &clientAddress, &clientAddressLength);
+		if (client_fd > 0) {
+			int	n = read(client_fd, buffer, 2048);
+			n = write(client_fd, msg, strlen(msg));
 		}
-		char buffer[4096] = {0};
-		valread = read(new_socket, buffer, 4096);
-		write(new_socket, hello, strlen(hello));
-		close(new_socket);
+		/*
+		clientAddressLength = sizeof(clientAddress);
+		memset(msg, 0x0, MSG_ARRAY_SIZE);
+		if (recvfrom(listenSocket, msg, MSG_ARRAY_SIZE, 0,
+					(struct sockaddr *) &clientAddress,
+					&clientAddressLength) < 0) {
+			std::cerr << "recv failed\n";
+			exit(1);
+		}
+		if (sendto(listenSocket, msg, strlen(msg) + 1, 0,
+					(struct sockaddr *) &clientAddress,
+					sizeof(clientAddress)) < 0)
+			std::cerr << "send failed\n";
+			*/
 	}
+	close(listenSocket);
 	return 0;
 }
