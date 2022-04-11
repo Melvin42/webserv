@@ -15,6 +15,12 @@ DEP = ${OBJ:.o=.d}
 
 all : $(NAME)
 
+80 : $(OBJ)
+	$(CC) $(CPPFLAGS) -D test=1 -o $(NAME) $(OBJ)
+
+81 : $(OBJ)
+	$(CC) $(CPPFLAGS) -o $(NAME) $(OBJ)
+
 -include $(DEP)
 
 $(NAME) : $(OBJ)
