@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/socket.h>
+#include <sys/poll.h>
+#include <sys/fcntl.h>
 #include <unistd.h>
 #include <netinet/in.h>
 #include <string.h>
@@ -9,18 +11,25 @@
 #include <sstream>
 #include <fstream>
 
-#ifndef test
-#define PORT 8081
-#else
 #define PORT 8080
-#endif
-
 
 int	main(void) {
 	int	server_fd;
 	if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
 		perror("cannot create socket");
 		return 0;
+	}
+	int	on = 1;
+	if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, (char *) &on,
+				sizeof(on)) < 0) {
+		perror("setsockopt failed");
+		close(server_fd);
+		exit(-1);
+	}
+	if (fcntl(server_fd, F_SETFL, fcntl(server_fd, F_GETFL, 0)) == -1) {
+		perror("fcntl failed");
+		close(server_fd);
+		exit(-1);
 	}
 	struct sockaddr_in	address;
 	memset((char *)&address, 0, sizeof(address));
@@ -63,7 +72,6 @@ int	main(void) {
 		} else {
 			str_file = "Hello World!";
 		}
-
 
 		std::stringstream	len_content;
 		len_content << str_file.size();
