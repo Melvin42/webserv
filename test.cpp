@@ -1,2 +1,0 @@
-rudiajgoajdpg
-tout
