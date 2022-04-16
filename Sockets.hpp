@@ -52,7 +52,7 @@ class SocketServer : public Socket {
 };
 
 /*
-class SocketSelect {
+//class SocketSelect {
 	// http://msdn.microsoft.com/library/default.asp?url=/library/en-us/winsock/wsapiref_2tiq.asp
 	SocketSelect(Socket const * const s1, Socket const * const s2 = NULL);
 

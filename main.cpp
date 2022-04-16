@@ -1,9 +1,11 @@
 /*** C includes ***/
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <fcntl.h>
 #include <unistd.h>
 #include <errno.h>
+#include <sys/time.h>
+#include <sys/select.h>
+#include <fcntl.h>
 
 /*** C++ includes ***/
 #include <cstring>
@@ -14,14 +16,25 @@
 #include "Sockets.hpp"
 
 int	main(int ac, char **av) {
-	int		new_socket, arg_fd;
+//	int		ready;
+	int		new_socket, arg_fd = 0;
 	long	valread;
+//	fd_set	readfds, writefds;
+//	struct timeval	*pto;
 
 	if (ac != 2) {
 		std::cout << "Need a file html in second arg" << std::endl;
 		return EXIT_FAILURE;
 	}
 	try {
+//		pto = NULL;
+//		FD_ZERO(&readfds);
+//		FD_ZERO(&writefds);
+//		FD_SET(arg_fd, &readfds);
+
+//		int	flags = fcntl(arg_fd, F_GETFL, 0);
+//		fcntl(arg_fd, F_SETFL, flags | O_NONBLOCK);
+		
 		SocketServer server = SocketServer(PORT, 10);
 
 		std::string header;
@@ -40,6 +53,8 @@ int	main(int ac, char **av) {
 				return EXIT_FAILURE;
 			}
 		}
+		if (valread == 0)
+			close(arg_fd);
 
 		std::string str = header + body;
 
@@ -48,6 +63,12 @@ int	main(int ac, char **av) {
 		while (true) {
 
 			std::cout << "\n+++++++ Waiting for new connection ++++++++\n" << std::endl;
+
+//			ready = select(1, &readfds, &writefds, NULL, pto);
+//			if (ready == -1) {
+//				std::cerr << "Bad select" << std::endl;
+//				exit(EXIT_FAILURE);
+//			}
 
 			new_socket = server.Accept();
 
@@ -63,5 +84,6 @@ int	main(int ac, char **av) {
 	} catch (std::exception &e) {
 		std::cerr << e.what() << std::endl;
 	}
+//	close(arg_fd);
 	return EXIT_SUCCESS;
 }

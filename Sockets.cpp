@@ -37,7 +37,7 @@ SocketServer::SocketServer(int port, int connections) : Socket() {
 	memset(&address, 0, sizeof(address));
 
 	if ((_server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0) {
-//		close(_server_fd); // close ici?
+		close(_server_fd); // close ici?
 		throw "INVALID SOCKET";
 	}
 
