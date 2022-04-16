@@ -26,18 +26,18 @@ int	main(void) {
 		close(server_fd);
 		exit(-1);
 	}
-	if (fcntl(server_fd, F_SETFL, fcntl(server_fd, F_GETFL, 0)) == -1) {
+/*	if (fcntl(server_fd, F_SETFL, O_NONBLOCK) == -1) {
 		perror("fcntl failed");
 		close(server_fd);
 		exit(-1);
-	}
+	}*/
 	struct sockaddr_in	address;
 	memset((char *)&address, 0, sizeof(address));
 	address.sin_family = AF_INET;
 	address.sin_addr.s_addr = INADDR_ANY;
 	address.sin_port = htons(PORT);
-	memset(address.sin_zero, '\0', sizeof(address.sin_zero));
-	if (bind(server_fd, (struct sockaddr *)&address, sizeof(address))) {
+//	memset(address.sin_zero, '\0', sizeof(address.sin_zero));
+	if (bind(server_fd, (struct sockaddr *)&address, sizeof(address)) == -1) {
 		perror("bind failed");
 		return 0;
 	}
@@ -49,7 +49,7 @@ int	main(void) {
 	int	addrlen = sizeof(address);
 	long	valread;
 	while (1) {
-		std::string	get_http = "HTTP/1.1 200 OK\nContent-Type: text/html\nContent_Length: ";
+		std::string	get_http = "HTTP/1.1 200 OK\nContent-Type: text/html\nContent-Length: ";
 		std::string	str_file = "";
 		if ((new_socket = accept(server_fd, (struct sockaddr *)&address,
 			(socklen_t *)&addrlen)) < 0) {
@@ -80,8 +80,10 @@ int	main(void) {
 		get_http += read_len;
 		get_http += "\n\n";
 		get_http += str_file;
+		std::cout << get_http << "\n";
+		std::cout << new_socket << "\n";
 		send(new_socket, get_http.c_str(), get_http.size(), 0);
-		close(new_socket);
+//		close(new_socket);
 	}
 	return 0;
 }
