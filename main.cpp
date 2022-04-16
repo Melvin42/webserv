@@ -18,43 +18,28 @@ int	main(int ac, char **av) {
 	long	valread;
 
 	if (ac != 2) {
-		std::cout << "Too much args" << std::endl;
+		std::cout << "Need a file html in second arg" << std::endl;
 		return EXIT_FAILURE;
 	}
 	try {
 		SocketServer server = SocketServer(PORT, 10);
-		std::string space = " ";
-		std::string cr = "\r\n";
 
 		std::string header;
 
-		header += "HTTP/1.1" + space + "200" + space + "OK" + cr;
-		header += "Content-type:text/html" + cr + cr;
+		header += "HTTP/1.1 200 OK\r\n";
+		header += "Content-type:text/html\r\n\r\n";
 
 		if ((arg_fd = open(av[1], O_RDONLY)) == -1)
 			return EXIT_FAILURE;
-		char *buf = NULL;
-		while ((valread = read(arg_fd, buf, 1)) > 0) {
+
+		char body[BUFFER_SIZE];
+
+		while ((valread = read(arg_fd, body, BUFFER_SIZE)) != 0) {
 			if (valread == -1) {
 				close(arg_fd);
 				return EXIT_FAILURE;
 			}
 		}
-
-		std::cout << buf;
-
-		std::string body;
-
-		body += "<html>\n";
-		body += "<head>\n";
-		body += "<title>";
-		body += "Hello World!";
-		body += "</title>\n";
-		body += "</head>\n";
-		body += "<body>\n";
-		body += "<h1>Hello World!</h1>\n";
-		body += "</body>\n";
-		body += "</html>\n";
 
 		std::string str = header + body;
 
