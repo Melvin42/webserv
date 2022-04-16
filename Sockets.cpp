@@ -11,6 +11,7 @@ Socket::Socket(const Socket &socket) {
 }
 
 Socket::~Socket() {
+	close(_server_fd);
 }
 
 Socket &Socket::operator=(const Socket &socket) {
@@ -36,7 +37,7 @@ SocketServer::SocketServer(int port, int connections) : Socket() {
 	memset(&address, 0, sizeof(address));
 
 	if ((_server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0) {
-//		close(_server_fd);
+//		close(_server_fd); // close ici?
 		throw "INVALID SOCKET";
 	}
 
@@ -60,7 +61,6 @@ int	SocketServer::Accept() {
 
 	if ((new_socket = accept(_server_fd, (struct sockaddr *)&_address, (socklen_t *)&addrlen)) < 0) {
 		throw "INVALID SOCKET";
-		std::cerr << "Bad Accept" << std::endl;
 	}
 
 	return new_socket;

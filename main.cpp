@@ -1,23 +1,23 @@
 /*** C includes ***/
-#include <stdio.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 #include <unistd.h>
 #include <errno.h>
-#include <stdlib.h>
-#include <netinet/in.h>
 
 /*** C++ includes ***/
 #include <cstring>
+#include <cstdlib>
 #include <iostream>
 
 /*** Perso Includes ***/
 #include "Sockets.hpp"
 
 int	main(int ac, char **av) {
-	int		new_socket;
+	int		new_socket, arg_fd;
 	long	valread;
 
-	(void)av;
-	if (ac > 1) {
+	if (ac != 2) {
 		std::cout << "Too much args" << std::endl;
 		return EXIT_FAILURE;
 	}
@@ -31,7 +31,20 @@ int	main(int ac, char **av) {
 		header += "HTTP/1.1" + space + "200" + space + "OK" + cr;
 		header += "Content-type:text/html" + cr + cr;
 
+		if ((arg_fd = open(av[1], O_RDONLY)) == -1)
+			return EXIT_FAILURE;
+		char *buf = NULL;
+		while ((valread = read(arg_fd, buf, 1)) > 0) {
+			if (valread == -1) {
+				close(arg_fd);
+				return EXIT_FAILURE;
+			}
+		}
+
+		std::cout << buf;
+
 		std::string body;
+
 		body += "<html>\n";
 		body += "<head>\n";
 		body += "<title>";
@@ -50,18 +63,17 @@ int	main(int ac, char **av) {
 		while (true) {
 
 			std::cout << "\n+++++++ Waiting for new connection ++++++++\n" << std::endl;
-//		if ((new_socket = accept(server_fd, (struct sockaddr *)&address, (socklen_t *)&addrlen)) < 0) {
+
 			new_socket = server.Accept();
 
 			write(new_socket, str.c_str(), str.size());
 			valread = read(new_socket, buffer, BUFFER_SIZE);
 			if (valread < 0) {
-				perror("In read");
+				std::cerr << "In read" << std::endl;
 				exit(EXIT_FAILURE);
 			}
 			close(new_socket);
 			new_socket = 0;
-			std::cerr << new_socket;
 		}
 	} catch (std::exception &e) {
 		std::cerr << e.what() << std::endl;
