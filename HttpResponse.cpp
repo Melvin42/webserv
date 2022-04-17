@@ -42,7 +42,6 @@ HttpResponse::HttpResponse(void) : _ret("HTTP/1.1") {
 
 HttpResponse::HttpResponse(const HttpResponse &httpresponse) {
 	*this = httpresponse;
-	return ;
 }
 
 HttpResponse &HttpResponse::operator=(const HttpResponse &httpresponse) {
