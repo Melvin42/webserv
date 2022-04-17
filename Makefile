@@ -6,7 +6,7 @@ DEBUG = -g3
 
 CPPFLAGS = -Wall -Wextra -Werror -std=c++98 -MMD
 
-SRC = main.cpp Sockets.cpp
+SRC = main.cpp Sockets.cpp HttpResponse.cpp HttpRequest.cpp
 
 OBJ = ${SRC:.cpp=.o}
 
@@ -17,11 +17,8 @@ DEP = ${OBJ:.o=.d}
 
 all : $(NAME)
 
-debug:
+debug: $(OBJ)
 	$(CC) $(CPPFLAGS) $(DEBUG) -o $(NAME) $(OBJ)
-
-81 : $(OBJ)
-	$(CC) $(CPPFLAGS) -D TEST=8081 -o $(NAME) $(OBJ)
 
 -include $(DEP)
 
