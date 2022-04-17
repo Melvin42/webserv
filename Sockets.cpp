@@ -66,6 +66,7 @@ SocketServer::SocketServer(int port, int connections) : Socket() {
 }
 
 int	SocketServer::GetSocketUsed() const {
+//	std::cerr << '[' <<_sd << ']';
 	return _sd;
 }
 
