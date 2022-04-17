@@ -6,6 +6,9 @@
 #include <netinet/in.h>
 #include <cstring>
 #include <unistd.h>
+#include <vector>
+#include <errno.h>
+#include <algorithm>
 
 #include "define.h"
 
@@ -15,28 +18,30 @@ class Socket {
 		Socket(const Socket &socket);
 		virtual ~Socket();
 
-		std::string	ReceiveLine();
-		void	Close();
-		void	SendLine(std::string);
+		std::string			ReceiveLine();
+		void				Close();
+		void				SendLine(std::string);
+		int					GetMasterFd();
+		std::vector<int>	&GetClientSocket();
+
 
 		Socket &operator=(const Socket &socket);
 
 	protected:
 		friend class SocketServer;
-		friend class SocketClient;
+//		friend class SocketSelect;
 
-		Socket(int server_fd);
+//		Socket(int server_fd);
 		Socket();
 
 		int					_server_fd;
+		std::vector<int>	_clientSocket;
 		struct sockaddr_in	_address;
 
 	private:
 		static void	Start();
 		static void	End();
 		static int	_nofSockets;
-
-
 };
 
 class SocketClient : public Socket {
@@ -48,19 +53,19 @@ class SocketServer : public Socket {
 	public:
 		SocketServer(int port, int connections);
 
-		int	Accept();
-};
+		int		GetSocketUsed() const;
+		void	SetSocketUsed(int fd);
+		fd_set	GetReadFds() const;
 
-/*
-//class SocketSelect {
-	// http://msdn.microsoft.com/library/default.asp?url=/library/en-us/winsock/wsapiref_2tiq.asp
-	SocketSelect(Socket const * const s1, Socket const * const s2 = NULL);
-
-	bool Readable(Socket const * const s1);
+		int		Accept();
+		void	Select();
+		bool	Ready(int fd, fd_set set);
+		void	CloseClean();
 
 	private:
-		fd_set	_fds;
+		int		_sd;
+		int		_max_sd;
+		fd_set	_readfds;
 };
-*/
 
 #endif
