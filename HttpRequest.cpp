@@ -44,3 +44,19 @@ HttpRequest &HttpRequest::operator=(const HttpRequest &httprequest) {
 
 HttpRequest::~HttpRequest(void) {
 }
+
+std::string	HttpRequest::getMethod() const {
+	return _method;
+}
+
+std::string	HttpRequest::getPage() const {
+	return _page;
+}
+
+std::string	HttpRequest::getVersion() const {
+	return _version;
+}
+
+std::string	HttpRequest::getHost() const {
+	return _host;
+}

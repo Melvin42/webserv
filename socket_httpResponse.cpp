@@ -11,6 +11,7 @@
 #include <sstream>
 #include <fstream>
 #include "HttpResponse.hpp"
+#include "HttpRequest.hpp"
 
 #define PORT 8080
 
@@ -50,28 +51,32 @@ int	main(void) {
 			perror("accept failed");
 			exit(EXIT_FAILURE);
 		}
-		printf("%d\n", new_socket);
+//		printf("%d\n", new_socket);
 		char buffer[4096] = {0};
-		std::string	request = "";
+//		std::string	request = "";
 		if (read(new_socket, buffer, 4096) != 0) {
-			printf("%s\n", buffer);
+//			printf("%s\n", buffer);
+			HttpRequest	req(buffer, 4096);
+/*			std::cout << req.getMethod() << "\n"
+				<< req.getPage() << "\n"
+				<< req.getVersion() << "\n"
+				<< req.getHost() << "][[][fin[][][][]\n";
 			for (int i = 0; buffer[i] != '\n' && i < 4096; i++) {
 				request += buffer[i];
+			}*/
+			if (req.getPage() == "home.html") {
+				HttpResponse	msg;
+				str_file = msg.getHttpResponse("home.html");
+//				std::cout << str_file << "\n";
+			} else {
+				HttpResponse	msg;
+				str_file = msg.getHttpResponse("not_found.html");
 			}
+//			std::cout << new_socket << "\n";
+			if (send(new_socket, str_file.c_str(), str_file.size(),
+						0) == str_file.size())
+				close(new_socket);
 		}
-		if (request == "GET /home.html HTTP/1.1\r") {
-			HttpResponse	msg;
-			str_file = msg.getHttpResponse("home.html");
-			std::cout << str_file << "\n";
-		} else {
-			HttpResponse	msg;
-			str_file = msg.getHttpResponse("not_found.html");
-		}
-
-		std::cout << new_socket << "\n";
-		if (send(new_socket, str_file.c_str(), str_file.size(),
-					0) == str_file.size())
-			close(new_socket);
 	}
 	return 0;
 }
