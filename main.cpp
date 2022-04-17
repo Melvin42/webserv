@@ -17,6 +17,7 @@
 /*** Perso Includes ***/
 #include "Sockets.hpp"
 #include "HttpResponse.hpp"
+#include "HttpRequest.hpp"
 
 int	main(int ac, char **av) {
 	std::vector<int>::iterator			it;
@@ -52,20 +53,21 @@ int	main(int ac, char **av) {
 			for (it = server.GetClientSocket().begin(); it != ite; it++) {
 				server.SetSocketUsed(*it);
 				if (server.Ready(server.GetSocketUsed(), server.GetReadFds())) {
-					std::cerr << "REAAAAADY" << std::endl;
 					if ((valread = read(server.GetSocketUsed(), buffer, BUFFER_SIZE)) == 0) {
-						std::cerr << "Fichier lu" << std::endl;
+						// maybe with POST: server.closeClean();
 					} else {
-						std::string	request = "";
-						for (int i = 0; buffer[i] != '\n' && i < BUFFER_SIZE; i++) {
+//						std::string	request = "";
+/*						for (int i = 0; buffer[i] != '\n' && i < BUFFER_SIZE; i++) {
 							request += buffer[i];
-						}
-						if (request == "GET /home.html HTTP/1.1\r") {
+						}*/
+//						if (request == "GET /home.html HTTP/1.1\r") {
+						HttpRequest	req(buffer, BUFFER_SIZE);
+						if (req.getPage() == "webpages/home.html") {
 							HttpResponse	msg;
-							str_file = msg.getHttpResponse("home.html");
+							str_file = msg.getHttpResponse("webpages/home.html");
 						} else {
 							HttpResponse	msg;
-							str_file = msg.getHttpResponse("not_found.html");
+							str_file = msg.getHttpResponse("webpages/not_found.html");
 						}
 
 						if (send(server.GetSocketUsed(), str_file.c_str(),
