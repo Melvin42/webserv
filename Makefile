@@ -17,7 +17,7 @@ DEP = ${OBJ:.o=.d}
 
 all : $(NAME)
 
-debug:
+debug: $(OBJ)
 	$(CC) $(CPPFLAGS) $(DEBUG) -o $(NAME) $(OBJ)
 
 81 : $(OBJ)
