@@ -16,18 +16,21 @@
 
 /*** Perso Includes ***/
 #include "Sockets.hpp"
+#include "HttpResponse.hpp"
 
 int	main(int ac, char **av) {
 	std::vector<int>::iterator			it;
 	std::vector<int>::const_iterator	ite;
-	char buffer[2049] = {0};
+	char	buffer[BUFFER_SIZE + 1] = {0};
 	int		new_socket = 0;
 	long	valread = 0;
 
-	if (ac != 2) {
-		std::cout << "Need a file html in second arg" << std::endl;
-		return EXIT_FAILURE;
-	}
+	(void)av;
+	(void)ac;
+//	if (ac != 2) {
+//		std::cout << "Need a file html in second arg" << std::endl;
+//		return EXIT_FAILURE;
+//	}
 	try {
 		SocketServer server = SocketServer(PORT, 30);
 
@@ -37,41 +40,40 @@ int	main(int ac, char **av) {
 			if (server.Ready(server.GetMasterFd(), server.GetReadFds())) {
 				new_socket = server.Accept();
 				std::cerr << "New connection, socket fd is " << new_socket << std::endl;
-			}
-			for (it = server.GetClientSocket().begin(); it != ite; it++) {
-				if (*it == 0) {
-					*it = new_socket;
-					break ;
+				for (it = server.GetClientSocket().begin(); it != ite; it++) {
+					if (*it == 0) {
+						*it = new_socket;
+						break ;
+					}
 				}
 			}
 			ite = server.GetClientSocket().end();
+			std::string	str_file = "";
 			for (it = server.GetClientSocket().begin(); it != ite; it++) {
 				server.SetSocketUsed(*it);
 				if (server.Ready(server.GetSocketUsed(), server.GetReadFds())) {
-					if ((valread = read(server.GetSocketUsed(), buffer, 2048)) == 0) {
-						std::cout << "Fichier lu" << std::endl;
+					std::cerr << "REAAAAADY" << std::endl;
+					if ((valread = read(server.GetSocketUsed(), buffer, BUFFER_SIZE)) == 0) {
+						std::cerr << "Fichier lu" << std::endl;
+					} else {
+						std::string	request = "";
+						for (int i = 0; buffer[i] != '\n' && i < BUFFER_SIZE; i++) {
+							request += buffer[i];
+						}
+						if (request == "GET /home.html HTTP/1.1\r") {
+							HttpResponse	msg;
+							str_file = msg.getHttpResponse("home.html");
+						} else {
+							HttpResponse	msg;
+							str_file = msg.getHttpResponse("not_found.html");
+						}
+
+						if (send(server.GetSocketUsed(), str_file.c_str(),
+									str_file.size(), 0) == static_cast<long>(str_file.size())) {
+							server.CloseClean();
+							*it = 0;
+						}
 					}
-				} else {
-					std::string	message;
-
-					message += "HTTP/1.1 200 OK\n";
-					message += "Content-Type: text/html\n";
-//					message += "Content_Length: ";
-					std::ifstream	fichier_in(av[1]);
-					std::string	body = std::string(
-							std::istreambuf_iterator<char>(fichier_in),
-							std::istreambuf_iterator<char>());
-
-					std::stringstream	len_body;
-					len_body << body.size();
-					std::string	str_body_len = len_body.str();
-					message += str_body_len;
-					message += "\n\n";
-					message += body + '\0';
-					buffer[valread] = '\0';
-					send(server.GetSocketUsed(), message.c_str(), message.length(), 0);
-					server.CloseClean();
-					*it = 0;
 				}
 			}
 		}

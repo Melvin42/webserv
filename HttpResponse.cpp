@@ -1,43 +1,43 @@
 #include "HttpResponse.hpp"
 
 HttpResponse::HttpResponse(void) : _ret("HTTP/1.1") {
-                    _status.insert({"100", "Continue"});
-                    _status.insert({"101", "Switching Protocols"});
-                    _status.insert({"200", "OK"});
-                    _status.insert({"201", "Created"});
-                    _status.insert({"202", "Accepted"});
-                    _status.insert({"203", "Non-Authoritative Information"});
-                    _status.insert({"204", "No Content"});
-                    _status.insert({"205", "Reset Content"});
-                    _status.insert({"206", "Partial Content"});
-                    _status.insert({"300", "Multiple Choices"});
-                    _status.insert({"301", "Moved Permanently"});
-                    _status.insert({"302", "Moved Temporarily"});
-                    _status.insert({"303", "See Other"});
-                    _status.insert({"304", "Not Modified"});
-                    _status.insert({"305", "Use Proxy"});
-                    _status.insert({"400", "Bad Request"});
-                    _status.insert({"401", "Unauthorized"});
-                    _status.insert({"402", "Payment Required"});
-                    _status.insert({"403", "Forbidden"});
-                    _status.insert({"404", "Not Found"});
-                    _status.insert({"405", "Method Not Allowed"});
-                    _status.insert({"406", "Not Acceptable"});
-                    _status.insert({"407", "Proxy Authentication Required"});
-                    _status.insert({"408", "Request Time-out"});
-                    _status.insert({"409", "Conflict"});
-                    _status.insert({"410", "Gone"});
-                    _status.insert({"411", "Length Required"});
-                    _status.insert({"412", "Precondition Failed"});
-                    _status.insert({"413", "Request Entity Too Large"});
-                    _status.insert({"414", "Request-URI Too Large"});
-                    _status.insert({"415", "Unsupported Media Type"});
-                    _status.insert({"500", "Internal Server Error"});
-                    _status.insert({"501", "Not Implemented"});
-                    _status.insert({"502", "Bad Gateway"});
-                    _status.insert({"503", "Service Unavailable"});
-                    _status.insert({"504", "Gateway Time-out"});
-                    _status.insert({"505", "HTTP Version not supported"});
+                    _status.insert(std::pair<std::string, std::string>("100", "Continue"));
+                    _status.insert(std::pair<std::string, std::string>("101", "Switching Protocols"));
+                    _status.insert(std::pair<std::string, std::string>("200", "OK"));
+                    _status.insert(std::pair<std::string, std::string>("201", "Created"));
+                    _status.insert(std::pair<std::string, std::string>("202", "Accepted"));
+                    _status.insert(std::pair<std::string, std::string>("203", "Non-Authoritative Information"));
+                    _status.insert(std::pair<std::string, std::string>("204", "No Content"));
+                    _status.insert(std::pair<std::string, std::string>("205", "Reset Content"));
+                    _status.insert(std::pair<std::string, std::string>("206", "Partial Content"));
+                    _status.insert(std::pair<std::string, std::string>("300", "Multiple Choices"));
+                    _status.insert(std::pair<std::string, std::string>("301", "Moved Permanently"));
+                    _status.insert(std::pair<std::string, std::string>("302", "Moved Temporarily"));
+                    _status.insert(std::pair<std::string, std::string>("303", "See Other"));
+                    _status.insert(std::pair<std::string, std::string>("304", "Not Modified"));
+                    _status.insert(std::pair<std::string, std::string>("305", "Use Proxy"));
+                    _status.insert(std::pair<std::string, std::string>("400", "Bad Request"));
+                    _status.insert(std::pair<std::string, std::string>("401", "Unauthorized"));
+                    _status.insert(std::pair<std::string, std::string>("402", "Payment Required"));
+                    _status.insert(std::pair<std::string, std::string>("403", "Forbidden"));
+                    _status.insert(std::pair<std::string, std::string>("404", "Not Found"));
+                    _status.insert(std::pair<std::string, std::string>("405", "Method Not Allowed"));
+                    _status.insert(std::pair<std::string, std::string>("406", "Not Acceptable"));
+                    _status.insert(std::pair<std::string, std::string>("407", "Proxy Authentication Required"));
+                    _status.insert(std::pair<std::string, std::string>("408", "Request Time-out"));
+                    _status.insert(std::pair<std::string, std::string>("409", "Conflict"));
+                    _status.insert(std::pair<std::string, std::string>("410", "Gone"));
+                    _status.insert(std::pair<std::string, std::string>("411", "Length Required"));
+                    _status.insert(std::pair<std::string, std::string>("412", "Precondition Failed"));
+                    _status.insert(std::pair<std::string, std::string>("413", "Request Entity Too Large"));
+                    _status.insert(std::pair<std::string, std::string>("414", "Request-URI Too Large"));
+                    _status.insert(std::pair<std::string, std::string>("415", "Unsupported Media Type"));
+                    _status.insert(std::pair<std::string, std::string>("500", "Internal Server Error"));
+                    _status.insert(std::pair<std::string, std::string>("501", "Not Implemented"));
+                    _status.insert(std::pair<std::string, std::string>("502", "Bad Gateway"));
+                    _status.insert(std::pair<std::string, std::string>("503", "Service Unavailable"));
+                    _status.insert(std::pair<std::string, std::string>("504", "Gateway Time-out"));
+                    _status.insert(std::pair<std::string, std::string>("505", "HTTP Version not supported"));
 }
 
 HttpResponse::HttpResponse(const HttpResponse &httpresponse) {
@@ -54,7 +54,7 @@ HttpResponse::~HttpResponse(void) {
 }
 
 std::string	HttpResponse::getHttpResponse(std::string path) {
-	std::ifstream	file(path);
+	std::ifstream	file(path.c_str());
 	if (!file) {
 		std::ifstream	not_found_file("not_found.html");
 		if (!not_found_file) {
