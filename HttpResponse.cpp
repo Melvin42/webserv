@@ -1,6 +1,6 @@
 #include "HttpResponse.hpp"
 
-HttpResponse::HttpResponse(void) : _ret("HTTP/1.1") {
+HttpResponse::HttpResponse(void) : _ret_get("HTTP/1.1"), _ret_post() {
                     _status.insert(std::pair<std::string, std::string>("100", "Continue"));
                     _status.insert(std::pair<std::string, std::string>("101", "Switching Protocols"));
                     _status.insert(std::pair<std::string, std::string>("200", "OK"));
@@ -45,7 +45,8 @@ HttpResponse::HttpResponse(const HttpResponse &httpresponse) {
 }
 
 HttpResponse &HttpResponse::operator=(const HttpResponse &httpresponse) {
-	_ret = httpresponse._ret;
+	_ret_get = httpresponse._ret_get;
+	_ret_post = httpresponse._ret_post;
 	_status = httpresponse._status;
 	return *this;
 }
@@ -56,22 +57,22 @@ HttpResponse::~HttpResponse(void) {
 std::string	HttpResponse::getHttpResponse(std::string path) {
 	std::ifstream	file(path.c_str());
 	if (!file) {
-		std::ifstream	not_found_file("not_found.html");
+		std::ifstream	not_found_file("index/not_found.html");
 		if (!not_found_file) {
-			_ret += " 500 " + _status["500"] + "\n\n";
-			return _ret;
+			_ret_get += " 500 " + _status["500"] + "\n\n";
+			return _ret_get;
 		}
-		_ret += " 404 " + _status["404"] + "\n\n";
+		_ret_get += " 404 " + _status["404"] + "\n\n";
 		std::string	str_not_found = std::string(
 				std::istreambuf_iterator<char>(not_found_file),
 				std::istreambuf_iterator<char>());
-		_ret += str_not_found;
-		return _ret;
+		_ret_get += str_not_found;
+		return _ret_get;
 	}
 	std::string	str_file = std::string(
 				std::istreambuf_iterator<char>(file),
 				std::istreambuf_iterator<char>());
-	_ret += " 200 " + _status["200"] + "\n\n";
-	_ret += str_file;
-	return _ret;
+	_ret_get += " 200 " + _status["200"] + "\n\n";
+	_ret_get += str_file;
+	return _ret_get;
 }

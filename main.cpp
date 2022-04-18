@@ -28,10 +28,10 @@ int	main(int ac, char **av) {
 
 	(void)av;
 	(void)ac;
-//	if (ac != 2) {
-//		std::cout << "Need a file html in second arg" << std::endl;
-//		return EXIT_FAILURE;
-//	}
+	//	if (ac != 2) {
+	//		std::cout << "Need a file html in second arg" << std::endl;
+	//		return EXIT_FAILURE;
+	//	}
 	try {
 		SocketServer server = SocketServer(PORT, 30);
 
@@ -57,17 +57,8 @@ int	main(int ac, char **av) {
 						// maybe with POST: server.closeClean();
 					} else {
 						HttpRequest	req(buffer, BUFFER_SIZE);
-						if (req.getPage() == "index/home.html") {
-							HttpResponse	msg;
-							str_file = msg.getHttpResponse("index/home.html");
-						} else if (req.getPage() == "index/lien.html") {
-							HttpResponse	msg;
-							str_file = msg.getHttpResponse("index/lien.html");
-						} else {
-							HttpResponse	msg;
-							str_file = msg.getHttpResponse("index/not_found.html");
-						}
-
+						HttpResponse	msg;
+						str_file = msg.getHttpResponse(req.getPage());
 						if (send(server.getSocketUsed(), str_file.c_str(),
 									str_file.size(), 0) == static_cast<long>(str_file.size())) {
 							server.closeClean();
