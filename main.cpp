@@ -57,17 +57,8 @@ int	main(int ac, char **av) {
 						// maybe with POST: server.closeClean();
 					} else {
 						HttpRequest	req(buffer, BUFFER_SIZE);
-						if (req.getPage() == "index/index.html") {
-							HttpResponse	msg;
-							str_file = msg.getHttpResponse("index/index.html");
-						} else if (req.getPage() == "index/lien.html") {
-							HttpResponse	msg;
-							str_file = msg.getHttpResponse("index/lien.html");
-						} else {
-							HttpResponse	msg;
-							str_file = msg.getHttpResponse("index/style.css");
-						}
-
+						HttpResponse	msg;
+						str_file = msg.getHttpResponse(req.getPage());
 						if (send(server.getSocketUsed(), str_file.c_str(),
 									str_file.size(), 0) == static_cast<long>(str_file.size())) {
 							server.closeClean();
