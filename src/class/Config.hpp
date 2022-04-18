@@ -1,5 +1,5 @@
 #ifndef CONFIG_HPP
-#define CONFIG_HPP
+#define CNFIG_HPP
 
 #include <iostream>
 #include <fstream>
@@ -15,13 +15,17 @@ class Config {
 
 		std::map<std::string, std::string>	getConfig() const;
 
+		int		getPort() const;
 		void	printMap() const;
 		void	parsing(const char *av);
 
 	private:
 		Config();
 		std::map<std::string, std::string>	_config;
-//		int	_port;
+		std::vector<std::string>			_root;
+		std::vector<std::string>			_location;
+		std::string							_server_name;
+		int									_port;
 };
 
 #endif

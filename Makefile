@@ -1,36 +1,68 @@
+## Name of Project
+
 NAME = webserv
 
-CC = c++
+## List of Directories
+
+SRC_DIR = src
+OBJ_DIR = obj
+CLASS_DIR = class
+
+## Compilating Utilities
+
+INC = $(./$(SRC_DIR)/$(CLASS_DIR)/-I%.hpp) $(./$(SRC_DIR)/$(CLASS_DIR)/-I%.h)
 
 DEBUG = -g3
 
-CPPFLAGS = -Wall -Wextra -Werror -std=c++98 -MMD
+CPPFLAGS = -Wall -Wextra -Werror -std=c++98 -MMD -D_REENTRANT
 
-SRC = main.cpp Sockets.cpp HttpResponse.cpp HttpRequest.cpp Config.cpp
+CC = c++ $(CPPFLAGS) $(INC)
 
-OBJ = ${SRC:.cpp=.o}
+CLASS_FT = Sockets HttpResponse HttpRequest Config
 
-DEP = ${OBJ:.o=.d}
+SRC_FT = main
 
-.cpp.o:
-	$(CC) $(CPPFLAGS) -c $< -o $@
+## List of Utilities
 
-all : $(NAME)
+SRC = $(SRC_FT:%=$(SRC_DIR)/%.cpp) \
+		$(CLASS_FT:%=$(SRC_DIR)/$(CLASS_DIR)/%.cpp)
 
-debug: $(OBJ)
-	$(CC) $(CPPFLAGS) $(DEBUG) -o $(NAME) $(OBJ)
+OBJ = $(SRC:$(SRC_DIR)%.cpp=$(OBJ_DIR)%.o)
+
+DEP = $(OBJ:$(OBJ_DIR)%.o=$(OBJ_DIR)/%.d)
+
+SRC = $(SRC_FT:%=$(SRC_DIR)/%.cpp) \
+		$(CLASS_FT:%=$(SRC_DIR)/$(CLASS_DIR)/%.cpp)
+
+OBJ_DIRS = $(OBJ_DIR) \
+		   $(CLASS_DIR:%=$(OBJ_DIR)/%)
+
+## Rules of Makefile
 
 -include $(DEP)
 
-$(NAME) : $(OBJ)
-	$(CC) $(CPPFLAGS) -o $(NAME) $(OBJ)
+all : $(NAME)
+
+$(OBJ_DIRS):
+	mkdir -p $@
+
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp $(INC)
+	$(CC) -c $< -o $@
+
+$(NAME): $(OBJ_DIRS) $(SRC) $(INC)
+	$(MAKE) -j -s $(OBJ)
+	$(CC) $(OBJ) -o $@
+
+debug: $(OBJ_DIRS) $(SRC) $(INC)
+	$(MAKE) -j -s $(OBJ)
+	$(CC) $(DEBUG) -o $(NAME) $(OBJ)
 
 clean :
-	rm -f $(OBJ) $(DEP)
+	rm -rf $(OBJ_DIR)
 
 fclean : clean
 	rm -f $(NAME)
 
 re : fclean all
 
-.PHONY : all clean fclean re .cpp.o
+.PHONY : all clean fclean re debug -include

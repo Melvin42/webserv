@@ -15,10 +15,10 @@
 #include <sstream>
 
 /*** Perso Includes ***/
-#include "Sockets.hpp"
-#include "HttpResponse.hpp"
-#include "HttpRequest.hpp"
-#include "Config.hpp"
+#include "class/Sockets.hpp"
+#include "class/HttpResponse.hpp"
+#include "class/HttpRequest.hpp"
+#include "class/Config.hpp"
 
 int	main(int ac, char **av) {
 	std::vector<int>::iterator			it;
@@ -32,12 +32,12 @@ int	main(int ac, char **av) {
 		return EXIT_FAILURE;
 	}
 	try {
-		Config nginx = Config(av[1]);
-		SocketServer server = SocketServer(PORT, 30);
+		Config conf = Config(av[1]);
+		SocketServer server = SocketServer(conf.getPort(), 30);
 
+			server.selectSocket();
 		while (true) {
 			std::cout << "\n+++++++ Waiting for new connection ++++++++\n" << std::endl;
-			server.selectSocket();
 			if (server.ready(server.getMasterFd(), server.getReadFds())) {
 				new_socket = server.acceptSocket();
 				std::cerr << "New connection, socket fd is " << new_socket << std::endl;
