@@ -1,6 +1,6 @@
 #include "HttpRequest.hpp"
 
-HttpRequest::HttpRequest(void) : _method("GET"), _page("home.html"), 
+HttpRequest::HttpRequest(void) : _method("GET"), _page("index.html"), 
 	_version("HTTP/1.1"), _host("localhost:8080") {
 }
 

@@ -18,6 +18,7 @@
 #include "Sockets.hpp"
 #include "HttpResponse.hpp"
 #include "HttpRequest.hpp"
+#include "Config.hpp"
 
 int	main(int ac, char **av) {
 	std::vector<int>::iterator			it;
@@ -26,13 +27,12 @@ int	main(int ac, char **av) {
 	int		new_socket = 0;
 	long	valread = 0;
 
-	(void)av;
-	(void)ac;
-//	if (ac != 2) {
-//		std::cout << "Need a file html in second arg" << std::endl;
-//		return EXIT_FAILURE;
-//	}
+	if (ac != 2) {
+		std::cout << "Need a NGINX file.conf as second arg" << std::endl;
+		return EXIT_FAILURE;
+	}
 	try {
+		Config nginx = Config(av[1]);
 		SocketServer server = SocketServer(PORT, 30);
 
 		while (true) {
@@ -57,15 +57,15 @@ int	main(int ac, char **av) {
 						// maybe with POST: server.closeClean();
 					} else {
 						HttpRequest	req(buffer, BUFFER_SIZE);
-						if (req.getPage() == "index/home.html") {
+						if (req.getPage() == "index/index.html") {
 							HttpResponse	msg;
-							str_file = msg.getHttpResponse("index/home.html");
+							str_file = msg.getHttpResponse("index/index.html");
 						} else if (req.getPage() == "index/lien.html") {
 							HttpResponse	msg;
 							str_file = msg.getHttpResponse("index/lien.html");
 						} else {
 							HttpResponse	msg;
-							str_file = msg.getHttpResponse("index/not_found.html");
+							str_file = msg.getHttpResponse("index/style.css");
 						}
 
 						if (send(server.getSocketUsed(), str_file.c_str(),

@@ -6,7 +6,7 @@ DEBUG = -g3
 
 CPPFLAGS = -Wall -Wextra -Werror -std=c++98 -MMD
 
-SRC = main.cpp Sockets.cpp HttpResponse.cpp HttpRequest.cpp
+SRC = main.cpp Sockets.cpp HttpResponse.cpp HttpRequest.cpp Config.cpp
 
 OBJ = ${SRC:.cpp=.o}
 

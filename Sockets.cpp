@@ -5,16 +5,16 @@
 Socket::Socket() : _clientSocket(30, 0) {
 }
 
-Socket::Socket(const Socket &socket) {
-	*this = socket;
-	return ;
-}
+//Socket::Socket(const Socket &socket) {
+//	*this = socket;
+//	return ;
+//}
 
 Socket::~Socket() {
 	close(_server_fd);
 }
 
-int	Socket::getMasterFd() {
+int	Socket::getMasterFd() const {
 	return _server_fd;
 }
 

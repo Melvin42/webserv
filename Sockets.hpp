@@ -15,13 +15,13 @@
 class Socket {
 	public:
 
-		Socket(const Socket &socket);
+//		Socket(const Socket &socket);
 		virtual ~Socket();
 
 		std::string			receiveLine();
 		void				closeFd();
 		void				SeindLine(std::string);
-		int					getMasterFd();
+		int					getMasterFd() const;
 		std::vector<int>	&getClientSocket();
 
 
@@ -39,9 +39,9 @@ class Socket {
 		struct sockaddr_in	_address;
 
 	private:
-		static void	Start();
-		static void	End();
-		static int	_nofSockets;
+//		static void	Start();
+//		static void	End();
+//		static int	_nofSockets;
 };
 
 class SocketClient : public Socket {
