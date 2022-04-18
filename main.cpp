@@ -37,40 +37,40 @@ int	main(int ac, char **av) {
 
 		while (true) {
 			std::cout << "\n+++++++ Waiting for new connection ++++++++\n" << std::endl;
-			server.Select();
-			if (server.Ready(server.GetMasterFd(), server.GetReadFds())) {
-				new_socket = server.Accept();
+			server.selectSocket();
+			if (server.ready(server.getMasterFd(), server.getReadFds())) {
+				new_socket = server.acceptSocket();
 				std::cerr << "New connection, socket fd is " << new_socket << std::endl;
-				for (it = server.GetClientSocket().begin(); it != ite; it++) {
+				for (it = server.getClientSocket().begin(); it != ite; it++) {
 					if (*it == 0) {
 						*it = new_socket;
 						break ;
 					}
 				}
 			}
-			ite = server.GetClientSocket().end();
+			ite = server.getClientSocket().end();
 			std::string	str_file = "";
-			for (it = server.GetClientSocket().begin(); it != ite; it++) {
-				server.SetSocketUsed(*it);
-				if (server.Ready(server.GetSocketUsed(), server.GetReadFds())) {
-					if ((valread = read(server.GetSocketUsed(), buffer, BUFFER_SIZE)) == 0) {
+			for (it = server.getClientSocket().begin(); it != ite; it++) {
+				server.setSocketUsed(*it);
+				if (server.ready(server.getSocketUsed(), server.getReadFds())) {
+					if ((valread = read(server.getSocketUsed(), buffer, BUFFER_SIZE)) == 0) {
 						// maybe with POST: server.closeClean();
 					} else {
 						HttpRequest	req(buffer, BUFFER_SIZE);
-						if (req.getPage() == "webpages/home.html") {
+						if (req.getPage() == "index/home.html") {
 							HttpResponse	msg;
-							str_file = msg.getHttpResponse("webpages/home.html");
-						} else if (req.getPage() == "webpages/lien.html") {
+							str_file = msg.getHttpResponse("index/home.html");
+						} else if (req.getPage() == "index/lien.html") {
 							HttpResponse	msg;
-							str_file = msg.getHttpResponse("webpages/lien.html");
+							str_file = msg.getHttpResponse("index/lien.html");
 						} else {
 							HttpResponse	msg;
-							str_file = msg.getHttpResponse("webpages/not_found.html");
+							str_file = msg.getHttpResponse("index/not_found.html");
 						}
 
-						if (send(server.GetSocketUsed(), str_file.c_str(),
+						if (send(server.getSocketUsed(), str_file.c_str(),
 									str_file.size(), 0) == static_cast<long>(str_file.size())) {
-							server.CloseClean();
+							server.closeClean();
 							*it = 0;
 						}
 					}

@@ -14,11 +14,11 @@ Socket::~Socket() {
 	close(_server_fd);
 }
 
-int	Socket::GetMasterFd() {
+int	Socket::getMasterFd() {
 	return _server_fd;
 }
 
-std::vector<int>	&Socket::GetClientSocket() {
+std::vector<int>	&Socket::getClientSocket() {
 	return _clientSocket;
 }
 Socket &Socket::operator=(const Socket &socket) {
@@ -65,20 +65,20 @@ SocketServer::SocketServer(int port, int connections) : Socket() {
 	}
 }
 
-int	SocketServer::GetSocketUsed() const {
+int	SocketServer::getSocketUsed() const {
 //	std::cerr << '[' <<_sd << ']';
 	return _sd;
 }
 
-void	SocketServer::SetSocketUsed(int fd) {
+void	SocketServer::setSocketUsed(int fd) {
 	_sd = fd;
 }
 
-fd_set	SocketServer::GetReadFds() const {
+fd_set	SocketServer::getReadFds() const {
 	return _readfds;
 }
 
-int	SocketServer::Accept() {
+int	SocketServer::acceptSocket() {
 	int	new_socket;
 	int	addrlen = sizeof(_address);
 
@@ -88,16 +88,16 @@ int	SocketServer::Accept() {
 	return new_socket;
 }
 
-void	SocketServer::Select() {
+void	SocketServer::selectSocket() {
 	int									activity;
 	std::vector<int>::iterator			it;
-	std::vector<int>::const_iterator	ite = this->GetClientSocket().end();
+	std::vector<int>::const_iterator	ite = this->getClientSocket().end();
 
 	FD_ZERO(&_readfds);
 	FD_SET(_server_fd, &_readfds);
 	_max_sd = _server_fd;
 
-	for (it = this->GetClientSocket().begin(); it != ite; it++) {
+	for (it = this->getClientSocket().begin(); it != ite; it++) {
 		_sd = *it;
 		if (_sd > 0)
 			FD_SET(_sd, &_readfds);
@@ -111,13 +111,13 @@ void	SocketServer::Select() {
 		throw "SELECT FAILED";
 }
 
-bool	SocketServer::Ready(int fd, fd_set set) {
+bool	SocketServer::ready(int fd, fd_set set) {
 	if (FD_ISSET(fd, &set))
 		return true;
 	return false;
 }
 
-void	SocketServer::CloseClean() {
+void	SocketServer::closeClean() {
 	close(_sd);
 	FD_CLR(_sd, &_readfds);
 }

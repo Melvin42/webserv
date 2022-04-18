@@ -18,11 +18,11 @@ class Socket {
 		Socket(const Socket &socket);
 		virtual ~Socket();
 
-		std::string			ReceiveLine();
-		void				Close();
-		void				SendLine(std::string);
-		int					GetMasterFd();
-		std::vector<int>	&GetClientSocket();
+		std::string			receiveLine();
+		void				closeFd();
+		void				SeindLine(std::string);
+		int					getMasterFd();
+		std::vector<int>	&getClientSocket();
 
 
 		Socket &operator=(const Socket &socket);
@@ -53,14 +53,14 @@ class SocketServer : public Socket {
 	public:
 		SocketServer(int port, int connections);
 
-		int		GetSocketUsed() const;
-		void	SetSocketUsed(int fd);
-		fd_set	GetReadFds() const;
+		int		getSocketUsed() const;
+		void	setSocketUsed(int fd);
+		fd_set	getReadFds() const;
 
-		int		Accept();
-		void	Select();
-		bool	Ready(int fd, fd_set set);
-		void	CloseClean();
+		int		acceptSocket();
+		void	selectSocket();
+		bool	ready(int fd, fd_set set);
+		void	closeClean();
 
 	private:
 		int		_sd;
