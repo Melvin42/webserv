@@ -34,41 +34,62 @@ void	Config::parsing(const char *av) {
 		std::vector<std::string>	conf;
 		std::string					line;
 
+		// first passage to extract file and check end of lines
 		while (std::getline(in_file, line)) {
 			line.erase(std::remove_if(line.begin(), line.end(), isspace), line.end());
-//			std::cout << "line:" << line << std::endl;
-			if (line.compare("") != 0)
-				conf.push_back(line);
+			if (line.compare("") != 0) {
+				if (line[line.size() - 1] == ';'
+							|| line[line.size() - 1] == '{'
+							|| line[line.size() - 1] == '}')
+					conf.push_back(line);
+				else {
+					std::cerr << "Error: Bad End of line" << std::endl;
+					exit(EXIT_FAILURE);
+				}
+			}
 		}
 
 		std::vector<std::string>::iterator			it = conf.begin();
 		std::vector<std::string>::const_iterator	ite = conf.end();
 
-		std::string	search = *conf.begin();
+		std::string	search;
 
-		std::cout << search.find_last_of('{') << std::endl;
-		std::cout << search.length() << std::endl;
-		if (search.find_last_of('{') == search.length() - 1)
-			std::cout << "OK!" << std::endl;
+//		std::cerr << *it << std::endl;
 
-//		it = search.find(search.begin(), search.end(), "server");
-
-		std::cerr << *it << std::endl;
-//		_server_name = *it;
-
-//		std::cout << _server_name << std::endl;
-
-//		std::cout << search[0] << std::endl;
-
+//		std::vector<std::string>::iterator			tmp;
+		std::string	tmp;
+		size_t	found = 0;
 		it = conf.begin();
 		ite = conf.end();
 		while (it != ite) {
 //			search = std::find(it.begin(), conf.end(), "listen");
-		std::cout << "search:" << search << std::endl;
+//		std::cout << "search:" << search << std::endl;
+			search = *it;
+			found = search.find("listen");
+			if (found != std::string::npos) {
+				std::cerr << "found = " <<  found << std::endl;
+				std::cerr << search[found + 6] << std::endl;
+				if (search.find(';') != std::string::npos && search[search.size() - 1] == ';')
+					std::cout << ";;;;;;;; OK!" << std::endl;
+
+				tmp = search.erase(0, 6);
+				int	nbr = 0;
+
+				nbr = atoi(tmp.c_str());
+				tmp = std::to_string(nbr); //atoi this end this is good!
+				std::cerr << "tmp = " << tmp << std::endl;
+				std::cerr << "port = " << _port << std::endl;
+
+				_config.insert(std::pair<std::string, std::string>("listen", tmp.c_str()));
+
+//				std::map<std::string, std::string>::const_iterator	tmp;
+				_port = atoi(_config.find("listen")->second.c_str());
+				std::cerr << "port = " << _port << std::endl;
+//				_port = 8080;
+			}
 			std::cerr << *it << std::endl;
 			it++;
 		}
-		_port = 8080;
 	} else {
 		std::cerr << "Can't read conf file" << std::endl;
 	}
