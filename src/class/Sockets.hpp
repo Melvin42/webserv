@@ -11,6 +11,8 @@
 #include <algorithm>
 
 #include "define.h"
+#include "HttpResponse.hpp"
+#include "HttpRequest.hpp"
 
 class Socket {
 	public:
@@ -20,7 +22,6 @@ class Socket {
 
 		std::string			receiveLine();
 		void				closeFd();
-		void				SeindLine(std::string);
 		int					getMasterFd() const;
 		std::vector<int>	&getClientSocket();
 
@@ -29,9 +30,7 @@ class Socket {
 
 	protected:
 		friend class SocketServer;
-//		friend class SocketSelect;
 
-//		Socket(int server_fd);
 		Socket();
 
 		int					_server_fd;
@@ -39,14 +38,6 @@ class Socket {
 		struct sockaddr_in	_address;
 
 	private:
-//		static void	Start();
-//		static void	End();
-//		static int	_nofSockets;
-};
-
-class SocketClient : public Socket {
-	public:
-		SocketClient(const std::string &host, int port);
 };
 
 class SocketServer : public Socket {
@@ -60,6 +51,9 @@ class SocketServer : public Socket {
 		int		acceptSocket();
 		void	selectSocket();
 		bool	ready(int fd, fd_set set);
+		void	setClientSocket();
+		void	simultaneousRead();
+		void	run();
 		void	closeClean();
 
 	private:

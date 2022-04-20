@@ -10,7 +10,7 @@ CLASS_DIR = class
 
 ## Compilating Utilities
 
-INC = $(./$(SRC_DIR)/$(CLASS_DIR)/-I%.hpp) $(./$(SRC_DIR)/$(CLASS_DIR)/-I%.h)
+INC = $(./$(SRC_DIR)/$(CLASS_DIR)/-I%.hpp)## $(./$(SRC_DIR)/$(CLASS_DIR)/-I%.h)
 
 DEBUG = -g3
 
@@ -31,17 +31,14 @@ OBJ = $(SRC:$(SRC_DIR)%.cpp=$(OBJ_DIR)%.o)
 
 DEP = $(OBJ:$(OBJ_DIR)%.o=$(OBJ_DIR)/%.d)
 
-SRC = $(SRC_FT:%=$(SRC_DIR)/%.cpp) \
-		$(CLASS_FT:%=$(SRC_DIR)/$(CLASS_DIR)/%.cpp)
-
 OBJ_DIRS = $(OBJ_DIR) \
 		   $(CLASS_DIR:%=$(OBJ_DIR)/%)
 
 ## Rules of Makefile
 
--include $(DEP)
-
 all : $(NAME)
+
+-include $(DEP)
 
 $(OBJ_DIRS):
 	mkdir -p $@

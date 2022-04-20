@@ -21,19 +21,10 @@ int	Socket::getMasterFd() const {
 std::vector<int>	&Socket::getClientSocket() {
 	return _clientSocket;
 }
+
 Socket &Socket::operator=(const Socket &socket) {
 	(void)socket;
 	return *this;
-}
-
-/**** SOCKET CLIENT ****/
-
-SocketClient::SocketClient(const std::string &host, int port) : Socket() {
-	struct sockaddr_in	address;
-
-	(void)host;
-	(void)port;
-	(void)address;
 }
 
 /**** SOCKET SERVER ****/
@@ -115,6 +106,59 @@ bool	SocketServer::ready(int fd, fd_set set) {
 	if (FD_ISSET(fd, &set))
 		return true;
 	return false;
+}
+
+void	SocketServer::setClientSocket() {
+	std::vector<int>::iterator			it;
+	std::vector<int>::const_iterator	ite;
+	int									new_socket = 0;
+
+	if (this->ready(this->getMasterFd(), this->getReadFds())) {
+		new_socket = this->acceptSocket();
+		std::cerr << "New connection, socket fd is " << new_socket << std::endl;
+		for (it = this->getClientSocket().begin(); it != ite; it++) {
+			if (*it == 0) {
+				*it = new_socket;
+				break ;
+			}
+		}
+	}
+}
+
+void	SocketServer::simultaneousRead() {
+	std::vector<int>::iterator			it;
+	std::vector<int>::const_iterator	ite;
+	char	buffer[BUFFER_SIZE + 1] = {0};
+	long	valread = 0;
+
+	ite = this->getClientSocket().end();
+	std::string	str_file = "";
+	for (it = this->getClientSocket().begin(); it != ite; it++) {
+		this->setSocketUsed(*it);
+		if (this->ready(this->getSocketUsed(), this->getReadFds())) {
+			if ((valread = read(this->getSocketUsed(), buffer, BUFFER_SIZE)) == 0) {
+				// maybe with POST: this->closeClean();
+			} else {
+				HttpRequest	req(buffer, BUFFER_SIZE);
+				HttpResponse	msg;
+				str_file = msg.getHttpResponse(req.getPage());
+				if (send(this->getSocketUsed(), str_file.c_str(),
+							str_file.size(), 0) == static_cast<long>(str_file.size())) {
+					this->closeClean();
+					*it = 0;
+				}
+			}
+		}
+	}
+}
+
+void	SocketServer::run() {
+	while (true) {
+		this->selectSocket();
+		std::cout << "\n+++++++ Waiting for new connection ++++++++\n" << std::endl;
+		this->setClientSocket();
+		this->simultaneousRead();
+	}
 }
 
 void	SocketServer::closeClean() {
