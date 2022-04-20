@@ -1,4 +1,4 @@
-#include "Config.hpp"
+#include "BlockConfig.hpp"
 
 BlockConfig::BlockConfig() {
 }
@@ -14,8 +14,20 @@ BlockConfig::BlockConfig(const BlockConfig &config) {
 BlockConfig::~BlockConfig() {
 }
 
-std::vector<int>		BlockConfig::getPort() const {
+std::vector<int>	BlockConfig::getPort() const {
 	return _port;
+}
+
+std::vector<std::string>	BlockConfig::getRoot() const {
+	return _root;
+}
+
+std::vector<std::string>	BlockConfig::getServerName() const {
+	return _server_name;
+}
+
+std::vector<std::string>	BlockConfig::getLocation() const {
+	return _location;
 }
 
 //void	BlockConfig::printMap() const {
