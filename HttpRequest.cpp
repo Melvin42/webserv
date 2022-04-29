@@ -24,7 +24,7 @@ HttpRequest::HttpRequest(char *buffer, int buf_size) {
 		i += 4;
 		while (buffer[++i] == ' ');
 		while (buffer[i] != '\n' && i < buf_size) {
-			_host = buffer[i];
+			_host += buffer[i];
 			i++;
 		}
 	}

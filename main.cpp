@@ -41,6 +41,9 @@ int	main(int ac, char **av) {
 			if (server.Ready(server.GetMasterFd(), server.GetReadFds())) {
 				new_socket = server.Accept();
 				std::cerr << "New connection, socket fd is " << new_socket << std::endl;
+
+				//ite not yet define ite here!
+				ite = server.GetClientSocket().end();
 				for (it = server.GetClientSocket().begin(); it != ite; it++) {
 					if (*it == 0) {
 						*it = new_socket;
@@ -50,6 +53,7 @@ int	main(int ac, char **av) {
 			}
 			ite = server.GetClientSocket().end();
 			std::string	str_file = "";
+
 			for (it = server.GetClientSocket().begin(); it != ite; it++) {
 				server.SetSocketUsed(*it);
 				if (server.Ready(server.GetSocketUsed(), server.GetReadFds())) {
