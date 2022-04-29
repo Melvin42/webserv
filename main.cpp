@@ -65,15 +65,21 @@ int	main(int ac, char **av) {
 							request += buffer[i];
 						}*/
 //						if (request == "GET /home.html HTTP/1.1\r") {
+						// std::cout << buffer;
 						HttpRequest	req(buffer, BUFFER_SIZE);
-						if (req.getPage() == "webpages/home.html") {
-							HttpResponse	msg;
-							str_file = msg.getHttpResponse("webpages/home.html");
-						} else {
-							HttpResponse	msg;
-							str_file = msg.getHttpResponse("webpages/not_found.html");
-						}
-
+						// std::cout << "Method: " << req.getMethod() << std::endl;
+						// std::cout << "Page: " << req.getPage() << std::endl;
+						// std::cout << "Version: " << req.getVersion() << std::endl;
+						// std::cout << "Host: " << req.getHost() << std::endl;
+						// if (req.getPage() == "webpages/home.html") {
+						// 	HttpResponse	msg;
+						// 	str_file = msg.getHttpResponse("webpages/home.html");
+						// } else {
+						// 	HttpResponse	msg;
+						// 	str_file = msg.getHttpResponse("webpages/not_found.html");
+						// }
+						HttpResponse	msg;
+						str_file = msg.getHttpResponse(req.getPage());
 						if (send(server.GetSocketUsed(), str_file.c_str(),
 									str_file.size(), 0) == static_cast<long>(str_file.size())) {
 							server.CloseClean();

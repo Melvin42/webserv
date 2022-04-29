@@ -56,7 +56,7 @@ HttpResponse::~HttpResponse(void) {
 std::string	HttpResponse::getHttpResponse(std::string path) {
 	std::ifstream	file(path.c_str());
 	if (!file) {
-		std::ifstream	not_found_file("not_found.html");
+		std::ifstream	not_found_file("webpages/not_found.html");
 		if (!not_found_file) {
 			_ret += " 500 " + _status["500"] + "\n\n";
 			return _ret;
@@ -66,12 +66,12 @@ std::string	HttpResponse::getHttpResponse(std::string path) {
 				std::istreambuf_iterator<char>(not_found_file),
 				std::istreambuf_iterator<char>());
 		_ret += str_not_found;
-		return _ret;
-	}
-	std::string	str_file = std::string(
-				std::istreambuf_iterator<char>(file),
-				std::istreambuf_iterator<char>());
-	_ret += " 200 " + _status["200"] + "\n\n";
-	_ret += str_file;
+	} else {
+        std::string	str_file = std::string(
+                    std::istreambuf_iterator<char>(file),
+                    std::istreambuf_iterator<char>());
+        _ret += " 200 " + _status["200"] + "\n\n";
+        _ret += str_file;
+    }
 	return _ret;
 }
