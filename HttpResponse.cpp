@@ -57,19 +57,17 @@ std::string	HttpResponse::getHttpResponse(std::string path) {
 	try {
         std::ifstream	file(path.c_str());
         if (file) {
-            std::cout << "is open" << std::endl;
-            
             std::string	str_file = std::string(
-                        std::istreambuf_iterator<char>(file),
-                        std::istreambuf_iterator<char>());
+                     std::istreambuf_iterator<char>(file),
+                    std::istreambuf_iterator<char>());
         _ret += " 200 " + _status["200"] + "\n\n";
         _ret += str_file;
         return _ret;
         }
     }
     catch (std::exception &e) {
-            if (strcmp(e.what(), "basic_filebuf::underflow error reading the file: Is a directory\n") == 0)
-                 ;
+            if (strcmp(e.what(), "basic_filebuf::underflow error reading the file: Is a directory") != 0)
+                throw e.what();
     }
     std::ifstream	not_found_file("webpages/not_found.html");
 	if (!not_found_file) {
