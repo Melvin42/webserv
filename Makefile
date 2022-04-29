@@ -4,7 +4,7 @@ CC = c++
 
 DEBUG = -g3
 
-CPPFLAGS = -Wall -Wextra -Werror -std=c++98 -MMD
+CPPFLAGS = -Wall -Wextra -Werror -std=c++98 -MMD -fsanitize=address
 
 SRC = main.cpp Sockets.cpp HttpResponse.cpp HttpRequest.cpp
 

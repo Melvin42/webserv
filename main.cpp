@@ -60,17 +60,13 @@ int	main(int ac, char **av) {
 					if ((valread = read(server.GetSocketUsed(), buffer, BUFFER_SIZE)) == 0) {
 						// maybe with POST: server.closeClean();
 					} else {
-//						std::string	request = "";
-/*						for (int i = 0; buffer[i] != '\n' && i < BUFFER_SIZE; i++) {
+						//std::string	request = "";
+						/*for (int i = 0; buffer[i] != '\n' && i < BUFFER_SIZE; i++) {
 							request += buffer[i];
 						}*/
-//						if (request == "GET /home.html HTTP/1.1\r") {
-						// std::cout << buffer;
+						//if (request == "GET /home.html HTTP/1.1\r") {
+// std::cout << buffer;
 						HttpRequest	req(buffer, BUFFER_SIZE);
-						// std::cout << "Method: " << req.getMethod() << std::endl;
-						// std::cout << "Page: " << req.getPage() << std::endl;
-						// std::cout << "Version: " << req.getVersion() << std::endl;
-						// std::cout << "Host: " << req.getHost() << std::endl;
 						// if (req.getPage() == "webpages/home.html") {
 						// 	HttpResponse	msg;
 						// 	str_file = msg.getHttpResponse("webpages/home.html");
