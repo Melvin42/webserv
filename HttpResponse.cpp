@@ -57,18 +57,62 @@ std::string	HttpResponse::getHttpResponse(std::string path) {
 	try {
         std::ifstream	file(path.c_str());
         if (file) {
-            std::string	str_file = std::string(
-                     std::istreambuf_iterator<char>(file),
-                    std::istreambuf_iterator<char>());
-        _ret += " 200 " + _status["200"] + "\n\n";
-        _ret += str_file;
-        return _ret;
+            
+            if (strncmp(path.c_str(), "cgi-bin", 7) == 0) {
+                std::cout << "CGI condition" << std::endl;
+               cgi(path);
+            } else {
+                std::string	str_file = std::string(
+                        std::istreambuf_iterator<char>(file),
+                        std::istreambuf_iterator<char>());
+                _ret += " 200 " + _status["200"] + "\n\n";
+                _ret += str_file;
+            }
+            return _ret;
         }
     }
     catch (std::exception &e) {
-            if (strcmp(e.what(), "basic_filebuf::underflow error reading the file: Is a directory") != 0)
-                throw e.what();
+        if ((strcmp(e.what(), "basic_filebuf::underflow error reading the file: Is a directory") != 0))
+            throw e.what();
     }
+	return _404NotFound();
+}
+
+int HttpResponse::cgi(std::string path) {
+    int     pipefd[2] = {0, 1};
+    pid_t   pid = fork();
+    char    s1[] = "\0";
+    // char    s2[] = path.c_str();
+    std::string address("/mnt/nfs/home/shlu/42/webserv/");
+    address += path;
+    char const *argv[] = {address.c_str(), s1};
+
+    std::cout << "is file, path = " << address  << std::endl;
+    if (pipe(pipefd) == -1)
+        std::cout << "pipe failed" <<std::endl;
+    if (pid == -1)
+        std::cout << "cgi failed" <<std::endl;
+    if (pid == 0) {
+        // if method is get, params should be set to env  
+        // if method is post, params should be sent as stdin
+        // https://en.wikipedia.org/wiki/Common_Gateway_Interface
+        if (execve(address.c_str(), (char *const *)argv, NULL) == -1)
+           // std::cout << "execve failed" <<std::endl;
+            perror("execve");
+    }
+    else {
+        waitpid(pid, 0,0);
+        close(pipefd[0]);
+        close(pipefd[1]);
+    }
+    return 0;
+}
+
+// std::string HttpResponse::interface(std::string errorCode) {
+
+// }
+
+std::string HttpResponse::_404NotFound(void) {
     std::ifstream	not_found_file("webpages/not_found.html");
 	if (!not_found_file) {
 		_ret += " 500 " + _status["500"] + "\n\n";
@@ -79,5 +123,5 @@ std::string	HttpResponse::getHttpResponse(std::string path) {
 			std::istreambuf_iterator<char>(not_found_file),
 			std::istreambuf_iterator<char>());
 	_ret += str_not_found;
-	return _ret;
+    return _ret;
 }
