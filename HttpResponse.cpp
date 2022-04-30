@@ -1,6 +1,10 @@
 #include "HttpResponse.hpp"
 
-HttpResponse::HttpResponse(void) : _ret("HTTP/1.1") {
+HttpResponse::HttpResponse(void) : _ret("HTTP/1.1"), _env(NULL) {
+
+}
+
+HttpResponse::HttpResponse(char **env) : _ret("HTTP/1.1"), _env(env) {
                     _status.insert(std::pair<std::string, std::string>("100", "Continue"));
                     _status.insert(std::pair<std::string, std::string>("101", "Switching Protocols"));
                     _status.insert(std::pair<std::string, std::string>("200", "OK"));
@@ -47,27 +51,19 @@ HttpResponse::HttpResponse(const HttpResponse &httpresponse) {
 HttpResponse &HttpResponse::operator=(const HttpResponse &httpresponse) {
 	_ret = httpresponse._ret;
 	_status = httpresponse._status;
+    _env = httpresponse._env;
 	return *this;
 }
 
 HttpResponse::~HttpResponse(void) {
 }
 
-std::string	HttpResponse::getHttpResponse(std::string path) {
+std::string	HttpResponse::getHttpResponse(std::string requestedPagePath) {
 	try {
-        std::ifstream	file(path.c_str());
-        if (file) {
-            
-            if (strncmp(path.c_str(), "cgi-bin", 7) == 0) {
-                std::cout << "CGI condition" << std::endl;
-               cgi(path);
-            } else {
-                std::string	str_file = std::string(
-                        std::istreambuf_iterator<char>(file),
-                        std::istreambuf_iterator<char>());
-                _ret += " 200 " + _status["200"] + "\n\n";
-                _ret += str_file;
-            }
+        std::ifstream	page(requestedPagePath.c_str());
+        if (page) {
+            if (cgi_parcing_check(requestedPagePath) == 1)
+                getPage(page, "200");
             return _ret;
         }
     }
@@ -78,16 +74,72 @@ std::string	HttpResponse::getHttpResponse(std::string path) {
 	return _404NotFound();
 }
 
-int HttpResponse::cgi(std::string path) {
+void        HttpResponse::getPage(std::ifstream	&page, std::string statusKey) {
+    std::string	str_page = std::string(
+            std::istreambuf_iterator<char>(page),
+            std::istreambuf_iterator<char>());
+    _ret += " " + statusKey + " " + _status[statusKey] + "\n\n";
+    _ret += str_page;
+}
+
+int    HttpResponse::cgi_parcing_check(std::string requestedPagePath) {
+    if (requestedPagePath.find_first_of(".") != std::string::npos)
+    {
+        if (requestedPagePath.compare(requestedPagePath.find_first_of("."), std::string::npos, ".pl", 3) == 0)
+            cgi(get_execve_argv(requestedPagePath, "perl"));
+        else if (requestedPagePath.compare(requestedPagePath.find_first_of("."), std::string::npos, ".php", 4) == 0)
+            cgi(get_execve_argv(requestedPagePath, "php"));
+        else
+            return 1;
+    }
+    else
+        return 1;
+    return 0;
+}
+
+std::string HttpResponse::get_cmd_bin(std::string cmd) const {
+    struct dirent	*ent;
+	struct stat		statbuf;
+    char    *path = getenv("PATH");
+    char    *token = strtok(path, ":");
+    ret = NULL;
+	ent = readdir(dir);
+	while (ent)
+	{
+        while (token)
+        {
+
+        }
+    }
+    std::string bin(cmd);
+
+    return bin;
+}
+
+char    **HttpResponse::get_execve_argv
+        (std::string requestedPagePath, std::string cmd) const {
+char **argv;
+    std::string cmd_bin = get_cmd_bin(cmd);
+    std::string full_page_path(getenv("PWD"));
+    full_page_path += "/" + requestedPagePath;
+    if ((argv = (char **)malloc(sizeof(char *) * 3)) == NULL)
+        return NULL;
+    *argv = (char *)cmd_bin.c_str();
+    *(argv + 1) = (char *)full_page_path.c_str();
+    *(argv + 2) = NULL;
+std::cout << "*argv: " << *argv << std::endl;
+std::cout << "*argv + 1: " << *(argv + 1) << std::endl;
+std::cout << "*argv + 2: " << *(argv + 2) << std::endl;
+    return argv;
+}
+
+int HttpResponse::cgi(char **execve_argv) {
+
     int     pipefd[2] = {0, 1};
     pid_t   pid = fork();
-    char    s1[] = "\0";
-    // char    s2[] = path.c_str();
-    std::string address("/mnt/nfs/home/shlu/42/webserv/");
-    address += path;
-    char const *argv[] = {address.c_str(), s1};
-
-    std::cout << "is file, path = " << address  << std::endl;
+    
+    std::cout << "bin_cmd = " << *execve_argv  << std::endl;
+    std::cout << "full_page_path = " << *(execve_argv + 1)  << std::endl;
     if (pipe(pipefd) == -1)
         std::cout << "pipe failed" <<std::endl;
     if (pid == -1)
@@ -96,7 +148,7 @@ int HttpResponse::cgi(std::string path) {
         // if method is get, params should be set to env  
         // if method is post, params should be sent as stdin
         // https://en.wikipedia.org/wiki/Common_Gateway_Interface
-        if (execve(address.c_str(), (char *const *)argv, NULL) == -1)
+        if (execve(*execve_argv, execve_argv + 1, NULL) == -1)
            // std::cout << "execve failed" <<std::endl;
             perror("execve");
     }

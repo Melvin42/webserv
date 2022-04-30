@@ -19,7 +19,7 @@
 #include "HttpResponse.hpp"
 #include "HttpRequest.hpp"
 
-int	main(int ac, char **av) {
+int	main(int ac, char **av, char **env) {
 	std::vector<int>::iterator			it;
 	std::vector<int>::const_iterator	ite;
 	char	buffer[BUFFER_SIZE + 1] = {0};
@@ -74,7 +74,7 @@ int	main(int ac, char **av) {
 						// 	HttpResponse	msg;
 						// 	str_file = msg.getHttpResponse("webpages/not_found.html");
 						// }
-						HttpResponse	msg;
+						HttpResponse	msg(env);
 						str_file = msg.getHttpResponse(req.getPage());
 						if (send(server.GetSocketUsed(), str_file.c_str(),
 									str_file.size(), 0) == static_cast<long>(str_file.size())) {
