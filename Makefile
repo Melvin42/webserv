@@ -6,9 +6,13 @@ DEBUG = -g3
 
 CPPFLAGS = -Wall -Wextra -Werror -std=c++98 -MMD #-fsanitize=address
 
-SRC = main.cpp Sockets.cpp HttpResponse.cpp HttpRequest.cpp
+SRC_DIR = src/
 
-OBJ = ${SRC:.cpp=.o}
+SRC_LIST = main.cpp Sockets.cpp HttpResponse.cpp HttpRequest.cpp
+
+SRCS = $(addprefix ${SRC_DIR}, ${SRC_LIST})
+
+OBJ = ${SRCS:.cpp=.o}
 
 DEP = ${OBJ:.o=.d}
 
