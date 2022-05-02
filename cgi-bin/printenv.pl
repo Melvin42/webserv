@@ -1,12 +1,10 @@
-#!/usr/bin/env perl
+#!/usr/bin/perl
 
-=head1 DESCRIPTION
+print "Content-type: text/html\n\n";
+print "<font size=+1>Environment</font>\n";
 
-printenv — a CGI program that just prints its environment
-
-=cut
-print "Content-Type: text/plain\n\n";
-
-for my $var ( sort keys %ENV ) {
-    printf "%s=\"%s\"\n", $var, $ENV{$var};
+foreach (sort keys %ENV) {
+   print "<b>$_</b>: $ENV{$_}<br>\n";
 }
+
+1;
