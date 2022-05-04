@@ -16,6 +16,7 @@
 
 /*** Perso Includes ***/
 #include "class/Sockets.hpp"
+#include "class/BlockConfig.hpp"
 #include "class/Config.hpp"
 
 int	main(int ac, char **av) {
@@ -24,8 +25,8 @@ int	main(int ac, char **av) {
 		return EXIT_FAILURE;
 	} else if (ac == 2) {
 		try {
-			BlockConfig conf = BlockConfig(av[1]);
-			SocketServer server = SocketServer(*conf.getPort().data(), 30);
+			Config conf(av[1]);
+			SocketServer server = SocketServer(conf.getConfig().at(0).getPort().at(0), 30);
 
 			server.run();
 		} catch (std::exception &e) {
@@ -33,8 +34,8 @@ int	main(int ac, char **av) {
 		}
 	} else {
 		try {
-			BlockConfig conf = BlockConfig("index/verysimple.conf");
-			SocketServer server = SocketServer(*conf.getPort().data(), 30);
+			Config conf("index/simple.conf");
+			SocketServer server = SocketServer(conf.getConfig().at(0).getPort().at(0), 30);
 
 			server.run();
 		} catch (std::exception &e) {

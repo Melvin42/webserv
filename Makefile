@@ -18,7 +18,7 @@ CPPFLAGS = -Wall -Wextra -Werror -std=c++98 -MMD -D_REENTRANT
 
 CC = c++ $(CPPFLAGS) $(INC)
 
-CLASS_FT = Sockets HttpResponse HttpRequest Config
+CLASS_FT = Sockets HttpResponse HttpRequest Config BlockConfig
 
 SRC_FT = main
 
