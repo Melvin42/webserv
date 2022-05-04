@@ -20,6 +20,12 @@ CC = c++ $(CPPFLAGS) $(INC)
 
 CLASS_FT = Sockets HttpResponse HttpRequest Config BlockConfig
 
+#SRC_LIST = main.cpp Sockets.cpp HttpResponse.cpp HttpRequest.cpp
+#
+#SRCS = $(addprefix ${SRC_DIR}, ${SRC_LIST})
+#
+#OBJ = ${SRCS:.cpp=.o}
+
 SRC_FT = main
 
 ## List of Utilities

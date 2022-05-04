@@ -9,24 +9,27 @@ HttpRequest::HttpRequest(char *buffer, int buf_size) {
 	while (buffer[++i] != ' ' && i < buf_size) {
 		_method += buffer[i];
 	}
-	while (buffer[++i] != '/');
+	while (buffer[++i] != '/')
+		;
 	while (buffer[++i] != ' ' && i < buf_size) {
 		_page += buffer[i];
 	}
-	while (buffer[++i] == ' ');
-	i--;
-	while (buffer[++i] != '\n' && i < buf_size) {
+	while (buffer[++i] == ' ')
+		;
+	while (buffer[i] != '\n' && i < buf_size) {
 		_version += buffer[i];
+		i++;
 	}
 	if (i + 5 >= buf_size)
 		return ;
 	if (buffer[++i] == 'H' && buffer[i + 1] == 'o' && buffer[i + 2] == 's'
 			&& buffer[i + 3] == 't' && buffer[i + 4] == ':') {
 		i += 4;
-		while (buffer[++i] == ' ');
-		i--;
-		while (buffer[++i] != '\n' && i < buf_size) {
-			_host = buffer[i];
+		while (buffer[++i] == ' ')
+			;
+		while (buffer[i] != '\n' && i < buf_size) {
+			_host += buffer[i];
+			i++;
 		}
 	}
 }
