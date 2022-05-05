@@ -1,0 +1,86 @@
+
++++++++ Waiting for new connection ++++++++
+
+
++++++++ Waiting for new connection ++++++++
+
+request index/index.html
+
++++++++ Waiting for new connection ++++++++
+
+
++++++++ Waiting for new connection ++++++++
+
+request index/style.css
+
++++++++ Waiting for new connection ++++++++
+
+
++++++++ Waiting for new connection ++++++++
+
+request index/ravengithub.png
+ ubuntu<br>
+<b>DISPLAY</b>: :0<br>
+<b>DOCKER_HOST</b>: unix:///run/user/34419/docker.sock<br>
+<b>GDK_BACKEND</b>: x11<br>
+<b>GDMSESSION</b>: ubuntu<br>
+<b>GDM_LANG</b>: en<br>
+<b>GIO_LAUNCHED_DESKTOP_FILE</b>: /usr/share/applications/code.desktop<br>
+<b>GIO_LAUNCHED_DESKTOP_FILE_PID</b>: 231277<br>
+<b>GIT_ASKPASS</b>: /usr/share/code/resources/app/extensions/git/dist/askpass.sh<br>
+<b>GJS_DEBUG_OUTPUT</b>: stderr<br>
+<b>GJS_DEBUG_TOPICS</b>: JS ERROR;JS LOG<br>
+<b>GNOME_DESKTOP_SESSION_ID</b>: this-is-deprecated<br>
+<b>GPG_AGENT_INFO</b>: /run/user/34419/gnupg/S.gpg-agent:0:1<br>
+<b>GTK_MODULES</b>: gail:atk-bridge<br>
+<b>HOME</b>: /mnt/nfs/homes/shlu<br>
+<b>IM_CONFIG_PHASE</b>: 1<br>
+<b>INVOCATION_ID</b>: 811fb15137af44f99956d241ecad2302<br>
+<b>JOURNAL_STREAM</b>: 9:2437497<br>
+<b>KRB5CCNAME</b>: FILE:/tmp/krb5cc_34419_BgXvgt<br>
+<b>LANG</b>: en_US.UTF-8<br>
+<b>LANGUAGE</b>: en<br>
+<b>LESS</b>: -R<br>
+<b>LIBVIRT_DEFAULT_URI</b>: qemu:///system<br>
+<b>LOGNAME</b>: shlu<br>
+<b>LSCOLORS</b>: Gxfxcxdxbxegedabagacad<br>
+<b>LS_COLORS</b>: rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:mi=00:su=37;41:sg=30;43:ca=30;41:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arc=01;31:*.arj=01;31:*.taz=01;31:*.lha=01;31:*.lz4=01;31:*.lzh=01;31:*.lzma=01;31:*.tlz=01;31:*.txz=01;31:*.tzo=01;31:*.t7z=01;31:*.zip=01;31:*.z=01;31:*.dz=01;31:*.gz=01;31:*.lrz=01;31:*.lz=01;31:*.lzo=01;31:*.xz=01;31:*.zst=01;31:*.tzst=01;31:*.bz2=01;31:*.bz=01;31:*.tbz=01;31:*.tbz2=01;31:*.tz=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.war=01;31:*.ear=01;31:*.sar=01;31:*.rar=01;31:*.alz=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:*.7z=01;31:*.rz=01;31:*.cab=01;31:*.wim=01;31:*.swm=01;31:*.dwm=01;31:*.esd=01;31:*.jpg=01;35:*.jpeg=01;35:*.mjpg=01;35:*.mjpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.webm=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=00;36:*.au=00;36:*.flac=00;36:*.m4a=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:*.oga=00;36:*.opus=00;36:*.spx=00;36:*.xspf=00;36:<br>
+<b>MAIL</b>: shlu@student.42.fr<br>
+<b>MANAGERPID</b>: 230302<br>
+<b>MANDATORY_PATH</b>: /usr/share/gconf/ubuntu.mandatory.path<br>
+<b>NO_AT_BRIDGE</b>: 1<br>
+<b>OLDPWD</b>: /mnt/nfs/homes/shlu/42/webserv<br>
+<b>ORIGINAL_XDG_CURRENT_DESKTOP</b>: Unity<br>
+<b>PAGER</b>: less<br>
+<b>PATH</b>: /mnt/nfs/homes/shlu/sgoinfre/.brew/bin:/mnt/nfs/homes/shlu/bin:/mnt/nfs/homes/shlu/sgoinfre/.brew/bin:/mnt/nfs/homes/shlu/bin:/mnt/nfs/homes/shlu/sgoinfre/.brew/bin:/mnt/nfs/homes/shlu/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin<br>
+<b>PWD</b>: /mnt/nfs/homes/shlu/42/webserv<br>
+<b>QT_ACCESSIBILITY</b>: 1<br>
+<b>QT_IM_MODULE</b>: ibus<br>
+<b>SESSION_MANAGER</b>: local/e2r10p20.clusters.42paris.fr:@/tmp/.ICE-unix/230818,unix/e2r10p20.clusters.42paris.fr:/tmp/.ICE-unix/230818<br>
+<b>SHELL</b>: /bin/zsh<br>
+<b>SHLVL</b>: 2<br>
+<b>SSH_AGENT_PID</b>: 230758<br>
+<b>SSH_AUTH_SOCK</b>: /run/user/34419/keyring/ssh<br>
+<b>TERM</b>: xterm-256color<br>
+<b>TERM_PROGRAM</b>: vscode<br>
+<b>TERM_PROGRAM_VERSION</b>: 1.66.2<br>
+<b>USER</b>: shlu<br>
+<b>VSCODE_GIT_ASKPASS_EXTRA_ARGS</b>: --ms-enable-electron-run-as-node<br>
+<b>VSCODE_GIT_ASKPASS_MAIN</b>: /usr/share/code/resources/app/extensions/git/dist/askpass-main.js<br>
+<b>VSCODE_GIT_ASKPASS_NODE</b>: /usr/share/code/code<br>
+<b>VSCODE_GIT_IPC_HANDLE</b>: /run/user/34419/vscode-git-f4d856f380.sock<br>
+<b>XAUTHORITY</b>: /mnt/nfs/homes/shlu/.Xauthority<br>
+<b>XDG_CONFIG_DIRS</b>: /etc/xdg/xdg-ubuntu:/etc/xdg<br>
+<b>XDG_CURRENT_DESKTOP</b>: Unity<br>
+<b>XDG_DATA_DIRS</b>: /usr/share/gnome:/usr/share/ubuntu:/mnt/nfs/homes/shlu/.local/share/flatpak/exports/share:/var/lib/flatpak/exports/share:/usr/local/share:/usr/share:/var/lib/snapd/desktop<br>
+<b>XDG_GREETER_DATA_DIR</b>: /var/lib/lightdm-data/shlu<br>
+<b>XDG_MENU_PREFIX</b>: gnome-<br>
+<b>XDG_RUNTIME_DIR</b>: /run/user/34419<br>
+<b>XDG_SEAT_PATH</b>: /org/freedesktop/DisplayManager/Seat0<br>
+<b>XDG_SESSION_CLASS</b>: user<br>
+<b>XDG_SESSION_DESKTOP</b>: ubuntu<br>
+<b>XDG_SESSION_PATH</b>: /org/freedesktop/DisplayManager/Session7<br>
+<b>XDG_SESSION_TYPE</b>: x11<br>
+<b>XMODIFIERS</b>: @im=ibus<br>
+<b>ZSH</b>: /mnt/nfs/homes/shlu/.oh-my-zsh<br>
+<b>_</b>: /mnt/nfs/homes/shlu/42/webserv/./webserv<br>

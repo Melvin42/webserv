@@ -1,10 +1,11 @@
 #!/usr/bin/perl
 
-print "<!DOCTYPE html>
+print " $ARGV[0] $ARGV[1]\r
+<!DOCTYPE html>
 <html>
 <body>
 
-<h1> ERROR $ARGV[0]</h1>
+<h1> ERROR $ARGV[0] </h1>
 
 <p>$ARGV[1].</p>
 </body>

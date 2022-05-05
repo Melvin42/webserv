@@ -151,7 +151,7 @@ int HttpResponse::cgi() {
 		close(pipefd[0]);
 		close(pipefd[1]);
 		std::string st = _root;
-		st += "/tmp";
+		st += "/.tmpExecveFd";
 		std::ifstream tmpst(st.c_str());
 		getPage(tmpst);
 		(void)tmp;
