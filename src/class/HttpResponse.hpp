@@ -16,7 +16,7 @@
 class	HttpResponse {
 	public:
 
-		HttpResponse();
+		
 		HttpResponse(char **env);
 		~HttpResponse();
 
@@ -32,13 +32,14 @@ class	HttpResponse {
 		char								**_env;
 		char								**_exec_argv;
 
+		HttpResponse();
 		int		is_cgi(std::string requestedPagePath);
-		void	set_exec_argv(std::string requestedPagePath, std::string cmdPath);
+		void	errCgi(std::string errCode);
+		void	set_exec_argv(std::string requestedCgiPath, std::string cmdPath, std::string errPage);
 		int		cgi();
 		void	getHeader(std::string statusKey);
 		void	getPage(std::ifstream &page);
 		// std::string	interface(std::string errorCode);
-		std::string	_404NotFound(void);
 };
 
 #endif
