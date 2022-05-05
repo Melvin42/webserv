@@ -12,6 +12,7 @@
 #include <sys/wait.h>
 #include <cstdlib>
 #include <ios>
+#include <dirent.h>
 
 class	HttpResponse {
 	public:
@@ -34,11 +35,12 @@ class	HttpResponse {
 
 		HttpResponse();
 		int		is_cgi(std::string requestedPagePath);
-		void	errCgi(std::string errCode);
+		void	errRet(std::string errCode);
 		void	set_exec_argv(std::string requestedCgiPath, std::string cmdPath, std::string errPage);
-		int		cgi();
+		int		cgi(std::string statusKey);
 		void	getHeader(std::string statusKey);
-		void	getPage(std::ifstream &page);
+		void	getPage(std::string statusKey, std::ifstream &page);
+		void	autoIndex(std::string requestedPagePath);
 		// std::string	interface(std::string errorCode);
 };
 

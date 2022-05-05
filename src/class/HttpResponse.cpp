@@ -1,9 +1,9 @@
 #include "HttpResponse.hpp"
 
-HttpResponse::HttpResponse(void) : _ret("HTTP/1.1"), _root(""), _full_path(""), _env(NULL), _exec_argv(NULL) {
+HttpResponse::HttpResponse(void) : _ret(""), _root(""), _full_path(""), _env(NULL), _exec_argv(NULL) {
 }
 
-HttpResponse::HttpResponse(char **env) : _ret("HTTP/1.1"), _full_path(""), _env(env), _exec_argv(NULL) {
+HttpResponse::HttpResponse(char **env) : _ret(""), _full_path(""), _env(env), _exec_argv(NULL) {
 	_status.insert(std::pair<std::string, std::string>("100", "Continue"));
 	_status.insert(std::pair<std::string, std::string>("101", "Switching Protocols"));
 	_status.insert(std::pair<std::string, std::string>("200", "OK"));
@@ -54,37 +54,37 @@ HttpResponse::~HttpResponse(void) {
 }
 
 void	HttpResponse::getHeader(std::string statusKey) {
-	_ret += " " + statusKey + " " + _status[statusKey] + "\n\n";
+	_ret = "HTTP/1.1 " + statusKey + " " + _status[statusKey] + "\r\n\r\n";
 }
 
-void	HttpResponse::getPage(std::ifstream	&page) {
+void	HttpResponse::getPage(std::string statusKey, std::ifstream	&page) {
 	std::string	str_page = std::string(
 			std::istreambuf_iterator<char>(page),
 			std::istreambuf_iterator<char>());
+	getHeader(statusKey);
 	_ret += str_page;
 }
 
 std::string	HttpResponse::getHttpResponse(std::string requestedPagePath) {
-	std::cout << "request " << requestedPagePath << std::endl;
 	try {
 		std::ifstream	page(requestedPagePath.c_str());
 		if (page) {
 			if (is_cgi(requestedPagePath) == 0)
-			{
-				getHeader("200");
-				getPage(page);
-			}
+				getPage("200", page);
 		}
 		else
-			errCgi("404");
+			errRet("404");
 	}
 	catch (std::exception &e) {
-		if ((strcmp(e.what(),
-						"basic_filebuf::underflow error reading the file: Is a directory") != 0))
-			throw e.what();
-		std::cout << "there is an exception " << std::endl;
-		errCgi("404");
+			std::cout << e.what();
+			if (*(requestedPagePath.end() - 1) != '/')
+				errRet("301");
+			else
+				autoIndex(requestedPagePath);
+			//if autoindex off, 403 forbidden
+			// errCgi("403");
 	}
+	//std::cout << _ret << std::endl;
 	return _ret;
 }
 
@@ -120,7 +120,7 @@ int	HttpResponse::is_cgi(std::string requestedPagePath) {
 		{
 			set_exec_argv(requestedPagePath, 
 					_cgi[requestedPagePath.substr(requestedPagePath.find_first_of("."))], "");
-			cgi();
+			cgi("200");
 		}
 		else
 			return 0;
@@ -130,7 +130,7 @@ int	HttpResponse::is_cgi(std::string requestedPagePath) {
 	return 1;
 }
 
-int HttpResponse::cgi() {
+int HttpResponse::cgi(std::string statusKey) {
 	int     pipefd[2] = {0, 1};
 	pid_t   pid = fork();
 	std::FILE* tmp = freopen(".tmpExecveFd", "wb+", stdout);
@@ -153,16 +153,59 @@ int HttpResponse::cgi() {
 		std::string st = _root;
 		st += "/.tmpExecveFd";
 		std::ifstream tmpst(st.c_str());
-		getPage(tmpst);
+		getPage(statusKey, tmpst);
 		(void)tmp;
 		remove(".tmpExecveFd");
 	}
 	return 0;
 }
 
-void	HttpResponse::errCgi(std::string errCode) {
-	set_exec_argv("cgi-bin/errRet.pl", _cgi[".pl"], errCode);
-	cgi();
+void	HttpResponse::errRet(std::string errCode) {
+	std::stringstream output;
+	getHeader(errCode);
+	output	<< "<!DOCTYPE html>\n"
+			<< "<html>\n"
+			<< "<body>\n"
+			<< "<h1>ERROR "
+			<< errCode
+			<< "</h1>\n"
+			<< "<p>"
+			<< _status[errCode]
+			<< ".</p>\n"
+			<< "</body>\n"
+			<< "</html>\n";
+	_ret += output.str();
+}
+
+void	HttpResponse::autoIndex(std::string requestedPagePath) {
+	DIR	*dp;
+	struct  dirent *ep;
+	dp = opendir(requestedPagePath.c_str());
+	std::stringstream output;
+
+	getHeader("200");
+	output	<< "<!DOCTYPE html>\n"
+			<< "<html>\n" 
+			<< "\t<head>\n"
+			<< "\t\t<meta charset=\"utf-8\" />\n"
+			<< "\t\t<link rel=\"stylesheet\" href=\"style.css\" />\n"
+			<< "\t\t<title>Melval Kingdom</title>\n"
+			<< "\t</head>\n"
+			<< "<body>\n";
+	if (dp != NULL)
+	{
+		while ((ep = readdir(dp)))
+		{
+			output	<< "<p><a href=\""
+					<< ep->d_name
+					<< "\">"
+					<< ep->d_name
+					<< "</a></p>\n";
+		}
+		output << "</body>\n</html>";
+		_ret += output.str();
+		closedir(dp);
+	}
 }
 
 // std::string HttpResponse::interface(std::string errorCode) {
