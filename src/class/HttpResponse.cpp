@@ -147,7 +147,7 @@ int HttpResponse::cgi() {
 // }
 
 std::string HttpResponse::_404NotFound(void) {
-	std::ifstream	not_found_page("webpages/not_found.html");
+	std::ifstream	not_found_page("index/not_found.html");
 	if (!not_found_page)
 		getHeader("500");
 	else {
