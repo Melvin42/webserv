@@ -18,7 +18,7 @@ std::vector<std::string>	BlockConfig::getServerName() const {
 	return _server_name;
 }
 
-std::vector<std::string>	BlockConfig::getLocation() const {
+std::vector<Location>	BlockConfig::getLocation() const {
 	return _location;
 }
 
@@ -26,14 +26,19 @@ void	BlockConfig::setNewPort(int port) {
 	_port.push_back(port);
 }
 
-void	BlockConfig::setNewServerName(std::string name) {
+void	BlockConfig::setNewServerName(const std::string &name) {
 	_server_name.push_back(name);
 }
 
-void	BlockConfig::setNewRoot(std::string root) {
+void	BlockConfig::setNewRoot(const std::string &root) {
 	_root.push_back(root);
 }
 
-void	BlockConfig::setNewLocation(std::string loc) {
+void	BlockConfig::setNewLocation(const std::string &arg) {
+	Location	loc(arg);
+
 	_location.push_back(loc);
+}
+void	BlockConfig::addPathToLocation(const std::string &path, int index) {
+	this->_location.at(index).addPath(path);
 }

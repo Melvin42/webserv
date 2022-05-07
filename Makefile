@@ -14,11 +14,11 @@ INC = $(./$(SRC_DIR)/$(CLASS_DIR)/-I%.hpp)## $(./$(SRC_DIR)/$(CLASS_DIR)/-I%.h)
 
 DEBUG = -g3
 
-CPPFLAGS = -Wall -Wextra -Werror -std=c++98 -MMD -D_REENTRANT
+CPPFLAGS = -Wall -Wextra -std=c++98 -MMD -D_REENTRANT
 
 CC = c++ $(CPPFLAGS) $(INC)
 
-CLASS_FT = Sockets HttpResponse HttpRequest Config BlockConfig
+CLASS_FT = Sockets HttpResponse HttpRequest Config BlockConfig Location
 
 #SRC_LIST = main.cpp Sockets.cpp HttpResponse.cpp HttpRequest.cpp
 #
