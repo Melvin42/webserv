@@ -5,11 +5,6 @@
 Socket::Socket() : _clientSocket(30, 0) {
 }
 
-//Socket::Socket(const Socket &socket) {
-//	*this = socket;
-//	return ;
-//}
-
 Socket::~Socket() {
 	close(_server_fd);
 }
@@ -137,8 +132,10 @@ void	SocketServer::simultaneousRead() {
 		this->setSocketUsed(*it);
 		if (this->ready(this->getSocketUsed(), this->getReadFds())) {
 			if ((valread = read(this->getSocketUsed(), buffer, BUFFER_SIZE)) == 0) {
+				std::cout << "read = 0" << buffer  << std::endl;
 				// maybe with POST: this->closeClean();
 			} else {
+				std::cout << "read = " << valread << " content:\n" << buffer << std::endl;
 				HttpRequest	req(buffer, BUFFER_SIZE);
 				HttpResponse	msg;
 				str_file = msg.getHttpResponse(req.getPage());
@@ -153,7 +150,10 @@ void	SocketServer::simultaneousRead() {
 }
 
 void	SocketServer::run() {
+	int	count_loop = 0;
 	while (true) {
+		count_loop++;
+		std::cout << "count_loop = " << count_loop << std::endl;
 		this->selectSocket();
 		std::cout << "\n+++++++ Waiting for new connection ++++++++\n" << std::endl;
 		this->setClientSocket();
