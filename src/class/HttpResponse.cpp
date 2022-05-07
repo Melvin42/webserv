@@ -88,7 +88,7 @@ std::string	HttpResponse::getHttpResponse(std::string requestedPagePath) {
 
 void	HttpResponse::set_exec_argv(std::string requestedPagePath,
 		std::string cmdPath) {
-	_full_path += _root + "/" + requestedPagePath;
+	_full_path += _root + "/" + requestedPagePath; //i changed some stuff it can be undone
 	*_exec_argv = (char *)cmdPath.c_str();
 	*(_exec_argv + 1) = (char *)_full_path.c_str();
 }
