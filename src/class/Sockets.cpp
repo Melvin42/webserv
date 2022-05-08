@@ -137,7 +137,8 @@ void	SocketServer::simultaneousRead() {
 		this->setSocketUsed(it->getFd());
 		if (this->ready(this->getSocketUsed(), this->getReadFds())) {
 			if ((valread = read(this->getSocketUsed(), buffer, BUFFER_SIZE)) == 0) {
-				if (it->getSendOk()){
+				std::cout << "valread = 0 fd_used = " << it->getFd() << std::endl;
+				if (it->getSendOk() && it->getFd() > 2) {
 					it->setSendOk(false);
 					this->closeClean();
 					it->setRead("");
@@ -150,16 +151,20 @@ void	SocketServer::simultaneousRead() {
 				it->appendRead(buffer);
 					std::cout << "read = " << valread
 						<< " content:\n" << it->getRead() << std::endl;
+					std::cout << "++++++++received from client " << it->getFd()
+					   << "++++++++++++" << std::endl;
 				if (it->isReadOk()) {
-					std::cout << "read = " << valread
+					std::cout << "read OK, val = " << valread
 						<< " content:\n" << it->getRead() << std::endl;
 //					HttpRequest	req(buffer, BUFFER_SIZE);
 					HttpRequest	req(it->getRead().c_str(), it->getRead().size());
 					HttpResponse	msg(_env);
 					str_file = msg.getHttpResponse(req.getPage());
+					std::cout << "+++++++sending data to client++++++++" << std::endl;
 					if (it->getSendOk() == false 
 							&& send(this->getSocketUsed(), str_file.c_str(),
 							str_file.size(), 0) == static_cast<long>(str_file.size())) {
+						std::cout << "send OK val = " << str_file.size() << std::endl;
 						it->setSendOk(true);
 						it->setSend(str_file);
 						this->closeClean();
