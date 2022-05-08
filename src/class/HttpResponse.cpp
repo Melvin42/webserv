@@ -1,9 +1,9 @@
 #include "HttpResponse.hpp"
 
-HttpResponse::HttpResponse(void) : _ret("HTTP/1.1"), _root(""), _full_path(""), _env(NULL), _exec_argv(NULL) {
+HttpResponse::HttpResponse(void) : _ret(""), _root(""), _full_path(""), _env(NULL), _exec_argv(NULL) {
 }
 
-HttpResponse::HttpResponse(char **env) : _ret("HTTP/1.1"), _full_path(""), _env(env) {
+HttpResponse::HttpResponse(char **env) : _ret(""), _full_path(""), _env(env), _exec_argv(NULL) {
 	_status.insert(std::pair<std::string, std::string>("100", "Continue"));
 	_status.insert(std::pair<std::string, std::string>("101", "Switching Protocols"));
 	_status.insert(std::pair<std::string, std::string>("200", "OK"));
@@ -46,23 +46,22 @@ HttpResponse::HttpResponse(char **env) : _ret("HTTP/1.1"), _full_path(""), _env(
 	_cgi.insert(std::pair<std::string, std::string>(".pl", "/usr/bin/perl"));
 	_cgi.insert(std::pair<std::string, std::string>(".php", "/usr/bin/php"));
 	_root = getenv("PWD");
-	_exec_argv = (char **)malloc(sizeof(char *) * 3);
-	*(_exec_argv + 2) = (char *)malloc(sizeof(char) * 1);
-	*(_exec_argv + 2) = NULL;
 }
 
 HttpResponse::~HttpResponse(void) {
-	free(_exec_argv);
+	if (_exec_argv)
+		free(_exec_argv);
 }
 
 void	HttpResponse::getHeader(std::string statusKey) {
-	_ret += " " + statusKey + " " + _status[statusKey] + "\n\n";
+	_ret = "HTTP/1.1 " + statusKey + " " + _status[statusKey] + "\r\n\r\n";
 }
 
-void	HttpResponse::getPage(std::ifstream	&page) {
+void	HttpResponse::getPage(std::string statusKey, std::ifstream	&page) {
 	std::string	str_page = std::string(
 			std::istreambuf_iterator<char>(page),
 			std::istreambuf_iterator<char>());
+	getHeader(statusKey);
 	_ret += str_page;
 }
 
@@ -71,26 +70,44 @@ std::string	HttpResponse::getHttpResponse(std::string requestedPagePath) {
 		std::ifstream	page(requestedPagePath.c_str());
 		if (page) {
 			if (is_cgi(requestedPagePath) == 0)
-			{
-				getHeader("200");
-				getPage(page);
-			}
-			return _ret;
+				getPage("200", page);
 		}
+		else
+			errRet("404");
 	}
 	catch (std::exception &e) {
-		if ((strcmp(e.what(), 
-						"basic_filebuf::underflow error reading the file: Is a directory") != 0))
-			throw e.what();
+//			std::cout << e.what();
+			if (*(requestedPagePath.end() - 1) != '/')
+				errRet("301");
+			else
+				autoIndex(requestedPagePath);
+			//if autoindex off, 403 forbidden
+			// errCgi("403");
 	}
-	return _404NotFound();
+	//std::cout << _ret << std::endl;
+	return _ret;
 }
 
-void	HttpResponse::set_exec_argv(std::string requestedPagePath,
-		std::string cmdPath) {
-	_full_path += _root + "/" + requestedPagePath;
-	*_exec_argv = (char *)cmdPath.c_str();
-	*(_exec_argv + 1) = (char *)_full_path.c_str();
+void	HttpResponse::set_exec_argv(std::string requestedCgiPath,
+		std::string cmdPath, std::string errCode) {
+	if (errCode == "") {
+		_exec_argv = (char **)malloc(sizeof(char *) * 3);
+		*(_exec_argv + 2) = (char *)malloc(sizeof(char) * 1);
+		*(_exec_argv + 2) = NULL;
+		*(_exec_argv + 0) = (char *)cmdPath.c_str();
+		_full_path += _root + "/" + requestedCgiPath;
+		*(_exec_argv + 1) = (char *)_full_path.c_str();
+	}
+	else {
+		_exec_argv = (char **)malloc(sizeof(char *) * 5);
+		*(_exec_argv + 4) = (char *)malloc(sizeof(char) * 1);
+		*(_exec_argv + 4) = NULL;
+		*(_exec_argv + 0) = (char *)cmdPath.c_str();
+		_full_path += _root + "/" + requestedCgiPath;
+		*(_exec_argv + 1) = (char *)_full_path.c_str();
+		*(_exec_argv + 2) = (char *)errCode.c_str();
+		*(_exec_argv + 3) = (char *)_status[errCode].c_str();
+	}
 }
 
 int	HttpResponse::is_cgi(std::string requestedPagePath) {
@@ -102,8 +119,8 @@ int	HttpResponse::is_cgi(std::string requestedPagePath) {
 					std::string::npos, ".php", 4) == 0)
 		{
 			set_exec_argv(requestedPagePath, 
-					_cgi[requestedPagePath.substr(requestedPagePath.find_first_of("."))]);
-			cgi();
+					_cgi[requestedPagePath.substr(requestedPagePath.find_first_of("."))], "");
+			cgi("200");
 		}
 		else
 			return 0;
@@ -113,10 +130,10 @@ int	HttpResponse::is_cgi(std::string requestedPagePath) {
 	return 1;
 }
 
-int HttpResponse::cgi() {
+int HttpResponse::cgi(std::string statusKey) {
 	int     pipefd[2] = {0, 1};
 	pid_t   pid = fork();
-	std::FILE* tmp = freopen("tmp", "wb+", stdout);
+	std::FILE* tmp = freopen(".tmpExecveFd", "wb+", stdout);
 
 	if (pipe(pipefd) == -1)
 		std::cout << "pipe failed" <<std::endl;
@@ -134,25 +151,65 @@ int HttpResponse::cgi() {
 		close(pipefd[0]);
 		close(pipefd[1]);
 		std::string st = _root;
-		st += "/tmp";
+		st += "/.tmpExecveFd";
 		std::ifstream tmpst(st.c_str());
-		getPage(tmpst);
+		getPage(statusKey, tmpst);
 		(void)tmp;
+		remove(".tmpExecveFd");
 	}
 	return 0;
+}
+
+void	HttpResponse::errRet(std::string errCode) {
+	std::stringstream output;
+	getHeader(errCode);
+	output	<< "<!DOCTYPE html>\n"
+			<< "<html>\n"
+			<< "<body>\n"
+			<< "<h1>ERROR "
+			<< errCode
+			<< "</h1>\n"
+			<< "<p>"
+			<< _status[errCode]
+			<< ".</p>\n"
+			<< "</body>\n"
+			<< "</html>\n";
+	_ret += output.str();
+}
+
+void	HttpResponse::autoIndex(std::string requestedPagePath) {
+	DIR	*dp;
+	struct  dirent *ep;
+	dp = opendir(requestedPagePath.c_str());
+	std::stringstream output;
+
+	getHeader("200");
+	output	<< "<!DOCTYPE html>\n"
+			<< "<html>\n" 
+			<< "\t<head>\n"
+			<< "\t\t<meta charset=\"utf-8\" />\n"
+			<< "\t\t<link rel=\"stylesheet\" href=\"style.css\" />\n"
+			<< "\t\t<title>Melval Kingdom</title>\n"
+			<< "\t</head>\n"
+			<< "<body>\n";
+	if (dp != NULL)
+	{
+		while ((ep = readdir(dp)))
+		{
+			output	<< "<p><a href=\""
+					<< ep->d_name;
+			if (ep->d_type == DT_DIR)
+				output << "/";
+			output << "\">"
+					<< ep->d_name
+					<< "</a></p>\n";
+		}
+		output << "</body>\n</html>";
+		_ret += output.str();
+		closedir(dp);
+	}
 }
 
 // std::string HttpResponse::interface(std::string errorCode) {
 
 // }
-
-std::string HttpResponse::_404NotFound(void) {
-	std::ifstream	not_found_page("webpages/not_found.html");
-	if (!not_found_page)
-		getHeader("500");
-	else {
-		getHeader("404");
-		getPage(not_found_page);
-	}
-	return _ret;
-}

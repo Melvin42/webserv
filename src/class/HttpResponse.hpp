@@ -12,11 +12,12 @@
 #include <sys/wait.h>
 #include <cstdlib>
 #include <ios>
+#include <dirent.h>
 
 class	HttpResponse {
 	public:
 
-		HttpResponse();
+		
 		HttpResponse(char **env);
 		~HttpResponse();
 
@@ -32,13 +33,15 @@ class	HttpResponse {
 		char								**_env;
 		char								**_exec_argv;
 
+		HttpResponse();
 		int		is_cgi(std::string requestedPagePath);
-		void	set_exec_argv(std::string requestedPagePath, std::string cmdPath);
-		int		cgi();
+		void	errRet(std::string errCode);
+		void	set_exec_argv(std::string requestedCgiPath, std::string cmdPath, std::string errPage);
+		int		cgi(std::string statusKey);
 		void	getHeader(std::string statusKey);
-		void	getPage(std::ifstream &page);
+		void	getPage(std::string statusKey, std::ifstream &page);
+		void	autoIndex(std::string requestedPagePath);
 		// std::string	interface(std::string errorCode);
-		std::string	_404NotFound(void);
 };
 
 #endif

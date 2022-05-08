@@ -2,7 +2,7 @@
 
 /**** SOCKET ****/
 
-Socket::Socket() : _clientSocket(30, 0) {
+Socket::Socket(char **env) : _clientSocket(30, 0), _env(env) {
 }
 
 Socket::~Socket() {
@@ -24,7 +24,7 @@ Socket &Socket::operator=(const Socket &socket) {
 
 /**** SOCKET SERVER ****/
 
-SocketServer::SocketServer(int port, int connections) : Socket() {
+SocketServer::SocketServer(char **env, int port, int connections) : Socket(env) {
 	int					opt = true;
 	struct sockaddr_in	address;
 
@@ -137,7 +137,7 @@ void	SocketServer::simultaneousRead() {
 			} else {
 				std::cout << "read = " << valread << " content:\n" << buffer << std::endl;
 				HttpRequest	req(buffer, BUFFER_SIZE);
-				HttpResponse	msg;
+				HttpResponse	msg(_env);
 				str_file = msg.getHttpResponse(req.getPage());
 				if (send(this->getSocketUsed(), str_file.c_str(),
 							str_file.size(), 0) == static_cast<long>(str_file.size())) {

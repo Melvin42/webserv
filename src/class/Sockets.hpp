@@ -25,24 +25,23 @@ class Socket {
 		int					getMasterFd() const;
 		std::vector<int>	&getClientSocket();
 
-
 		Socket &operator=(const Socket &socket);
 
 	protected:
 		friend class SocketServer;
 
-		Socket();
+		Socket(char **env);
 
 		int					_server_fd;
 		std::vector<int>	_clientSocket;
 		struct sockaddr_in	_address;
-
+		char				**_env;
 	private:
 };
 
 class SocketServer : public Socket {
 	public:
-		SocketServer(int port, int connections);
+		SocketServer(char **env, int port, int connections);
 
 		int		getSocketUsed() const;
 		void	setSocketUsed(int fd);

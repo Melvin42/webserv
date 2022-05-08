@@ -14,17 +14,11 @@ INC = $(./$(SRC_DIR)/$(CLASS_DIR)/-I%.hpp)## $(./$(SRC_DIR)/$(CLASS_DIR)/-I%.h)
 
 DEBUG = -g3
 
-CPPFLAGS = -Wall -Wextra -Werror -std=c++98 -MMD -D_REENTRANT
+CPPFLAGS = -Wall -Wextra -Werror -std=c++98 -MMD -D_REENTRANT #-fsanitize=address
 
 CC = c++ $(CPPFLAGS) $(INC)
 
 CLASS_FT = Sockets HttpResponse HttpRequest Config BlockConfig
-
-#SRC_LIST = main.cpp Sockets.cpp HttpResponse.cpp HttpRequest.cpp
-#
-#SRCS = $(addprefix ${SRC_DIR}, ${SRC_LIST})
-#
-#OBJ = ${SRCS:.cpp=.o}
 
 SRC_FT = main
 
