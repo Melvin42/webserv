@@ -15,9 +15,9 @@
 #include <sstream>
 
 /*** Perso Includes ***/
-#include "class/Sockets.hpp"
-#include "class/BlockConfig.hpp"
-#include "class/Config.hpp"
+#include "server/Sockets.hpp"
+#include "config/BlockConfig.hpp"
+#include "config/Config.hpp"
 
 int	main(int ac, char **av, char **env) {
 	if (ac > 2) {
