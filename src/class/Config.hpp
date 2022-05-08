@@ -10,28 +10,36 @@ class Config {
 		~Config();
 
 		std::vector<BlockConfig>	getConfig() const;
-		std::string					addConfig(std::ifstream &stream,
-				int &block_index, int &loc_id);
-//
-		std::string	checkEndOfLine(const std::string &word, char c);
-		void		parsing(const char *av);
-		void		parsPort(std::ifstream &stream, int block_index);
-		void		parsServerName(std::ifstream &stream, int block_index);
-		void		parsRoot(std::ifstream &stream, int block_index);
-		void		parsLocation(std::ifstream &stream, int block_index,
-				int loc_id, int &location_scope);
-		void		parsServerScope(std::ifstream &stream);
-//		void		parsLocationScope(std::s);
+		void						addConfig();
+
+		std::string	checkEndOfLine(char c);
+		void		checkSemiColon();
+
+		void		parsing();
+		void		parsPort();
+		void		parsServerName();
+		void		parsRoot();
+		void		parsIndex();
+		void		parsLocation(int &location_scope);
+		void		parsServerScope();
 
 		void		errorBadConf() const;
-		void		errorBadKeyword(const std::string &word) const;
-		void		errorScopeDepth(const std::string &word) const;
+		void		errorBadKeyword() const;
+		void		errorScopeDepth() const;
 
 		void	printAllConfig() const;
 
 	private:
 		Config();
+		std::ifstream				_in_file;
+		std::string					_last_instruction;
+		std::string					_word;
+		int							_block_index;
+		int							_loc_id;
+		bool						_new_instruction;
 		std::vector<BlockConfig>	_config;
 };
+
+bool	isInstruction(const std::string &word);
 
 #endif

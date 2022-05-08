@@ -14,6 +14,10 @@ std::vector<std::string>	BlockConfig::getRoot() const {
 	return _root;
 }
 
+std::vector<std::string>	BlockConfig::getIndex() const {
+	return _index;
+}
+
 std::vector<std::string>	BlockConfig::getServerName() const {
 	return _server_name;
 }
@@ -32,6 +36,10 @@ void	BlockConfig::setNewServerName(const std::string &name) {
 
 void	BlockConfig::setNewRoot(const std::string &root) {
 	_root.push_back(root);
+}
+
+void	BlockConfig::setNewIndex(const std::string &index) {
+	_index.push_back(index);
 }
 
 void	BlockConfig::setNewLocation(const std::string &arg) {
