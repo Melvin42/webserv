@@ -1,7 +1,7 @@
 #include "HttpRequest.hpp"
 
 HttpRequest::HttpRequest(void) : _method(""), _page(""), 
-	_version(""), _host(""), _body(), _content_length(0) {
+	_version(""), _host(""), _body(""), _content_length(0) {
 }
 
 HttpRequest::HttpRequest(const char *buffer, int buf_size) {
@@ -16,37 +16,11 @@ HttpRequest::HttpRequest(const char *buffer, int buf_size) {
 	_page = tmp;
 	std::cerr << "method: " << _method << " page: " << _page
 		<< " version: " << _version << std::endl;
-/*		while (buffer[++i] != ' ' && i < buf_size) {
-		_method += buffer[i];
-	}
-	while (buffer[++i] != '/')
-		;
-	while (buffer[++i] != ' ' && i < buf_size) {
-		_page += buffer[i];
-	}
-	while (buffer[++i] == ' ')
-		;
-	while (buffer[i] != '\n' && i < buf_size) {
-		_version += buffer[i];
-		i++;
-	}*/
 	found = req.find("Host: ");
 	i = found + 5;
 	while (++i < buf_size && buffer[i] != '\n')
 		_host += buffer[i];
 	std::cerr << "host: " << _host << std::endl;
-/*		if (i + 5 >= buf_size)
-		return ;
-	if (buffer[++i] == 'H' && buffer[i + 1] == 'o' && buffer[i + 2] == 's'
-			&& buffer[i + 3] == 't' && buffer[i + 4] == ':') {
-		i += 4;
-	while (buffer[++i] == ' ')
-			;
-		while (buffer[i] != '\n' && i < buf_size) {
-			_host += buffer[i];
-			i++;
-		}
-	}*/
 	found = req.find("Content-Length: ");
 	if (i < buf_size) {
 		i = found + 15;
