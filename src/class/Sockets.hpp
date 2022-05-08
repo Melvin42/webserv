@@ -12,8 +12,8 @@
 
 #include "define.h"
 #include "ClientManager.hpp"
-#include "HttpResponse.hpp"
 #include "HttpRequest.hpp"
+#include "HttpResponse.hpp"
 
 class Socket {
 	public:
@@ -24,6 +24,7 @@ class Socket {
 		std::string			receiveLine();
 		void				closeFd();
 		int					getMasterFd() const;
+		char				**getEnv();
 		std::vector<ClientManager>	&getClientSocket();
 //		std::vector<int>	&getClientSocket();
 
@@ -36,6 +37,7 @@ class Socket {
 		Socket();
 
 		int					_server_fd;
+		char				**_env;
 		std::vector<ClientManager>	_clientSocket;
 //		std::vector<int>	_clientSocket;
 		struct sockaddr_in	_address;
@@ -45,7 +47,8 @@ class Socket {
 
 class SocketServer : public Socket {
 	public:
-		SocketServer(int port, int connections);
+//		SocketServer(int port, int connections);
+		SocketServer(char **env, int port, int connections);
 
 		int		getSocketUsed() const;
 		void	setSocketUsed(int fd);

@@ -24,10 +24,11 @@ Socket &Socket::operator=(const Socket &socket) {
 
 /**** SOCKET SERVER ****/
 
-SocketServer::SocketServer(int port, int connections) : Socket() {
+SocketServer::SocketServer(char **env, int port, int connections) : Socket() {
 	int					opt = true;
 	struct sockaddr_in	address;
 
+	_env = env;
 	memset(&address, 0, sizeof(address));
 
 	if ((_server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0) {
@@ -136,6 +137,13 @@ void	SocketServer::simultaneousRead() {
 		this->setSocketUsed(it->getFd());
 		if (this->ready(this->getSocketUsed(), this->getReadFds())) {
 			if ((valread = read(this->getSocketUsed(), buffer, BUFFER_SIZE)) == 0) {
+				if (it->getSendOk()){
+					it->setSendOk(false);
+					this->closeClean();
+					it->setRead("");
+					it->setFd(0);
+					it->setReadOk(false);
+				}
 //				std::cout << "read = 0" << buffer  << std::endl;
 				// maybe with POST: this->closeClean();
 			} else {
@@ -147,7 +155,7 @@ void	SocketServer::simultaneousRead() {
 						<< " content:\n" << it->getRead() << std::endl;
 //					HttpRequest	req(buffer, BUFFER_SIZE);
 					HttpRequest	req(it->getRead().c_str(), it->getRead().size());
-					HttpResponse	msg;
+					HttpResponse	msg(_env);
 					str_file = msg.getHttpResponse(req.getPage());
 					if (it->getSendOk() == false 
 							&& send(this->getSocketUsed(), str_file.c_str(),
