@@ -88,6 +88,7 @@ std::string	HttpResponse::getHttpResponse(std::string requestedPagePath) {
 	return _ret;
 }
 
+/*<<<<<<< HEAD
 void	HttpResponse::set_exec_argv(std::string requestedCgiPath,
 		std::string cmdPath, std::string errCode) {
 	if (errCode == "") {
@@ -108,6 +109,12 @@ void	HttpResponse::set_exec_argv(std::string requestedCgiPath,
 		*(_exec_argv + 2) = (char *)errCode.c_str();
 		*(_exec_argv + 3) = (char *)_status[errCode].c_str();
 	}
+=======*/
+void	HttpResponse::set_exec_argv(std::string requestedPagePath,
+		std::string cmdPath) {
+	_full_path += _root + "/" + requestedPagePath; //i changed some stuff it can be undone
+	*_exec_argv = (char *)cmdPath.c_str();
+	*(_exec_argv + 1) = (char *)_full_path.c_str();
 }
 
 int	HttpResponse::is_cgi(std::string requestedPagePath) {

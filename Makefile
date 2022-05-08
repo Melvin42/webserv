@@ -18,7 +18,7 @@ CPPFLAGS = -Wall -Wextra -Werror -std=c++98 -MMD -D_REENTRANT #-fsanitize=addres
 
 CC = c++ $(CPPFLAGS) $(INC)
 
-CLASS_FT = Sockets HttpResponse HttpRequest Config BlockConfig
+CLASS_FT = Sockets HttpResponse HttpRequest Config BlockConfig ClientManager
 
 SRC_FT = main
 
