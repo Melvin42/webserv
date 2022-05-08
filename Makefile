@@ -18,7 +18,13 @@ CPPFLAGS = -Wall -Wextra -Werror -std=c++98 -MMD -D_REENTRANT #-fsanitize=addres
 
 CC = c++ $(CPPFLAGS) $(INC)
 
-CLASS_FT = Sockets HttpResponse HttpRequest Config BlockConfig ClientManager
+CLASS_FT = Sockets HttpResponse HttpRequest Config BlockConfig ClientManager Location
+
+#SRC_LIST = main.cpp Sockets.cpp HttpResponse.cpp HttpRequest.cpp
+#
+#SRCS = $(addprefix ${SRC_DIR}, ${SRC_LIST})
+#
+#OBJ = ${SRCS:.cpp=.o}
 
 SRC_FT = main
 

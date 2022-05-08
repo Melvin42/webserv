@@ -9,21 +9,37 @@ class Config {
 		Config(const char *av);
 		~Config();
 
-		std::vector<BlockConfig>	getConfig() const ;
+		std::vector<BlockConfig>	getConfig() const;
 		void						addConfig();
 
-		std::string					checkEndOfLine(const std::string &word, char c);
-		void						parsing(const char *av);
-		void						parsPort(const std::string &word, int block_index);
-		void						parsServerName(const std::string &word, int block_index);
-		void						parsRoot(const std::string &word, int block_index);
-		void						parsLocation(const std::string &word, int block_index);
+		std::string	checkEndOfLine(char c);
+		void		checkSemiColon();
+
+		void		parsing();
+		void		parsPort();
+		void		parsServerName();
+		void		parsRoot();
+		void		parsIndex();
+		void		parsLocation(int &location_scope);
+		void		parsServerScope();
+
+		void		errorBadConf() const;
+		void		errorBadKeyword() const;
+		void		errorScopeDepth() const;
 
 		void	printAllConfig() const;
 
 	private:
 		Config();
+		std::ifstream				_in_file;
+		std::string					_last_instruction;
+		std::string					_word;
+		int							_block_index;
+		int							_loc_id;
+		bool						_new_instruction;
 		std::vector<BlockConfig>	_config;
 };
+
+bool	isInstruction(const std::string &word);
 
 #endif

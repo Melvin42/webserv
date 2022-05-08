@@ -170,18 +170,27 @@ int HttpResponse::cgi(std::string statusKey) {
 void	HttpResponse::errRet(std::string errCode) {
 	std::stringstream output;
 	getHeader(errCode);
-	output	<< "<!DOCTYPE html>\n"
-			<< "<html>\n"
-			<< "<body>\n"
-			<< "<h1>ERROR "
-			<< errCode
-			<< "</h1>\n"
-			<< "<p>"
-			<< _status[errCode]
-			<< ".</p>\n"
-			<< "</body>\n"
-			<< "</html>\n";
-	_ret += output.str();
+	if (errCode != "404") {
+		output	<< "<!DOCTYPE html>\n"
+				<< "<html>\n"
+				<< "<body>\n"
+				<< "<h1>ERROR "
+				<< errCode
+				<< "</h1>\n"
+				<< "<p>"
+				<< _status[errCode]
+				<< ".</p>\n"
+				<< "</body>\n"
+				<< "</html>\n";
+		_ret += output.str();
+	} else {
+		std::string		word;
+		std::ifstream	file("./index/404/index_404.html");
+
+		while (file >> word) {
+			_ret += word;
+		}
+	}
 }
 
 void	HttpResponse::autoIndex(std::string requestedPagePath) {
