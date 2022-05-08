@@ -11,6 +11,7 @@
 #include <algorithm>
 
 #include "define.h"
+#include "ClientManager.hpp"
 #include "HttpResponse.hpp"
 #include "HttpRequest.hpp"
 
@@ -23,25 +24,28 @@ class Socket {
 		std::string			receiveLine();
 		void				closeFd();
 		int					getMasterFd() const;
-		std::vector<int>	&getClientSocket();
+		std::vector<ClientManager>	&getClientSocket();
+//		std::vector<int>	&getClientSocket();
+
 
 		Socket &operator=(const Socket &socket);
 
 	protected:
 		friend class SocketServer;
 
-		Socket(char **env);
+		Socket();
 
 		int					_server_fd;
-		std::vector<int>	_clientSocket;
+		std::vector<ClientManager>	_clientSocket;
+//		std::vector<int>	_clientSocket;
 		struct sockaddr_in	_address;
-		char				**_env;
+
 	private:
 };
 
 class SocketServer : public Socket {
 	public:
-		SocketServer(char **env, int port, int connections);
+		SocketServer(int port, int connections);
 
 		int		getSocketUsed() const;
 		void	setSocketUsed(int fd);

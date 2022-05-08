@@ -2,7 +2,7 @@
 
 /**** SOCKET ****/
 
-Socket::Socket(char **env) : _clientSocket(30, 0), _env(env) {
+Socket::Socket() : _clientSocket(30, 0) {
 }
 
 Socket::~Socket() {
@@ -13,7 +13,7 @@ int	Socket::getMasterFd() const {
 	return _server_fd;
 }
 
-std::vector<int>	&Socket::getClientSocket() {
+std::vector<ClientManager>	&Socket::getClientSocket() {
 	return _clientSocket;
 }
 
@@ -24,7 +24,7 @@ Socket &Socket::operator=(const Socket &socket) {
 
 /**** SOCKET SERVER ****/
 
-SocketServer::SocketServer(char **env, int port, int connections) : Socket(env) {
+SocketServer::SocketServer(int port, int connections) : Socket() {
 	int					opt = true;
 	struct sockaddr_in	address;
 
@@ -76,15 +76,15 @@ int	SocketServer::acceptSocket() {
 
 void	SocketServer::selectSocket() {
 	int									activity;
-	std::vector<int>::iterator			it;
-	std::vector<int>::const_iterator	ite = this->getClientSocket().end();
+	std::vector<ClientManager>::iterator			it;
+	std::vector<ClientManager>::const_iterator	ite = this->getClientSocket().end();
 
 	FD_ZERO(&_readfds);
 	FD_SET(_server_fd, &_readfds);
 	_max_sd = _server_fd;
 
 	for (it = this->getClientSocket().begin(); it != ite; it++) {
-		_sd = *it;
+		_sd = it->getFd();
 		if (_sd > 0)
 			FD_SET(_sd, &_readfds);
 		if (_sd > _max_sd)
@@ -104,45 +104,62 @@ bool	SocketServer::ready(int fd, fd_set set) {
 }
 
 void	SocketServer::setClientSocket() {
-	std::vector<int>::iterator			it;
-	std::vector<int>::const_iterator	ite;
-	int									new_socket = 0;
+//	std::vector<ClientManager>::iterator		it;
+//	std::vector<ClientManager>::const_iterator	ite;
+//	int									new_socket = 0;
 
 	if (this->ready(this->getMasterFd(), this->getReadFds())) {
-		new_socket = this->acceptSocket();
-		std::cerr << "New connection, socket fd is " << new_socket << std::endl;
-		for (it = this->getClientSocket().begin(); it != ite; it++) {
-			if (*it == 0) {
-				*it = new_socket;
-				break ;
-			}
-		}
+		ClientManager	new_client(this->acceptSocket());
+		std::cerr << "New connection, socket fd is " << new_client.getFd() << std::endl;
+		this->getClientSocket().push_back(new_client);
+//		new_socket = this->acceptSocket();
+//		std::cerr << "New connection, socket fd is " << new_socket << std::endl;
+//		for (it = this->getClientSocket().begin(); it != ite; it++) {
+//			if (*it == 0) {
+//				it->setFd(new_socket);
+//				*it = new_socket;
+//				break ;
+//			}
+//		}
 	}
 }
 
 void	SocketServer::simultaneousRead() {
-	std::vector<int>::iterator			it;
-	std::vector<int>::const_iterator	ite;
+	std::vector<ClientManager>::iterator			it;
+	std::vector<ClientManager>::const_iterator	ite;
 	char	buffer[BUFFER_SIZE + 1] = {0};
 	long	valread = 0;
 
 	ite = this->getClientSocket().end();
 	std::string	str_file = "";
 	for (it = this->getClientSocket().begin(); it != ite; it++) {
-		this->setSocketUsed(*it);
+		this->setSocketUsed(it->getFd());
 		if (this->ready(this->getSocketUsed(), this->getReadFds())) {
 			if ((valread = read(this->getSocketUsed(), buffer, BUFFER_SIZE)) == 0) {
-				std::cout << "read = 0" << buffer  << std::endl;
+//				std::cout << "read = 0" << buffer  << std::endl;
 				// maybe with POST: this->closeClean();
 			} else {
-				std::cout << "read = " << valread << " content:\n" << buffer << std::endl;
-				HttpRequest	req(buffer, BUFFER_SIZE);
-				HttpResponse	msg(_env);
-				str_file = msg.getHttpResponse(req.getPage());
-				if (send(this->getSocketUsed(), str_file.c_str(),
+				it->appendRead(buffer);
+					std::cout << "read = " << valread
+						<< " content:\n" << it->getRead() << std::endl;
+				if (it->isReadOk()) {
+					std::cout << "read = " << valread
+						<< " content:\n" << it->getRead() << std::endl;
+//					HttpRequest	req(buffer, BUFFER_SIZE);
+					HttpRequest	req(it->getRead().c_str(), it->getRead().size());
+					HttpResponse	msg;
+					str_file = msg.getHttpResponse(req.getPage());
+					if (it->getSendOk() == false 
+							&& send(this->getSocketUsed(), str_file.c_str(),
 							str_file.size(), 0) == static_cast<long>(str_file.size())) {
-					this->closeClean();
-					*it = 0;
+						it->setSendOk(true);
+						it->setSend(str_file);
+						this->closeClean();
+						it->setRead("");
+						it->setFd(0);
+						it->setReadOk(false);
+//						*it = 0;
+					}
 				}
 			}
 		}
