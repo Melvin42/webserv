@@ -5,6 +5,7 @@
 #include <fstream>
 #include <sstream>
 #include <ctype.h>
+#include "ClientManager.hpp"
 
 class	HttpRequest {
 	public:
@@ -30,7 +31,6 @@ class	HttpRequest {
 		std::string	_host;
 		std::string	_body;
 		size_t	_content_length;
-		bool	_header_ok;
 };
 
 #endif
