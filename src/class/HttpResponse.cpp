@@ -76,7 +76,7 @@ std::string	HttpResponse::getHttpResponse(std::string requestedPagePath) {
 			errRet("404");
 	}
 	catch (std::exception &e) {
-			std::cout << e.what();
+//			std::cout << e.what();
 			if (*(requestedPagePath.end() - 1) != '/')
 				errRet("301");
 			else
@@ -197,8 +197,10 @@ void	HttpResponse::autoIndex(std::string requestedPagePath) {
 		while ((ep = readdir(dp)))
 		{
 			output	<< "<p><a href=\""
-					<< ep->d_name
-					<< "\">"
+					<< ep->d_name;
+			if (ep->d_type == DT_DIR)
+				output << "/";
+			output << "\">"
 					<< ep->d_name
 					<< "</a></p>\n";
 		}
