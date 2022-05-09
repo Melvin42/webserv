@@ -1,0 +1,5 @@
+FILE* fp = std::fopen("/tmp/test.txt", "w+");
+		(void)fp;
+		std::ofstream test("/tmp/test.txt");
+		test << "pos = " << pos << std::endl; 
+		test << "status changed: " << statusKey << std::endl;

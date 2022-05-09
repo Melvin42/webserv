@@ -53,15 +53,31 @@ HttpResponse::~HttpResponse(void) {
 		free(_exec_argv);
 }
 
-void	HttpResponse::getHeader(std::string statusKey) {
+void	HttpResponse::setHeader(std::string statusKey) {
 	_ret = "HTTP/1.1 " + statusKey + " " + _status[statusKey] + "\r\n\r\n";
 }
 
-void	HttpResponse::getPage(std::string statusKey, std::ifstream	&page) {
+void	HttpResponse::setCgiHeader(std::string statusKey) {
+	_ret = "HTTP/1.1 " + statusKey + " " + _status[statusKey] + "\r\n";
+}
+
+void	HttpResponse::setPage(std::string statusKey, std::ifstream &page) {
+	size_t pos = -1;
 	std::string	str_page = std::string(
 			std::istreambuf_iterator<char>(page),
 			std::istreambuf_iterator<char>());
-	getHeader(statusKey);
+	if ((pos = str_page.find("status: ", 0, 7)) != std::string::npos ||
+		(pos = str_page.find_first_of("Status: ", 0, 7)) != std::string::npos ||
+		(pos = str_page.find_first_of("STATUS: ", 0, 7)) != std::string::npos)
+	{
+		while (str_page[pos + 7] == ' ')
+			pos++;
+		statusKey = str_page.substr(pos + 7, 3);
+	}
+	if ((pos = str_page.find("\r\n\r\n")) != std::string::npos)
+		setCgiHeader(statusKey);
+	else
+		setHeader(statusKey);
 	_ret += str_page;
 }
 
@@ -70,7 +86,7 @@ std::string	HttpResponse::getHttpResponse(std::string requestedPagePath) {
 		std::ifstream	page(requestedPagePath.c_str());
 		if (page) {
 			if (is_cgi(requestedPagePath) == 0)
-				getPage("200", page);
+				setPage("200", page);
 		}
 		else
 			errRet("404");
@@ -153,7 +169,7 @@ int HttpResponse::cgi(std::string statusKey) {
 		std::string st = _root;
 		st += "/.tmpExecveFd";
 		std::ifstream tmpst(st.c_str());
-		getPage(statusKey, tmpst);
+		setPage(statusKey, tmpst);
 		(void)tmp;
 		remove(".tmpExecveFd");
 	}
@@ -162,7 +178,7 @@ int HttpResponse::cgi(std::string statusKey) {
 
 void	HttpResponse::errRet(std::string errCode) {
 	std::stringstream output;
-	getHeader(errCode);
+	setHeader(errCode);
 	output	<< "<!DOCTYPE html>\n"
 			<< "<html>\n"
 			<< "<body>\n"
@@ -183,7 +199,7 @@ void	HttpResponse::autoIndex(std::string requestedPagePath) {
 	dp = opendir(requestedPagePath.c_str());
 	std::stringstream output;
 
-	getHeader("200");
+	setHeader("200");
 	output	<< "<!DOCTYPE html>\n"
 			<< "<html>\n" 
 			<< "\t<head>\n"
