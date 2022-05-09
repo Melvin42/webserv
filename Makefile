@@ -6,7 +6,9 @@ NAME = webserv
 
 SRC_DIR = src
 OBJ_DIR = obj
-CLASS_DIR = class
+CONFIG_DIR = config
+SERVER_DIR = server
+HTTP_DIR = http
 
 ## Compilating Utilities
 
@@ -18,21 +20,35 @@ CPPFLAGS = -Wall -Wextra -Werror -std=c++98 -MMD -D_REENTRANT #-fsanitize=addres
 
 CC = c++ $(CPPFLAGS) $(INC)
 
-CLASS_FT = Sockets HttpResponse HttpRequest Config BlockConfig
+CONFIG_FT = Config BlockConfig Location
+
+SERVER_FT = Sockets ClientManager
+
+HTTP_FT = HttpResponse HttpRequest
+
+#SRC_LIST = main.cpp Sockets.cpp HttpResponse.cpp HttpRequest.cpp
+#
+#SRCS = $(addprefix ${SRC_DIR}, ${SRC_LIST})
+#
+#OBJ = ${SRCS:.cpp=.o}
 
 SRC_FT = main
 
 ## List of Utilities
 
 SRC = $(SRC_FT:%=$(SRC_DIR)/%.cpp) \
-		$(CLASS_FT:%=$(SRC_DIR)/$(CLASS_DIR)/%.cpp)
+		$(CONFIG_FT:%=$(SRC_DIR)/$(CONFIG_DIR)/%.cpp) \
+		$(SERVER_FT:%=$(SRC_DIR)/$(SERVER_DIR)/%.cpp) \
+		$(HTTP_FT:%=$(SRC_DIR)/$(HTTP_DIR)/%.cpp)
 
 OBJ = $(SRC:$(SRC_DIR)%.cpp=$(OBJ_DIR)%.o)
 
 DEP = $(OBJ:$(OBJ_DIR)%.o=$(OBJ_DIR)/%.d)
 
 OBJ_DIRS = $(OBJ_DIR) \
-		   $(CLASS_DIR:%=$(OBJ_DIR)/%)
+		   $(CONFIG_DIR:%=$(OBJ_DIR)/%) \
+		   $(SERVER_DIR:%=$(OBJ_DIR)/%) \
+		   $(HTTP_DIR:%=$(OBJ_DIR)/%)
 
 ## Rules of Makefile
 

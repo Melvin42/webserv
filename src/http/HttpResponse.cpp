@@ -92,7 +92,7 @@ std::string	HttpResponse::getHttpResponse(std::string requestedPagePath) {
 			errRet("404");
 	}
 	catch (std::exception &e) {
-			std::cout << e.what();
+//			std::cout << e.what();
 			if (*(requestedPagePath.end() - 1) != '/')
 				errRet("301");
 			else
@@ -100,7 +100,6 @@ std::string	HttpResponse::getHttpResponse(std::string requestedPagePath) {
 			//if autoindex off, 403 forbidden
 			// errCgi("403");
 	}
-	//std::cout << _ret << std::endl;
 	return _ret;
 }
 
@@ -125,7 +124,14 @@ void	HttpResponse::set_exec_argv(std::string requestedCgiPath,
 		*(_exec_argv + 3) = (char *)_status[errCode].c_str();
 	}
 }
-
+	/*
+void	HttpResponse::set_exec_argv(std::string requestedPagePath,
+		std::string cmdPath) {
+	_full_path += _root + "/" + requestedPagePath; //i changed some stuff it can be undone
+	*_exec_argv = (char *)cmdPath.c_str();
+	*(_exec_argv + 1) = (char *)_full_path.c_str();
+}
+*/
 int	HttpResponse::is_cgi(std::string requestedPagePath) {
 	if (requestedPagePath.find_first_of(".") != std::string::npos)
 	{
@@ -213,8 +219,10 @@ void	HttpResponse::autoIndex(std::string requestedPagePath) {
 		while ((ep = readdir(dp)))
 		{
 			output	<< "<p><a href=\""
-					<< ep->d_name
-					<< "\">"
+					<< ep->d_name;
+			if (ep->d_type == DT_DIR)
+				output << "/";
+			output << "\">"
 					<< ep->d_name
 					<< "</a></p>\n";
 		}

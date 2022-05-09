@@ -10,42 +10,47 @@
 #include <errno.h>
 #include <algorithm>
 
-#include "define.h"
-#include "HttpResponse.hpp"
-#include "HttpRequest.hpp"
+#include "ClientManager.hpp"
+#include "../config/Config.hpp"
+#include "../http/HttpRequest.hpp"
+#include "../http/HttpResponse.hpp"
 
 class Socket {
 	public:
 
 //		Socket(const Socket &socket);
+		Socket();
 		virtual ~Socket();
 
 		std::string			receiveLine();
 		void				closeFd();
 		int					getMasterFd() const;
-		std::vector<int>	&getClientSocket();
+		char				**getEnv();
+		std::vector<ClientManager>	&getClientSocket();
+//		std::vector<int>	&getClientSocket();
 
-		Socket &operator=(const Socket &socket);
 
 	protected:
 		friend class SocketServer;
 
-		Socket(char **env);
-
 		int					_server_fd;
-		std::vector<int>	_clientSocket;
-		struct sockaddr_in	_address;
 		char				**_env;
+		std::vector<ClientManager>	_clientSocket;
+//		std::vector<int>	_clientSocket;
+		struct sockaddr_in	_address;
+
 	private:
 };
 
 class SocketServer : public Socket {
 	public:
-		SocketServer(char **env, int port, int connections);
+//		SocketServer(int port, int connections);
+		SocketServer(char **env, const Config &conf, int connections);
 
 		int		getSocketUsed() const;
 		void	setSocketUsed(int fd);
 		fd_set	getReadFds() const;
+		Config	&getConfig() ;
 
 		int		acceptSocket();
 		void	selectSocket();
@@ -59,6 +64,7 @@ class SocketServer : public Socket {
 		int		_sd;
 		int		_max_sd;
 		fd_set	_readfds;
+		Config	_config;
 };
 
 #endif
