@@ -69,8 +69,8 @@ void	ClientManager::appendRead(char *buf) {
 	_read.append(buf);
 }
 
-bool	ClientManager::isReadOk() {
-	HttpRequest	req(_read.c_str(), static_cast<int>(_read.size()));
+bool	ClientManager::isReadOk(const std::string &path) {
+	HttpRequest	req(_read.c_str(), static_cast<int>(_read.size()), path);
 	if (req.getBody().size() == req.getContentLength()) {
 		_read_ok = true;
 	}

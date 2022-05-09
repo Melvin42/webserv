@@ -24,23 +24,15 @@ int	main(int ac, char **av, char **env) {
 		std::cout << "Need a NGINX file.conf as second arg" << std::endl;
 		return EXIT_FAILURE;
 	} else if (ac == 2) {
-		try {
 			Config conf(av[1]);
-			SocketServer server = SocketServer(env, conf.getConfig().at(0).getPort().at(0), 30);
+			SocketServer server(env, conf, 30);
 
 			server.run();
-		} catch (std::exception &e) {
-			std::cerr << e.what() << std::endl;
-		}
 	} else {
-		try {
 			Config conf("index/simple.conf");
-			SocketServer server = SocketServer(env, conf.getConfig().at(0).getPort().at(0), 30);
+			SocketServer server(env, conf, 30);
 
 			server.run();
-		} catch (std::exception &e) {
-			std::cerr << e.what() << std::endl;
-		}
 	}
 	return EXIT_SUCCESS;
 }
