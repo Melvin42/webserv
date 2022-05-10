@@ -89,8 +89,10 @@ std::string	HttpResponse::getHttpResponse(std::string requestedPagePath) {
 			if (is_cgi(requestedPagePath) == 0)
 				setPage("200", page);
 		}
-		else
-			errRet("404");
+		else {
+			std::ifstream	page("./index/404/index_404.html");
+			setPage("404", page);
+		}
 	}
 	catch (std::exception &e) {
 //			std::cout << e.what();
