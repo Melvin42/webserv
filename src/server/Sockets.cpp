@@ -4,7 +4,7 @@
 
 /**** SOCKET ****/
 
-Socket::Socket() : _clientSocket(30, 0) {
+Socket::Socket() : _server_fd(0), _env(NULL), _clientSocket(1, 0) {
 }
 
 Socket::~Socket() {
@@ -19,13 +19,13 @@ std::vector<ClientManager>	&Socket::getClientSocket() {
 	return _clientSocket;
 }
 
-
 /**** SOCKET SERVER ****/
 
-SocketServer::SocketServer(char **env, int port, int connections) : Socket() {
+SocketServer::SocketServer(char **env, const Config &conf, int connections) : Socket() {
 	int					opt = true;
 	struct sockaddr_in	address;
 
+	_config = conf;
 	_env = env;
 	memset(&address, 0, sizeof(address));
 
@@ -39,7 +39,8 @@ SocketServer::SocketServer(char **env, int port, int connections) : Socket() {
 	}
 	address.sin_family = AF_INET;
 	address.sin_addr.s_addr = INADDR_ANY;
-	address.sin_port = htons(port);
+//	address.sin_port = htons(8080);
+	address.sin_port = htons(conf.getConfig().at(0).getPort().at(0));
 	memset(address.sin_zero, 0, sizeof(address.sin_zero));
 
 	if (bind(_server_fd, (struct sockaddr *)&address, sizeof(address)) < 0) {
@@ -67,6 +68,10 @@ fd_set	SocketServer::getWriteFds() const {
 	return _writefds;
 }
 
+Config	&SocketServer::getConfig() {
+	return _config;
+}
+
 int	SocketServer::acceptSocket() {
 	int	new_socket;
 	int	addrlen = sizeof(_address);
@@ -87,7 +92,7 @@ void	SocketServer::selectSocket() {
 	FD_ZERO(&_writefds);
 	FD_SET(_server_fd, &_writefds);
 	_max_sd = _server_fd;
-
+//
 	for (it = this->getClientSocket().begin(); it != ite; it++) {
 		_sd = it->getFd();
 		if (_sd > 0) {
@@ -142,6 +147,8 @@ void	SocketServer::simultaneousRead() {
 	for (it = this->getClientSocket().begin(); it != ite; it++) {
 		this->setSocketUsed(it->getFd());
 		if (this->ready(this->getSocketUsed(), this->getReadFds())) {
+			std::cerr << "read fd ready" << std::endl;
+			std::cout << "+++++++receiving data to client++++++++" << std::endl;
 			if ((valread = read(this->getSocketUsed(), buffer, BUFFER_SIZE)) <= 0) {
 				std::cout << "valread <= 0 fd_used = " << it->getFd() << std::endl;
 				this->closeClean();
@@ -152,8 +159,9 @@ void	SocketServer::simultaneousRead() {
 				std::cerr << "valread = " << valread
 				   << "fd_used = " << it->getFd() << std::endl;
 				it->appendRead(buffer);
-				if (it->isReadOk()) {
-					HttpRequest	req(it->getRead().c_str(), it->getRead().size());
+				if (it->isReadOk(this->getConfig().getPath())) {
+					HttpRequest	req(it->getRead().c_str(),
+							it->getRead().size(), this->getConfig().getPath());
 					HttpResponse	msg(_env);
 					str_file = msg.getHttpResponse(req.getPage());
 //					it->setSend(msg.getHttpResponse(req.getPage()));
@@ -180,72 +188,16 @@ void	SocketServer::simultaneousRead() {
 		}
 	}
 }
-	/*	if (this->ready(this->getSocketUsed(), this->getWriteFds())) {
-			std::cerr << "write fd ready" << std::endl;
-			if (it->getReadOk()) {
-				std::cout << "+++++++sending data to client++++++++" << std::endl;
-				if (it->getSendOk() == false 
-						&& send(this->getSocketUsed(), it->getSend().c_str(),
-						it->getSend().size(), 0) == static_cast<long>(it->getSend().size())) {
-//					this->closeClean();
-					it->setSendOk(true);
-					it->setSend("");
-					it->setReadOk(false);
-//					it->setRead("");
-//					it->setFd(-1);
-//					it->setReadOk(false);
-				} else {
-					std::cerr << "send failed: "
-						<< it->getSend() << std::endl;
-				}
-			}
-		}*/
-					///////////////////////////////////////////////
-/*				if (it->isReadOk()) {
-					HttpRequest	req(it->getRead().c_str(), it->getRead().size());
-					HttpResponse	msg(_env);
-					str_file = msg.getHttpResponse(req.getPage());
-					std::cout << "+++++++sending data to client++++++++" << std::endl;
-					if (it->getSendOk() == false 
-							&& send(this->getSocketUsed(), str_file.c_str(),
-							str_file.size(), 0) == static_cast<long>(str_file.size())) {
-						it->setSendOk(true);
-						it->setSend(str_file);
-						this->closeClean();
-						it->setRead("");
-						it->setFd(0);
-						it->setReadOk(false);
-//						*it = 0;
-					}
-				}
-			}
-		}
-		if (this->ready(this->getSocketUsed(), this->getWriteFds())) {
-				if (it->isReadOk()) {
-//					std::cout << "read OK, val = " << valread
-//						<< " content:\n" << it->getRead() << std::endl;
-//					HttpRequest	req(buffer, BUFFER_SIZE);
-					HttpRequest	req(it->getRead().c_str(), it->getRead().size());
-					HttpResponse	msg(_env);
-					str_file = msg.getHttpResponse(req.getPage());
-					std::cout << "+++++++sending data to client++++++++" << std::endl;
-					if (it->getSendOk() == false 
-							&& send(this->getSocketUsed(), str_file.c_str(),
-							str_file.size(), 0) == static_cast<long>(str_file.size())) {
-						it->setSendOk(true);
-						it->setSend(str_file);
-						this->closeClean();
-						it->setRead("");
-						it->setFd(0);*/
-				//////////////////////////////////////////
 
+					///////////////////////////////////////////////
+					
 void	SocketServer::run() {
 	int	count_loop = 0;
 	while (true) {
 		count_loop++;
-		std::cout << "count_loop = " << count_loop << std::endl;
+//		std::cout << "count_loop = " << count_loop << std::endl;
 		this->selectSocket();
-		std::cout << "\n+++++++ Waiting for new connection ++++++++\n" << std::endl;
+//		std::cout << "\n+++++++ Waiting for new connection ++++++++\n" << std::endl;
 		this->setClientSocket();
 		this->simultaneousRead();
 	}

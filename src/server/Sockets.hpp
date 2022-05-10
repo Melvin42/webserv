@@ -11,6 +11,7 @@
 #include <algorithm>
 
 #include "ClientManager.hpp"
+#include "../config/Config.hpp"
 #include "../http/HttpRequest.hpp"
 #include "../http/HttpResponse.hpp"
 
@@ -18,6 +19,7 @@ class Socket {
 	public:
 
 //		Socket(const Socket &socket);
+		Socket();
 		virtual ~Socket();
 
 		std::string			receiveLine();
@@ -28,12 +30,8 @@ class Socket {
 //		std::vector<int>	&getClientSocket();
 
 
-//		Socket &operator=(const Socket &socket);
-
 	protected:
 		friend class SocketServer;
-
-		Socket();
 
 		int					_server_fd;
 		char				**_env;
@@ -47,12 +45,13 @@ class Socket {
 class SocketServer : public Socket {
 	public:
 //		SocketServer(int port, int connections);
-		SocketServer(char **env, int port, int connections);
+		SocketServer(char **env, const Config &conf, int connections);
 
 		int		getSocketUsed() const;
 		void	setSocketUsed(int fd);
 		fd_set	getReadFds() const;
 		fd_set	getWriteFds() const;
+		Config	&getConfig() ;
 
 		int		acceptSocket();
 		void	selectSocket();
@@ -67,6 +66,7 @@ class SocketServer : public Socket {
 		int		_max_sd;
 		fd_set	_readfds;
 		fd_set	_writefds;
+		Config	_config;
 };
 
 #endif

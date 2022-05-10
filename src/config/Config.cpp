@@ -1,9 +1,16 @@
 #include "Config.hpp"
 
+Config::Config()
+	: _last_instruction(""), _word(""), _path(""),
+	_block_index(-1), _loc_id(-1), _new_instruction(true) {
+//	this->parsing();
+}
+
 Config::Config(const char *av)
-	: _in_file(av), _last_instruction(""), _word(""), _block_index(-1), _loc_id(-1),
-	_new_instruction(true) {
+	: _in_file(av), _last_instruction(""), _word(""), _path(""),
+	_block_index(-1), _loc_id(-1), _new_instruction(true) {
 	this->parsing();
+	this->concatPath();
 }
 
 Config::~Config() {
@@ -20,6 +27,48 @@ void	Config::addConfig() {
 
 std::vector<BlockConfig>	Config::getConfig() const {
 	return _config;
+}
+
+std::string	Config::getPath() const {
+	return _path;
+}
+
+//void	Config::setInFile(const std::ifstream in) {
+//	_in_file = in;
+//}
+
+void	Config::setLastInstruction(const std::string &instru) {
+	_last_instruction = instru;
+}
+
+void	Config::setWord(const std::string &word) {
+	_word = word;
+}
+
+void	Config::setPath(const std::string &path) {
+	_path = path;
+}
+
+void	Config::concatPath() {
+	_path = _config.at(0).getRoot().at(0);
+	_path += '/';
+//	_path += _config.at(0).getIndex().at(0);
+}
+
+void	Config::setBlockIndex(const int &index) {
+	_block_index = index;
+}
+
+void	Config::setLocId(const int &id) {
+	_loc_id = id;
+}
+
+void	Config::setBlockInstruction(const int &flag) {
+	_new_instruction = flag;
+}
+
+void	Config::setConfig(const std::vector<BlockConfig> &conf) {
+	_config = conf;
 }
 
 std::string	Config::checkEndOfLine(char c) {
@@ -248,4 +297,16 @@ void	Config::parsing() {
 	} else {
 		std::cerr << "Can't read conf file" << std::endl;
 	}
+}
+
+Config &Config::operator=(const Config &conf) {
+//	this->setInFile(conf._in_file);
+	this->setLastInstruction(conf._last_instruction);
+	this->setWord(conf._word);
+	this->setPath(conf._path);
+	this->setBlockIndex(conf._block_index);
+	this->setLocId(conf._loc_id);
+	this->setBlockInstruction(conf._new_instruction);
+	this->setConfig(conf._config);
+	return *this;
 }

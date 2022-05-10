@@ -6,11 +6,33 @@
 
 class Config {
 	public:
+		Config();
 		Config(const char *av);
 		~Config();
 
 		std::vector<BlockConfig>	getConfig() const;
+		std::string					getPath() const;
 		void						addConfig();
+
+//		void						getInFile(const std::ifstream &in);
+//		void						getLastInstruction(const std::string &instru);
+//		void						getWord(const std::string &word);
+//		void						getPath(const std::string &path);
+//		void						getBlockIndex(const int &index);
+//		void						getLocId(const int &id);
+//		void						getBlockInstruction(const int &flag);
+//		void						getConfig(const std::vector<BlockConfig> &conf);
+
+//		void						setInFile(const std::ifstream in);;
+		void						setLastInstruction(const std::string &instru);
+		void						setWord(const std::string &word);
+		void						setPath(const std::string &path);
+		void						setBlockIndex(const int &index);
+		void						setLocId(const int &id);
+		void						setBlockInstruction(const int &flag);
+		void						setConfig(const std::vector<BlockConfig> &conf);
+
+		void						concatPath();
 
 		std::string	checkEndOfLine(char c);
 		void		checkSemiColon();
@@ -29,11 +51,12 @@ class Config {
 
 		void	printAllConfig() const;
 
+		Config &operator=(const Config &conf);
 	private:
-		Config();
 		std::ifstream				_in_file;
 		std::string					_last_instruction;
 		std::string					_word;
+		std::string					_path;
 		int							_block_index;
 		int							_loc_id;
 		bool						_new_instruction;

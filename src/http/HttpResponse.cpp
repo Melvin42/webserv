@@ -84,7 +84,6 @@ std::string	HttpResponse::getHttpResponse(std::string requestedPagePath) {
 			//if autoindex off, 403 forbidden
 			// errCgi("403");
 	}
-	//std::cout << _ret << std::endl;
 	return _ret;
 }
 
@@ -184,13 +183,9 @@ void	HttpResponse::errRet(std::string errCode) {
 				<< "</html>\n";
 		_ret += output.str();
 	} else {
-		std::string		word;
 		std::ifstream	file("./index/404/index_404.html");
 
-		while (file >> word) {
-			output << word;
-		}
-		_ret += output.str();
+		getPage("404", file);
 	}
 }
 
@@ -213,7 +208,6 @@ void	HttpResponse::autoIndex(std::string requestedPagePath) {
 	{
 		while ((ep = readdir(dp)))
 		{
-			std::cerr << ep->d_name << std::endl;
 			output	<< "<p><a href=\""
 					<< ep->d_name;
 			if (ep->d_type == DT_DIR)

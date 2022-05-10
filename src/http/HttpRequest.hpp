@@ -11,7 +11,7 @@ class	HttpRequest {
 	public:
 
 		HttpRequest(void);
-		HttpRequest(const char *buffer, int buf_size);
+		HttpRequest(const char *buffer, int buf_size, const std::string &root);
 		HttpRequest(const HttpRequest &httprequest);
 		~HttpRequest(void);
 		HttpRequest &operator=(const HttpRequest &httprequest);
@@ -23,6 +23,7 @@ class	HttpRequest {
 		std::string	getBody() const;
 		size_t	getContentLength() const;
 
+		void	readRequest(const char *buffer, int buf_size);
 	private:
 
 		std::string	_method;
