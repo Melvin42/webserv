@@ -6,6 +6,10 @@ Config::Config()
 //	this->parsing();
 }
 
+Config::Config(Config &cp) {
+	*this = cp;
+}
+
 Config::Config(const char *av)
 	: _in_file(av), _last_instruction(""), _word(""), _path(""),
 	_block_index(-1), _loc_id(-1), _new_instruction(true) {
@@ -51,7 +55,7 @@ void	Config::setPath(const std::string &path) {
 
 void	Config::concatPath() {
 	_path = _config.at(0).getRoot().at(0);
-	_path += '/';
+//	_path += '/';
 //	_path += _config.at(0).getIndex().at(0);
 }
 
@@ -301,6 +305,8 @@ void	Config::parsing() {
 
 Config &Config::operator=(const Config &conf) {
 //	this->setInFile(conf._in_file);
+	// std::string tmp(conf._in_file);
+	// _in_file << tmp;
 	this->setLastInstruction(conf._last_instruction);
 	this->setWord(conf._word);
 	this->setPath(conf._path);

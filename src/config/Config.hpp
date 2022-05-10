@@ -8,6 +8,7 @@ class Config {
 	public:
 		Config();
 		Config(const char *av);
+		Config(Config &cp);
 		~Config();
 
 		std::vector<BlockConfig>	getConfig() const;
