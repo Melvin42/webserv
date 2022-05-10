@@ -305,8 +305,6 @@ void	Config::parsing() {
 
 Config &Config::operator=(const Config &conf) {
 //	this->setInFile(conf._in_file);
-	// std::string tmp(conf._in_file);
-	// _in_file << tmp;
 	this->setLastInstruction(conf._last_instruction);
 	this->setWord(conf._word);
 	this->setPath(conf._path);
