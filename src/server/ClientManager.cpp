@@ -71,7 +71,7 @@ void	ClientManager::appendRead(char *buf) {
 
 bool	ClientManager::isReadOk() {
 	HttpRequest	req(_read.c_str(), static_cast<int>(_read.size()));
-	if (req.getBody().size() == req.getContentLength()) {
+	if (req.getVersion() == "HTTP/1.1" && req.getBody().size() == req.getContentLength()) {
 		_read_ok = true;
 	}
 	return _read_ok;

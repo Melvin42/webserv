@@ -28,7 +28,7 @@ class Socket {
 //		std::vector<int>	&getClientSocket();
 
 
-		Socket &operator=(const Socket &socket);
+//		Socket &operator=(const Socket &socket);
 
 	protected:
 		friend class SocketServer;
@@ -52,6 +52,7 @@ class SocketServer : public Socket {
 		int		getSocketUsed() const;
 		void	setSocketUsed(int fd);
 		fd_set	getReadFds() const;
+		fd_set	getWriteFds() const;
 
 		int		acceptSocket();
 		void	selectSocket();
@@ -65,6 +66,7 @@ class SocketServer : public Socket {
 		int		_sd;
 		int		_max_sd;
 		fd_set	_readfds;
+		fd_set	_writefds;
 };
 
 #endif
