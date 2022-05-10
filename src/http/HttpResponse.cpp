@@ -90,8 +90,12 @@ std::string	HttpResponse::getHttpResponse(std::string requestedPagePath) {
 				setPage("200", page);
 		}
 		else {
+		
 			std::ifstream	page("./index/404/index_404.html");
-			setPage("404", page);
+			if (page) {
+				setPage("404", page);
+			} else
+			errRet("404"); 
 		}
 	}
 	catch (std::exception &e) {
