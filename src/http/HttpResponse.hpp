@@ -38,8 +38,9 @@ class	HttpResponse {
 		void	errRet(std::string errCode);
 		void	set_exec_argv(std::string requestedCgiPath, std::string cmdPath, std::string errPage);
 		int		cgi(std::string statusKey);
-		void	getHeader(std::string statusKey);
-		void	getPage(std::string statusKey, std::ifstream &page);
+		void	setHeader(std::string statusKey);
+		void	setCgiHeader(std::string statusKey);
+		void	setPage(std::string statusKey, std::ifstream &page);
 		void	autoIndex(std::string requestedPagePath);
 		// std::string	interface(std::string errorCode);
 };
