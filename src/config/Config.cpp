@@ -55,8 +55,6 @@ void	Config::setPath(const std::string &path) {
 
 void	Config::concatPath() {
 	_path = _config.at(0).getRoot();
-//	_path += '/';
-//	_path += _config.at(0).getIndex().at(0);
 }
 
 void	Config::setBlockIndex(const int &index) {
@@ -76,12 +74,9 @@ void	Config::setConfig(const std::vector<BlockConfig> &conf) {
 }
 
 std::string	Config::badEndOfLine() {
-	std::string	tmp;
 	size_t		found = 0;
 
 	found = _word.find_first_of(';');
-	std::cerr << _word << std::endl;
-	tmp = _word;
 	if (found == _word.size() - 1) {
 		_word = _word.substr(0, found);
 		_new_instruction = true;
@@ -91,28 +86,22 @@ std::string	Config::badEndOfLine() {
 }
 
 std::string	Config::checkEndOfLine(char c) {
-	std::string	tmp;
 	size_t		found = 0;
 
 	found = _word.find_first_of(c);
-	tmp = _word;
 	if (found == _word.size() - 1) {
-//		tmp = _word.substr(0, found);
 		_word = _word.substr(0, found);
-//		std::cerr << "found: " << found
-//			<< "size : " <<  _word.size() - 1 << '\n' << _word << std::endl;
 		_new_instruction = true;
 	}
-	return _word;//tmp;
+	return _word;
 }
 
 void	Config::checkSemiColon() {
 	size_t		found = 0;
 
 	found = _word.find_first_of(';');
-	if (found == _word.size() - 1) {
+	if (found == _word.size() - 1)
 		_new_instruction = true;
-	}
 	else
 		_new_instruction = false;
 }
@@ -126,11 +115,10 @@ bool	isInstruction(const std::string &word) {
 }
 
 void	Config::parsPort() {
-	std::cerr << "Port =" << _word << std::endl;
 	_word = this->badEndOfLine();
 	for (size_t i = 0; i < _word.size(); i++) {
 		if (!isdigit(_word[i]))
-			exit(EXIT_FAILURE);
+			this->errorBadConf();
 	}
 	_config.at(_block_index).setNewPort(atoi(this->_word.c_str()));
 }
@@ -144,35 +132,36 @@ void	Config::parsRoot() {
 }
 
 void	Config::parsIndex() {
-	std::string	tmp = _word;
-
 	this->checkSemiColon();
-	if (_new_instruction) {
+	if (_new_instruction)
 		_config.at(_block_index).setNewIndex(this->checkEndOfLine(';'));
-	} else {
+	else
 		_config.at(_block_index).setNewIndex(_word);
-	}
 }
 
 void	Config::parsLocationIndex() {
 	std::string	tmp = _word;
 
 	this->checkSemiColon();
-	if (_new_instruction) {
+	if (_new_instruction)
 		_config.at(_block_index).addIndexToLocation(this->checkEndOfLine(';'), _loc_id);
-	} else {
+	else
 		_config.at(_block_index).addIndexToLocation(_word, _loc_id);
-	}
 }
 
 void	Config::parsCgi() {
 	_in_file >> _word;
 	if (_word == "BINARY") {
 		_in_file >> _word;
-		std::cerr << "cgi :" << _word << std::endl;
+		_config.at(_block_index).incCgiBinaryNbrLocation(_loc_id);
+		if (_config.at(_block_index).getLocation().at(_loc_id).getCgiBinaryNbr() > 1)
+			this->errorTooMuchCgi();
 		_config.at(_block_index).addCgiBinaryToLocation(this->badEndOfLine(), _loc_id);
 	} else if (_word == "SCRIPT_FILENAME") {
 		_in_file >> _word;
+		_config.at(_block_index).incCgiFilenameNbrLocation(_loc_id);
+		if (_config.at(_block_index).getLocation().at(_loc_id).getCgiFilenameNbr() > 1)
+			this->errorTooMuchCgi();
 		_config.at(_block_index).addCgiFilenameToLocation(this->badEndOfLine(), _loc_id);
 	} else {
 		this->errorBadCgi();
@@ -196,43 +185,60 @@ void	Config::parsLocation(int &location_scope) {
 			return ;
 		}
 		_new_instruction = false;
-		if (_word == "index") {
-			while (!_new_instruction) {
-				_in_file >> _word;
-				this->parsLocationIndex();
+		std::cerr << _word << std::endl;
+		if (_word == "index" || _word == "cgi-bin" || _word == "}") {
+			if (_word == "index") {
+				while (!_new_instruction) {
+					_in_file >> _word;
+					this->parsLocationIndex();
+				}
+			} else if (_word == "cgi-bin") {
+				this->parsCgi();
 			}
-		} else if (_word == "cgi-bin") {
-			std::cerr << "CGIIIIIIII" << _word << std::endl;
-			this->parsCgi();
+		} else {
+			this->errorBadConf();
 		}
 	}
 }
 
 void	Config::errorNoSemiColon() {
-	std::cerr << "Error: Missing Semi Colon" << std::endl;
+	if (_need_exit == false)
+		std::cerr << "Error: Missing Semi Colon" << std::endl;
 	_need_exit = true;
 }
 
 void	Config::errorBadConf() {
-	std::cerr << "Error: Bad conf format" << std::endl;
+	if (_need_exit == false)
+		std::cerr << "Error: Bad conf format" << std::endl;
 	_need_exit = true;
 }
 
 void	Config::errorBadKeyword() {
-	std::cerr << "Cursor on : \"" << _word << "\"" << std::endl;
-	std::cerr << "Error: Bad Key _word" << std::endl;
-	std::cerr << "_word = " << _word << std::endl;
+	if (_need_exit == false) {
+		std::cerr << "Cursor on : \"" << _word << "\"" << std::endl;
+		std::cerr << "Error: Bad Key _word" << std::endl;
+		std::cerr << "_word = " << _word << std::endl;
+	}
 	_need_exit = true;
 }
 
 void	Config::errorScopeDepth() {
-	std::cerr << "Cursor on : \"" << _word << "\"" << std::endl;
-	std::cerr << "Error: Trying to go depth 3 scope" << std::endl;
+	if (_need_exit == false) {
+		std::cerr << "Cursor on : \"" << _word << "\"" << std::endl;
+		std::cerr << "Error: Trying to go depth 3 scope" << std::endl;
+	}
 	_need_exit = true;
 }
 
 void	Config::errorBadCgi() {
-	std::cerr << "Error: Bad cgi format" << std::endl;
+	if (_need_exit == false)
+		std::cerr << "Error: Bad cgi format" << std::endl;
+	_need_exit = true;
+}
+
+void	Config::errorTooMuchCgi() {
+	if (_need_exit == false)
+		std::cerr << "Error: To much Cgi" << std::endl;
 	_need_exit = true;
 }
 

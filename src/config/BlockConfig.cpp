@@ -47,12 +47,23 @@ void	BlockConfig::setNewLocation(const std::string &arg) {
 
 	_location.push_back(loc);
 }
+
 void	BlockConfig::addIndexToLocation(const std::string &index, int i) {
 	this->_location.at(i).addIndex(index);
 }
+
 void	BlockConfig::addCgiBinaryToLocation(const std::string &binary, int i) {
 	this->_location.at(i).addCgiBinary(binary);
 }
+
 void	BlockConfig::addCgiFilenameToLocation(const std::string &filename, int i) {
 	this->_location.at(i).addCgiFilename(filename);
+}
+
+void	BlockConfig::incCgiBinaryNbrLocation(int i) {
+	this->_location.at(i).incCgiBinaryNbr();
+}
+
+void	BlockConfig::incCgiFilenameNbrLocation(int i) {
+	this->_location.at(i).incCgiFilenameNbr();
 }

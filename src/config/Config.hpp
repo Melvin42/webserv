@@ -48,6 +48,7 @@ class Config {
 		void		errorBadKeyword();
 		void		errorScopeDepth();
 		void		errorBadCgi();
+		void		errorTooMuchCgi();
 
 		void	printAllConfig() const;
 

@@ -19,14 +19,16 @@ class BlockConfig {
 		std::vector<std::string>	getIndex() const;
 		std::vector<Location>		getLocation() const;
 
-		void						setNewPort(int port);
-		void						setNewServerName(const std::string &name);
+		void	setNewPort(int port);
+		void	setNewServerName(const std::string &name);
 		void	setNewRoot(const std::string &root);
 		void	setNewIndex(const std::string &index);
 		void	setNewLocation(const std::string &arg);
 		void	addIndexToLocation(const std::string &index, int i);
 		void	addCgiBinaryToLocation(const std::string &binary, int i);
 		void	addCgiFilenameToLocation(const std::string &filename, int i);
+		void	incCgiBinaryNbrLocation(int i);
+		void	incCgiFilenameNbrLocation(int i);
 
 	private:
 		int							_port;

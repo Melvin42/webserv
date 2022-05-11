@@ -78,7 +78,7 @@ int	SocketServer::acceptSocket() {
 }
 
 void	SocketServer::selectSocket() {
-	int									activity;
+	int											activity;
 	std::vector<ClientManager>::iterator			it;
 	std::vector<ClientManager>::const_iterator	ite = this->getClientSocket().end();
 
@@ -138,8 +138,9 @@ void	SocketServer::simultaneousRead() {
 	for (it = this->getClientSocket().begin(); it != ite; it++) {
 		this->setSocketUsed(it->getFd());
 		if (this->ready(this->getSocketUsed(), this->getReadFds())) {
-			if ((valread = read(this->getSocketUsed(), buffer, BUFFER_SIZE)) == 0) {
-//				std::cout << "valread = 0 fd_used = " << it->getFd() << std::endl;
+			if ((valread = read(this->getSocketUsed(), buffer, BUFFER_SIZE)) <= 0) {
+//				std::cout << "valread = 0 fd_used = " << it->getFd() << std::endl;	
+				std::cerr << it->getFd() << std::endl;
 				if (it->getSendOk() && it->getFd() > 2) {
 					it->setSendOk(false);
 					this->closeClean();
@@ -167,7 +168,7 @@ void	SocketServer::simultaneousRead() {
 					str_file = msg.getHttpResponse(req.getPage());
 //					std::cerr << "BEFORE SEND =" << str_file << std::endl;
 //					std::cout << "+++++++sending data to client++++++++" << std::endl;
-					if (it->getSendOk() == false 
+					if (it->getSendOk() == false
 							&& send(this->getSocketUsed(), str_file.c_str(),
 							str_file.size(), 0) == static_cast<long>(str_file.size())) {
 						it->setSendOk(true);
