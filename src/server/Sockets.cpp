@@ -39,8 +39,7 @@ SocketServer::SocketServer(char **env, const Config &conf, int connections) : So
 	}
 	address.sin_family = AF_INET;
 	address.sin_addr.s_addr = INADDR_ANY;
-//	address.sin_port = htons(8080);
-	address.sin_port = htons(conf.getConfig().at(0).getPort().at(0));
+	address.sin_port = htons(conf.getConfig().at(0).getPort());
 	memset(address.sin_zero, 0, sizeof(address.sin_zero));
 
 	if (bind(_server_fd, (struct sockaddr *)&address, sizeof(address)) < 0) {

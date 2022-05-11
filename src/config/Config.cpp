@@ -1,7 +1,7 @@
 #include "Config.hpp"
 
 Config::Config()
-	: _last_instruction(""), _word(""), _path(""),
+	: _need_exit(false), _last_instruction(""), _word(""), _path(""),
 	_block_index(-1), _loc_id(-1), _new_instruction(true) {
 //	this->parsing();
 }
@@ -37,9 +37,9 @@ std::string	Config::getPath() const {
 	return _path;
 }
 
-//void	Config::setInFile(const std::ifstream in) {
-//	_in_file = in;
-//}
+bool	Config::getNeedExit() const {
+	return _need_exit;
+}
 
 void	Config::setLastInstruction(const std::string &instru) {
 	_last_instruction = instru;
@@ -54,7 +54,7 @@ void	Config::setPath(const std::string &path) {
 }
 
 void	Config::concatPath() {
-	_path = _config.at(0).getRoot().at(0);
+	_path = _config.at(0).getRoot();
 //	_path += '/';
 //	_path += _config.at(0).getIndex().at(0);
 }
@@ -75,6 +75,21 @@ void	Config::setConfig(const std::vector<BlockConfig> &conf) {
 	_config = conf;
 }
 
+std::string	Config::badEndOfLine() {
+	std::string	tmp;
+	size_t		found = 0;
+
+	found = _word.find_first_of(';');
+	std::cerr << _word << std::endl;
+	tmp = _word;
+	if (found == _word.size() - 1) {
+		_word = _word.substr(0, found);
+		_new_instruction = true;
+	} else
+		this->errorNoSemiColon();
+	return _word;
+}
+
 std::string	Config::checkEndOfLine(char c) {
 	std::string	tmp;
 	size_t		found = 0;
@@ -86,7 +101,6 @@ std::string	Config::checkEndOfLine(char c) {
 		_word = _word.substr(0, found);
 //		std::cerr << "found: " << found
 //			<< "size : " <<  _word.size() - 1 << '\n' << _word << std::endl;
-//		if (tmp != _word)
 		_new_instruction = true;
 	}
 	return _word;//tmp;
@@ -97,7 +111,6 @@ void	Config::checkSemiColon() {
 
 	found = _word.find_first_of(';');
 	if (found == _word.size() - 1) {
-//		std::cerr << "Semi colon found" << std::endl;
 		_new_instruction = true;
 	}
 	else
@@ -113,22 +126,21 @@ bool	isInstruction(const std::string &word) {
 }
 
 void	Config::parsPort() {
-//	std::cerr << "Port =" << _word << std::endl;
-	this->checkEndOfLine(';');
-//	_word = this->checkEndOfLine(';');
-//	for (size_t i = 0; i < _word.size(); i++) {
-//		if (!isdigit(_word[i]))
-//			exit(EXIT_FAILURE);
-//	}
-	_config.at(_block_index).setNewPort(atoi(_word.c_str()));
+	std::cerr << "Port =" << _word << std::endl;
+	_word = this->badEndOfLine();
+	for (size_t i = 0; i < _word.size(); i++) {
+		if (!isdigit(_word[i]))
+			exit(EXIT_FAILURE);
+	}
+	_config.at(_block_index).setNewPort(atoi(this->_word.c_str()));
 }
 
 void	Config::parsServerName() {
-	_config.at(_block_index).setNewServerName(this->checkEndOfLine(';'));
+	_config.at(_block_index).setNewServerName(this->badEndOfLine());
 }
 
 void	Config::parsRoot() {
-	_config.at(_block_index).setNewRoot(this->checkEndOfLine(';'));
+	_config.at(_block_index).setNewRoot(this->badEndOfLine());
 }
 
 void	Config::parsIndex() {
@@ -138,77 +150,98 @@ void	Config::parsIndex() {
 	if (_new_instruction) {
 		_config.at(_block_index).setNewIndex(this->checkEndOfLine(';'));
 	} else {
-//		std::cerr << "No semi colon = " << _word << std::endl;
 		_config.at(_block_index).setNewIndex(_word);
 	}
 }
 
+void	Config::parsLocationIndex() {
+	std::string	tmp = _word;
+
+	this->checkSemiColon();
+	if (_new_instruction) {
+		_config.at(_block_index).addIndexToLocation(this->checkEndOfLine(';'), _loc_id);
+	} else {
+		_config.at(_block_index).addIndexToLocation(_word, _loc_id);
+	}
+}
+
+void	Config::parsCgi() {
+	_in_file >> _word;
+	if (_word == "BINARY") {
+		_in_file >> _word;
+		std::cerr << "cgi :" << _word << std::endl;
+		_config.at(_block_index).addCgiBinaryToLocation(this->badEndOfLine(), _loc_id);
+	} else if (_word == "SCRIPT_FILENAME") {
+		_in_file >> _word;
+		_config.at(_block_index).addCgiFilenameToLocation(this->badEndOfLine(), _loc_id);
+	} else {
+		this->errorBadCgi();
+	}
+}
+
 void	Config::parsLocation(int &location_scope) {
-//	std::cerr << _word << std::endl;
 	if (location_scope == false) {
 		_config.at(_block_index).setNewLocation(_word);
 		_in_file >> _word;
 		if (_word == "{") {
-//			std::cerr << "Open location" << std::endl;
 			location_scope = true;
+			_new_instruction = false;
 		} else {
 			this->errorBadConf();
 		}
 	} else {
 		if (_word == "}") {
-//			std::cerr << "Close location" << std::endl;
 			location_scope = false;
+			_new_instruction = true;
 			return ;
 		}
-//		std::cerr << _word << std::endl;
-//		_config.at(_block_index).addPathToLocation(_word, _loc_id);
-		_config.at(_block_index).addPathToLocation(this->checkEndOfLine(';'), _loc_id);
+		_new_instruction = false;
+		if (_word == "index") {
+			while (!_new_instruction) {
+				_in_file >> _word;
+				this->parsLocationIndex();
+			}
+		} else if (_word == "cgi-bin") {
+			std::cerr << "CGIIIIIIII" << _word << std::endl;
+			this->parsCgi();
+		}
 	}
 }
 
-void	Config::errorBadConf() const {
-	std::cerr << "Error: Bad conf format" << std::endl;
-	exit(EXIT_FAILURE);
+void	Config::errorNoSemiColon() {
+	std::cerr << "Error: Missing Semi Colon" << std::endl;
+	_need_exit = true;
 }
 
-void	Config::errorBadKeyword() const {
+void	Config::errorBadConf() {
+	std::cerr << "Error: Bad conf format" << std::endl;
+	_need_exit = true;
+}
+
+void	Config::errorBadKeyword() {
 	std::cerr << "Cursor on : \"" << _word << "\"" << std::endl;
 	std::cerr << "Error: Bad Key _word" << std::endl;
 	std::cerr << "_word = " << _word << std::endl;
-	exit(EXIT_FAILURE);
+	_need_exit = true;
 }
 
-void	Config::errorScopeDepth() const {
+void	Config::errorScopeDepth() {
 	std::cerr << "Cursor on : \"" << _word << "\"" << std::endl;
 	std::cerr << "Error: Trying to go depth 3 scope" << std::endl;
-	exit(EXIT_FAILURE);
+	_need_exit = true;
+}
+
+void	Config::errorBadCgi() {
+	std::cerr << "Error: Bad cgi format" << std::endl;
+	_need_exit = true;
 }
 
 void	Config::printAllConfig() const {
 	for (size_t j = 0; j < _config.size(); j++) {
 		std::cout << "\nBlock Nb : " << j+1 << '\n' << std::endl;
-		for (size_t i = 0; i < _config.at(j).getPort().size(); i++) {
-			if (i == 0)
-				std::cout << "	port = ";
-			std::cout << _config.at(j).getPort().at(i);
-			if (i == _config.at(j).getPort().size() - 1)
-				std::cout << std::endl;
-			else
-				std::cout << " ";
-		}
-		for (size_t i = 0; i < _config.at(j).getServerName().size(); i++) {
-			if (i == 0)
-				std::cout << "	server_name = ";
-			std::cout << _config.at(j).getServerName().at(i);
-			if (i == _config.at(j).getServerName().size() - 1)
-				std::cout << std::endl;
-			else
-				std::cout << " ";
-		}
-		for (size_t i = 0; i < _config.at(j).getRoot().size(); i++) {
-			std::cout << "	root = "
-				<< _config.at(j).getRoot().at(i) << std::endl;
-		}
+		std::cout << "	port = " << _config.at(j).getPort() << std::endl;
+		std::cout << "	server_name = " << _config.at(j).getServerName() << std::endl;
+		std::cout << "	root = " << _config.at(j).getRoot() << std::endl;
 		for (size_t i = 0; i < _config.at(j).getIndex().size(); i++) {
 			if (i == 0)
 				std::cout << "	index = ";
@@ -221,9 +254,19 @@ void	Config::printAllConfig() const {
 		for (size_t i = 0; i < _config.at(j).getLocation().size(); i++) {
 			std::cout << "	location = "
 				<< _config.at(j).getLocation().at(i).getArg() << std::endl;
-			for (size_t k = 0; k < _config.at(j).getLocation().at(i).getPath().size(); k++) {
-				std::cout << "		path = "
-					<< _config.at(j).getLocation().at(i).getPath().at(k)
+			for (size_t k = 0; k < _config.at(j).getLocation().at(i).getCgiBinary().size(); k++) {
+				std::cout << "		cgi-bin BINARY = "
+					<< _config.at(j).getLocation().at(i).getCgiBinary().at(k)
+					<< std::endl;
+			}
+			for (size_t k = 0; k < _config.at(j).getLocation().at(i).getCgiFilename().size(); k++) {
+				std::cout << "		cgi-bin FILENAME = "
+					<< _config.at(j).getLocation().at(i).getCgiFilename().at(k)
+					<< std::endl;
+			}
+			for (size_t k = 0; k < _config.at(j).getLocation().at(i).getIndex().size(); k++) {
+				std::cout << "		index = "
+					<< _config.at(j).getLocation().at(i).getIndex().at(k)
 					<< std::endl;
 			}
 		}
@@ -232,13 +275,11 @@ void	Config::printAllConfig() const {
 
 void	Config::parsing() {
 	if (_in_file) {
-		bool		server_scope = false;
-		int			location_scope = false;
+		bool	server_scope = false;
+		int		location_scope = false;
 
 		while (_in_file >> _word) {
-//			std::cerr << "?" << _word << "?" << std::endl;
 			if (server_scope == false) {
-//				this->printAllConfig();
 				if (_word == "server") {
 					this->addConfig();
 					if (_word == "{") {
@@ -286,12 +327,10 @@ void	Config::parsing() {
 								this->parsLocation(location_scope);
 							}
 							else {
-//								std::cerr << "no_instru" << std::endl;
 								this->errorBadConf();
 							}
 						}
 					} else {
-//						std::cerr << "PAR ICI" << std::endl;
 						this->parsLocation(location_scope);
 					}
 				}
@@ -304,7 +343,6 @@ void	Config::parsing() {
 }
 
 Config &Config::operator=(const Config &conf) {
-//	this->setInFile(conf._in_file);
 	this->setLastInstruction(conf._last_instruction);
 	this->setWord(conf._word);
 	this->setPath(conf._path);

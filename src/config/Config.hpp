@@ -15,16 +15,8 @@ class Config {
 		std::string					getPath() const;
 		void						addConfig();
 
-//		void						getInFile(const std::ifstream &in);
-//		void						getLastInstruction(const std::string &instru);
-//		void						getWord(const std::string &word);
-//		void						getPath(const std::string &path);
-//		void						getBlockIndex(const int &index);
-//		void						getLocId(const int &id);
-//		void						getBlockInstruction(const int &flag);
-//		void						getConfig(const std::vector<BlockConfig> &conf);
+		bool						getNeedExit() const;
 
-//		void						setInFile(const std::ifstream in);;
 		void						setLastInstruction(const std::string &instru);
 		void						setWord(const std::string &word);
 		void						setPath(const std::string &path);
@@ -36,6 +28,7 @@ class Config {
 		void						concatPath();
 
 		std::string	checkEndOfLine(char c);
+		std::string	badEndOfLine();
 		void		checkSemiColon();
 
 		void		parsing();
@@ -43,17 +36,24 @@ class Config {
 		void		parsServerName();
 		void		parsRoot();
 		void		parsIndex();
+		void		parsCgiBinary();
+		void		parsCgiFilename();
+		void		parsLocationIndex();
 		void		parsLocation(int &location_scope);
 		void		parsServerScope();
+		void		parsCgi();
 
-		void		errorBadConf() const;
-		void		errorBadKeyword() const;
-		void		errorScopeDepth() const;
+		void		errorBadConf();
+		void		errorNoSemiColon();
+		void		errorBadKeyword();
+		void		errorScopeDepth();
+		void		errorBadCgi();
 
 		void	printAllConfig() const;
 
 		Config &operator=(const Config &conf);
 	private:
+		bool						_need_exit;
 		std::ifstream				_in_file;
 		std::string					_last_instruction;
 		std::string					_word;

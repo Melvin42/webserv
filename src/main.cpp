@@ -25,11 +25,17 @@ int	main(int ac, char **av, char **env) {
 		return EXIT_FAILURE;
 	} else if (ac == 2) {
 			Config conf(av[1]);
+
+			if (conf.getNeedExit())
+				return EXIT_FAILURE;
 			SocketServer server(env, conf, 30);
 
 			server.run();
 	} else {
 			Config conf("index/simple.conf");
+
+			if (conf.getNeedExit())
+				return EXIT_FAILURE;
 			SocketServer server(env, conf, 30);
 
 			server.run();

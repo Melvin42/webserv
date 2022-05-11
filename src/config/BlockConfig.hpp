@@ -13,9 +13,9 @@ class BlockConfig {
 		BlockConfig();
 		~BlockConfig();
 
-		std::vector<int>			getPort() const;
-		std::vector<std::string>	getServerName() const;
-		std::vector<std::string>	getRoot() const;
+		int							getPort() const;
+		std::string					getServerName() const;
+		std::string					getRoot() const;
 		std::vector<std::string>	getIndex() const;
 		std::vector<Location>		getLocation() const;
 
@@ -24,12 +24,14 @@ class BlockConfig {
 		void	setNewRoot(const std::string &root);
 		void	setNewIndex(const std::string &index);
 		void	setNewLocation(const std::string &arg);
-		void	addPathToLocation(const std::string &path, int index);
+		void	addIndexToLocation(const std::string &index, int i);
+		void	addCgiBinaryToLocation(const std::string &binary, int i);
+		void	addCgiFilenameToLocation(const std::string &filename, int i);
 
 	private:
-		std::vector<int>			_port;
-		std::vector<std::string>	_server_name;
-		std::vector<std::string>	_root;
+		int							_port;
+		std::string					_server_name;
+		std::string					_root;
 		std::vector<std::string>	_index;
 		std::vector<Location>		_location;
 };

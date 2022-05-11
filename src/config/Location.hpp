@@ -10,13 +10,20 @@ class Location {
 		~Location();
 
 		std::string					getArg() const;
-		std::vector<std::string>	getPath() const;
-		void						addPath(const std::string &path);
+		std::vector<std::string>	getIndex() const;
+		void						addIndex(const std::string &index);
+		std::vector<std::string>	getCgiBinary() const;
+		std::vector<std::string>	getCgiFilename() const;
+		void						addCgiBinary(const std::string &cgi_binary);
+		void						addCgiFilename(const std::string &cgi_filename);
 
 	private:
 		Location();
 		std::string					_arg;
-		std::vector<std::string>	_path;
+		std::string					_type;
+		std::vector<std::string>	_index;
+		std::vector<std::string>	_cgi_binary;
+		std::vector<std::string>	_cgi_filename;
 };
 
 #endif

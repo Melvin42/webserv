@@ -1,16 +1,16 @@
 #include "BlockConfig.hpp"
 
-BlockConfig::BlockConfig() {
+BlockConfig::BlockConfig() : _port(8080), _server_name("localhost"), _root("./") {
 }
 
 BlockConfig::~BlockConfig() {
 }
 
-std::vector<int>	BlockConfig::getPort() const {
+int	BlockConfig::getPort() const {
 	return _port;
 }
 
-std::vector<std::string>	BlockConfig::getRoot() const {
+std::string	BlockConfig::getRoot() const {
 	return _root;
 }
 
@@ -18,7 +18,7 @@ std::vector<std::string>	BlockConfig::getIndex() const {
 	return _index;
 }
 
-std::vector<std::string>	BlockConfig::getServerName() const {
+std::string	BlockConfig::getServerName() const {
 	return _server_name;
 }
 
@@ -27,15 +27,15 @@ std::vector<Location>	BlockConfig::getLocation() const {
 }
 
 void	BlockConfig::setNewPort(int port) {
-	_port.push_back(port);
+	_port = port;
 }
 
 void	BlockConfig::setNewServerName(const std::string &name) {
-	_server_name.push_back(name);
+	_server_name = name;
 }
 
 void	BlockConfig::setNewRoot(const std::string &root) {
-	_root.push_back(root);
+	_root = root;
 }
 
 void	BlockConfig::setNewIndex(const std::string &index) {
@@ -47,6 +47,12 @@ void	BlockConfig::setNewLocation(const std::string &arg) {
 
 	_location.push_back(loc);
 }
-void	BlockConfig::addPathToLocation(const std::string &path, int index) {
-	this->_location.at(index).addPath(path);
+void	BlockConfig::addIndexToLocation(const std::string &index, int i) {
+	this->_location.at(i).addIndex(index);
+}
+void	BlockConfig::addCgiBinaryToLocation(const std::string &binary, int i) {
+	this->_location.at(i).addCgiBinary(binary);
+}
+void	BlockConfig::addCgiFilenameToLocation(const std::string &filename, int i) {
+	this->_location.at(i).addCgiFilename(filename);
 }
