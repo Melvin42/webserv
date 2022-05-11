@@ -11,7 +11,7 @@ HttpRequest::HttpRequest(const char *buffer, int buf_size, const std::string &ro
 	line >> _request["page"];
 	line >> _request["version"];
 	_request["page"] = root + _request["page"];
-	// std::cout << std::endl << "line: " << std::endl << line.str();
+	std::cout << std::endl << "line: " << std::endl << line.str();
 	line.ignore();
 	parsing(line);
 	(void)buf_size;
@@ -55,9 +55,15 @@ size_t	HttpRequest::getContentLength(){
 }
 
 void	HttpRequest::parsing(std::stringstream &line) {
+	std::string tmp;
 	std::string key;
 	std::string value;
 	line.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+// std::FILE* tmpf = fopen("/tmp/.tmp", "wb+");
+// (void)tmpf;
+// std::ofstream tmpst("/tmp/.tmp");
+
+
 	while (std::getline(line, key, ':'))
 	{
 		if (line.eof() || line.bad())
@@ -66,16 +72,18 @@ void	HttpRequest::parsing(std::stringstream &line) {
 		std::remove(value.begin(), value.end(), ' ');
 		value.erase(std::remove(value.begin(), value.end(), '\r'), value.end());
 		_request[key] = value;
+		if (key.find("Content-Type") != std::string::npos && value.find("boundary=") != std::string::npos)
+		{
+			_request["boundary"] = value.substr(value.find("boundary=") + 9);
+			value.erase(value.find(";"));
+			_request[key] = value;
+		}
 		
+		// tmpst << "key: " << key << std::endl;
+		// tmpst << "value: " << value << std::endl;
 	}
-	
-	// req += buffer;
-	// found = req.find("Content-Length: ");
-	// i = found + 15;
-	// while (++i < buf_size && buffer[i] != '\n' && isdigit(buffer[i])) {
-	// 	_content_length *= 10;
-	// 	_content_length += (buffer[i] - 48);
-	// }
+
+
 	// while (++i < buf_size && !(buffer[i] == '\n' && buffer[i - 1] == '\r'
 	// 			&& buffer[i - 2] == '\n' && buffer[i - 3] == '\r'))
 	// 	;
