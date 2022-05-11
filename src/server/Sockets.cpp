@@ -162,9 +162,10 @@ void	SocketServer::simultaneousRead() {
 //					HttpRequest	req(buffer, BUFFER_SIZE);
 					HttpRequest	req(it->getRead().c_str(), it->getRead().size(),
 							_config.getPath());
-//					std::cerr << _config.getPath() << std::endl;
+					//					std::cerr << _config.getPath() << std::endl;
 					std::cerr << req.getPage() << std::endl;
 					HttpResponse	msg(_env, _config);
+
 					str_file = msg.getHttpResponse(req.getPage());
 //					std::cerr << "BEFORE SEND =" << str_file << std::endl;
 //					std::cout << "+++++++sending data to client++++++++" << std::endl;

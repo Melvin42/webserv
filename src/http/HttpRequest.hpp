@@ -5,33 +5,32 @@
 #include <fstream>
 #include <sstream>
 #include <ctype.h>
+#include <limits>
+#include <stdlib.h>
 #include "../server/ClientManager.hpp"
 
 class	HttpRequest {
 	public:
 
-		HttpRequest(void);
 		HttpRequest(const char *buffer, int buf_size, const std::string &root);
 		HttpRequest(const HttpRequest &httprequest);
-		~HttpRequest(void);
+		~HttpRequest();
 		HttpRequest &operator=(const HttpRequest &httprequest);
 
-		std::string	getMethod() const;
-		std::string	getPage() const;
-		std::string	getVersion() const;
-		std::string	getHost() const;
-		std::string	getBody() const;
-		size_t	getContentLength() const;
+		std::string	getMethod();
+		std::string	getPage();
+		std::string	getVersion();
+		std::string	getHost();
+		std::string	getBody();
+		size_t	getContentLength();
 
-		void	readRequest(const char *buffer, int buf_size);
+		void	parsing(std::stringstream &line);
+
 	private:
 
-		std::string	_method;
-		std::string	_page;
-		std::string	_version;
-		std::string	_host;
+		HttpRequest();
+		std::map<std::string, std::string> _request;
 		std::string	_body;
-		size_t	_content_length;
 };
 
 #endif
