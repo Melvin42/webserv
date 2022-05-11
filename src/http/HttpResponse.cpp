@@ -214,9 +214,13 @@ void	HttpResponse::autoIndex() {
 					<< ep->d_name;
 			if (ep->d_type == DT_DIR)
 				output << "/";
-			output << "\">"
+			std::string tmp(ep->d_name);
+			// if (tmp.find(".html") != std::string::npos || ep->d_type == DT_DIR)
+			// {
+				output << "\">"
 					<< ep->d_name
 					<< "</a></p>\n";
+			// }
 		}
 		output << "</body>\n</html>";
 		_ret += output.str();
