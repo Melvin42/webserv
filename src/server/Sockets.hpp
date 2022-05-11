@@ -59,7 +59,7 @@ class SocketServer : public Socket {
 		void	setClientSocket();
 		void	simultaneousRead();
 		void	run();
-		void	closeClean();
+		void	closeClean(fd_set *fds);
 
 	private:
 		int		_sd;

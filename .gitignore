@@ -33,4 +33,9 @@
 
 webserv
 .nfs*
+<<<<<<< HEAD
 index/simple.conf
+=======
+
+simple.conf
+>>>>>>> 5545e9088cbbf3bb40f88f0ebcd238933166368a
