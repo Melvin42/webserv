@@ -159,10 +159,19 @@ void	SocketServer::simultaneousRead() {
 				std::cerr << "valread = " << valread
 				   << "fd_used = " << it->getFd() << std::endl;
 				it->appendRead(buffer);
-				if (it->isReadOk(this->getConfig().getPath())) {
-					HttpRequest	req(it->getRead().c_str(),
-							it->getRead().size(), this->getConfig().getPath());
-					HttpResponse	msg(_env);
+//					std::cout << "read = " << valread
+//						<< " content:\n" << it->getRead() << std::endl;
+//					std::cout << "++++++++received from client " << it->getFd()
+//					   << "++++++++++++" << std::endl;
+				if (it->isReadOk(this->_config.getPath())) {
+//					std::cout << "read OK, val = " << valread
+//						<< " content:\n" << it->getRead() << std::endl;
+//					HttpRequest	req(buffer, BUFFER_SIZE);
+					HttpRequest	req(it->getRead().c_str(), it->getRead().size(),
+							_config.getPath());
+//					std::cerr << _config.getPath() << std::endl;
+					std::cerr << req.getPage() << std::endl;
+					HttpResponse	msg(_env, _config);
 					str_file = msg.getHttpResponse(req.getPage());
 //					it->setSend(msg.getHttpResponse(req.getPage()));
 					it->setRead("");

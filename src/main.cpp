@@ -29,7 +29,7 @@ int	main(int ac, char **av, char **env) {
 
 			server.run();
 	} else {
-			Config conf("index/simple.conf");
+			Config conf("config/simple.conf");
 			SocketServer server(env, conf, 30);
 
 			server.run();

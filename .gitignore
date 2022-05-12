@@ -33,4 +33,6 @@
 
 webserv
 .nfs*
+
 index/simple.conf
+simple.conf
