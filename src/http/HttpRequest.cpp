@@ -66,16 +66,13 @@ void	HttpRequest::parseHeader(std::stringstream &line) {
 	{
 		if (line.eof() || line.bad() || buf == "\r")
 			break ;
-		key = buf.substr(0, buf.find(":"));
-		value = buf.substr(buf.find(":") + 1, buf.size());
-		value.erase(std::remove(value.begin(), value.begin() + 1, ' '), value.begin() + 1);
-		value.erase(std::remove(value.begin(), value.end(), '\r'), value.end());
+		key = getKey(buf);
+		value = getValue(buf);
 		if (key.find("Content-Type") != std::string::npos && value.find("boundary=") != std::string::npos)
 		{
 			_request["boundary"] = "--" + value.substr(value.find("boundary=") + 9) + "\r";
 			_request["boundaryEnd"] = "--" + value.substr(value.find("boundary=") + 9) + "--";
 			value.erase(value.find(";"));
-			_request[key] = value;
 		}
 		_request[key] = value;
 	}
@@ -105,34 +102,18 @@ void	HttpRequest::parseBody(std::stringstream &line) {
 	while (42) {
 		if (line.eof() || line.bad() || buf == _request["boundaryEnd"])
 			break ;
-		if (buf == _request["boundary"]) {
+		if (buf == _request["boundary"])
+		{
 			while (std::getline(line, buf)) {
 				// std::cout << "buf is :" << buf << std::endl;
 				if (line.eof() || line.bad() || buf == "\r")
 					break ;
-				key = buf.substr(0, buf.find(":"));
-				value = buf.substr(buf.find(":") + 1, buf.size());
-				value.erase(std::remove(value.begin(), value.begin() + 1, ' '), value.begin() + 1);
-				value.erase(std::remove(value.begin(), value.end(), '\r'), value.end());
-				bodyHeader[key] = value;
+				bodyHeader[getKey(buf)] = getValue(buf);
 			}
 			if (line.eof() || line.bad())
 				break ;
 			if (buf == "\r") {
-				if (bodyHeader["Content-Disposition"].find(" filename=") != std::string::npos) {
-					filename = bodyHeader["Content-Disposition"].substr(
-					bodyHeader["Content-Disposition"].find(" filename=") + 11,
-					bodyHeader["Content-Disposition"].size());
-				} else {
-					filename = bodyHeader["Content-Disposition"].substr(
-					bodyHeader["Content-Disposition"].find(" name=") + 7,
-					bodyHeader["Content-Disposition"].size());
-				}
-				filename.erase(std::remove(filename.begin(), filename.end(), '\"'), filename.end());
-				if (*_request["page"].end() -1 != '/')
-					filename = _request["page"] + '/' + filename;
-				else
-					filename = _request["page"] + filename;
+				filename = getFilename(bodyHeader);
 				file = fopen(filename.c_str(), "wb+");	
 			}
 			std::ofstream	filest(filename.c_str());
@@ -153,4 +134,37 @@ void	HttpRequest::parseBody(std::stringstream &line) {
 			}
 		}
 	}
+}
+
+std::string		HttpRequest::getKey(std::string buf) {
+	return buf.substr(0, buf.find(":"));
+}
+
+std::string		HttpRequest::getValue(std::string buf) {
+	std::string value;
+	value = buf.substr(buf.find(":") + 1, buf.size());
+	value.erase(std::remove(value.begin(), value.begin() + 1, ' '), value.begin() + 1);
+	value.erase(std::remove(value.begin(), value.end(), '\r'), value.end());
+	return value;
+}
+
+std::string		HttpRequest::getFilename(std::map<std::string, std::string>	&bodyHeader) {
+	std::string		filename;
+	if (bodyHeader["Content-Disposition"].find(" filename=") != std::string::npos)
+	{
+		filename = bodyHeader["Content-Disposition"].substr(
+		bodyHeader["Content-Disposition"].find(" filename=") + 11,
+		bodyHeader["Content-Disposition"].size());
+	} else
+	{
+		filename = bodyHeader["Content-Disposition"].substr(
+		bodyHeader["Content-Disposition"].find(" name=") + 7,
+		bodyHeader["Content-Disposition"].size());
+	}
+	filename.erase(std::remove(filename.begin(), filename.end(), '\"'), filename.end());
+	if (*_request["page"].end() -1 != '/')
+		filename = _request["page"] + '/' + filename;
+	else
+		filename = _request["page"] + filename;
+	return filename;
 }
