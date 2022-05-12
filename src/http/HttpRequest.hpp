@@ -24,12 +24,12 @@ class	HttpRequest {
 		std::string	getBody();
 		size_t	getContentLength();
 
-		void	parsing(std::stringstream &line);
-
+		void	parseHeader(std::stringstream &line);
+		void	parseBody(std::stringstream &line);
 	private:
 
 		HttpRequest();
-		std::map<std::string, std::string> _request;
+		std::map<std::string, std::string>				_request;
 		std::string	_body;
 };
 

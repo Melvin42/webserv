@@ -11,9 +11,11 @@ HttpRequest::HttpRequest(const char *buffer, int buf_size, const std::string &ro
 	line >> _request["page"];
 	line >> _request["version"];
 	_request["page"] = root + _request["page"];
-	std::cout << std::endl << "line: " << std::endl << line.str();
 	line.ignore();
-	parsing(line);
+	parseHeader(line);
+	if (_request.find("boundary") != _request.end() /*&& conf allow upload*/)
+		parseBody(line);
+	// std::cout << std::endl << "line: " << std::endl << line.str();
 	(void)buf_size;
 }
 
@@ -54,40 +56,101 @@ size_t	HttpRequest::getContentLength(){
 	return std::atoi(_request["Content-Length"].c_str());
 }
 
-void	HttpRequest::parsing(std::stringstream &line) {
-	std::string tmp;
+void	HttpRequest::parseHeader(std::stringstream &line) {
+	std::string buf;
 	std::string key;
 	std::string value;
 	line.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-// std::FILE* tmpf = fopen("/tmp/.tmp", "wb+");
-// (void)tmpf;
-// std::ofstream tmpst("/tmp/.tmp");
 
-
-	while (std::getline(line, key, ':'))
+	while (std::getline(line, buf))
 	{
-		if (line.eof() || line.bad())
+		if (line.eof() || line.bad() || buf == "\r")
 			break ;
-		std::getline(line, value);
-		std::remove(value.begin(), value.end(), ' ');
+		key = buf.substr(0, buf.find(":"));
+		value = buf.substr(buf.find(":") + 1, buf.size());
+		value.erase(std::remove(value.begin(), value.begin() + 1, ' '), value.begin() + 1);
 		value.erase(std::remove(value.begin(), value.end(), '\r'), value.end());
-		_request[key] = value;
 		if (key.find("Content-Type") != std::string::npos && value.find("boundary=") != std::string::npos)
 		{
-			_request["boundary"] = value.substr(value.find("boundary=") + 9);
+			_request["boundary"] = "--" + value.substr(value.find("boundary=") + 9) + "\r";
+			_request["boundaryEnd"] = "--" + value.substr(value.find("boundary=") + 9) + "--";
 			value.erase(value.find(";"));
 			_request[key] = value;
 		}
-		
-		// tmpst << "key: " << key << std::endl;
-		// tmpst << "value: " << value << std::endl;
+		_request[key] = value;
 	}
-
-
-	// while (++i < buf_size && !(buffer[i] == '\n' && buffer[i - 1] == '\r'
-	// 			&& buffer[i - 2] == '\n' && buffer[i - 3] == '\r'))
-	// 	;
-	// while (++i < buf_size && i != '\0')
-	// 	_body += buffer[i];
 }
 
+void	HttpRequest::parseBody(std::stringstream &line) {
+	std::string							buf;
+	std::string							key;
+	std::string							value;
+	std::string							filename;
+	std::map<std::string, std::string>	bodyHeader;
+	std::FILE*							file;
+
+// std::FILE* tmpf = fopen("/tmp/.tmp", "wb+");
+// (void)tmpf;
+// std::ofstream tmpst("/tmp/.tmp");
+// int i = 0;
+
+	while (std::getline(line, buf)) {
+		// tmpst << "buf is   :" << buf << std::endl;
+		// tmpst << "boundary :" << _request["boundary"] << std::endl;
+		// tmpst << "i = " << i << std::endl;
+		if (line.eof() || line.bad() || buf == _request["boundary"])
+			break ;
+		// i++;
+	}
+	while (42) {
+		if (line.eof() || line.bad() || buf == _request["boundaryEnd"])
+			break ;
+		if (buf == _request["boundary"]) {
+			while (std::getline(line, buf)) {
+				// std::cout << "buf is :" << buf << std::endl;
+				if (line.eof() || line.bad() || buf == "\r")
+					break ;
+				key = buf.substr(0, buf.find(":"));
+				value = buf.substr(buf.find(":") + 1, buf.size());
+				value.erase(std::remove(value.begin(), value.begin() + 1, ' '), value.begin() + 1);
+				value.erase(std::remove(value.begin(), value.end(), '\r'), value.end());
+				bodyHeader[key] = value;
+			}
+			if (line.eof() || line.bad())
+				break ;
+			if (buf == "\r") {
+				if (bodyHeader["Content-Disposition"].find(" filename=") != std::string::npos) {
+					filename = bodyHeader["Content-Disposition"].substr(
+					bodyHeader["Content-Disposition"].find(" filename=") + 11,
+					bodyHeader["Content-Disposition"].size());
+				} else {
+					filename = bodyHeader["Content-Disposition"].substr(
+					bodyHeader["Content-Disposition"].find(" name=") + 7,
+					bodyHeader["Content-Disposition"].size());
+				}
+				filename.erase(std::remove(filename.begin(), filename.end(), '\"'), filename.end());
+				if (*_request["page"].end() -1 != '/')
+					filename = _request["page"] + '/' + filename;
+				else
+					filename = _request["page"] + filename;
+				file = fopen(filename.c_str(), "wb+");	
+			}
+			std::ofstream	filest(filename.c_str());
+			while (std::getline(line, buf))
+			{
+				// std::cout << "buf is :" << buf << std::endl;
+				if (line.eof() || line.bad() || buf.find("\r") != std::string::npos
+					|| buf.find(_request["boundary"]) != std::string::npos
+					|| buf.find(_request["boundaryEnd"]) != std::string::npos)
+				{
+					filest.close();
+					break ;
+				}
+				// std::cout << "deal with content" << std::endl;
+				filest << buf;
+				if (line.peek() != '\0')
+					filest << std::endl;
+			}
+		}
+	}
+}
