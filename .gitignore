@@ -35,4 +35,3 @@ webserv
 .nfs*
 
 simple.conf
-www/data/*
