@@ -135,14 +135,14 @@ void	SocketServer::simultaneousRead() {
 		this->setSocketUsed(it->getFd());
 		if (this->ready(this->getSocketUsed(), this->getReadFds())) { //here we check if the socket is ready for reading
 
-			std::cerr << "read fd ready" << std::endl;
-			std::cout << "+++++++receiving data to client++++++++" << std::endl;
+			// std::cerr << "read fd ready" << std::endl;
+			// std::cout << "+++++++receiving data from client++++++++" << std::endl;
 
 			long	valread = 0;
 
 			//here we read max BUFFER_SIZE (=2048) data for each sockets,
 			if ((valread = recv(this->getSocketUsed(), buffer, BUFFER_SIZE, 0)) == 0) { //if read == 0 means client disconnect
-				std::cout << "valread <= 0 fd_used = " << it->getFd() << std::endl;
+				// std::cout << "valread <= 0 fd_used = " << it->getFd() << std::endl;
 				this->closeClean(&_readfds);
 				it->setFd(0);
 			} else if (valread < 0) { // if read < 0 is an error
@@ -156,7 +156,7 @@ void	SocketServer::simultaneousRead() {
 					HttpResponse	msg(_env, _config, req.getRequest());
 					str_file = msg.getHttpResponse();
 					it->setSend(str_file); //this is where the response is stored
-					std::cerr << "bytes to send: " << it->getSend().size() << std::endl;
+					// std::cerr << "bytes to send: " << it->getSend().size() << std::endl;
 					str_file = "";
 					it->setRead("");
 					it->setReadOk(false);
@@ -171,8 +171,8 @@ void	SocketServer::simultaneousRead() {
 		this->setSocketUsed(it->getFd());
 		if (this->ready(this->getSocketUsed(), this->getWriteFds()) && it->getSendOk()) {//here we check if the socket is ready for writing
 
-			std::cerr << "write fd ready" << std::endl;
-			std::cout << "+++++++sending data to client++++++++" << std::endl;
+			// std::cerr << "write fd ready" << std::endl;
+			// std::cout << "+++++++sending data to client++++++++" << std::endl;
 
 			int	valsend = 0;
 
