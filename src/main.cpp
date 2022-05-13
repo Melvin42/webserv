@@ -32,7 +32,7 @@ int	main(int ac, char **av, char **env) {
 
 			server.run();
 	} else {
-			Config conf("index/simple.conf");
+			Config conf("config/simple.conf");
 
 			if (conf.getNeedExit())
 				return EXIT_FAILURE;
