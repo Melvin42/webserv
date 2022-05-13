@@ -25,17 +25,17 @@ class BlockConfig {
 		void	setNewIndex(const std::string &index);
 		void	setNewLocation(const std::string &arg);
 		void	addIndexToLocation(const std::string &index, int i);
-		void	addCgiBinaryToLocation(const std::string &binary, int i);
-		void	addCgiFilenameToLocation(const std::string &filename, int i);
-		void	incCgiBinaryNbrLocation(int i);
-		void	incCgiFilenameNbrLocation(int i);
+		void	addCgiToLocationMap(const std::string &key, const std::string &value, int loc_id);
 
 	private:
-		int							_port;
-		std::string					_server_name;
-		std::string					_root;
-		std::vector<std::string>	_index;
-		std::vector<Location>		_location;
+		int												_port;
+		std::string										_server_name;
+		std::string										_root;
+		std::vector<std::string>						_index;
+		std::vector<Location>							_location;
+//		bool											_can_post;
+//		bool											_autoindex;
+//		size_t											_body_size_max;
 };
 
 #endif

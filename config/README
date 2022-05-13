@@ -1,0 +1,61 @@
+/*******	README.conf		********/
+
+READ THIS FILE BEFORE MODIFY THE CONF FILE
+
+/***** SERVER *****/
+	
+	-"server" keyword need to be follow by a '{'
+	
+	-each server block need to be in separate scope
+	
+/***** INSTRUCTION *****/
+
+	-all instructions line have to be finish by a ';' (just one ';' per line is accepted)
+	
+	-listen instruction can have only one port (format: 0.0.0.0:port)
+	
+		listen		<host:port>;
+	
+	-server_name instruction can gave only one string argument (whithout white_space or ';')
+
+		server_name	localhost;
+	
+	-index instruction can content as many index as u want, separate by space or tab;
+
+		index		index.html index.php. index;
+	
+/***** Location *****/
+
+	one server block can content as many location block as u want, you can't imbricate them
+
+	-in each location block, you can put different instructions.
+
+	-new location index
+
+	-new location cgi
+
+	for the cgi, for each,
+
+		you have to put the path of the binary
+
+		-cgi-bin BINARY   <path>;
+
+		and juste follow on the next line by the extention type
+
+		-cgi-bin BINARY   <.ext>;
+
+/*****	example	******/
+
+server {
+	listen		0.0.0.0:8080;
+	server_name	localhost;
+
+	location /index/ {
+		index	index.php index.html;
+	}
+
+	location /cgi_folder/ {
+		cgi-bin BINARY		/usr/bin/perl;
+		cgi-bin SCRIPT-EXT	.pl;
+	}
+}

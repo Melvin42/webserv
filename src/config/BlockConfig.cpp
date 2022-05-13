@@ -1,6 +1,7 @@
 #include "BlockConfig.hpp"
 
-BlockConfig::BlockConfig() : _port(8080), _server_name("localhost"), _root("./") {
+BlockConfig::BlockConfig() : _port(8080), _server_name("localhost"),
+	_root("./") {//, _can_post(false), _autoindex(false), _body_size_max(0) {
 }
 
 BlockConfig::~BlockConfig() {
@@ -52,18 +53,6 @@ void	BlockConfig::addIndexToLocation(const std::string &index, int i) {
 	this->_location.at(i).addIndex(index);
 }
 
-void	BlockConfig::addCgiBinaryToLocation(const std::string &binary, int i) {
-	this->_location.at(i).addCgiBinary(binary);
-}
-
-void	BlockConfig::addCgiFilenameToLocation(const std::string &filename, int i) {
-	this->_location.at(i).addCgiFilename(filename);
-}
-
-void	BlockConfig::incCgiBinaryNbrLocation(int i) {
-	this->_location.at(i).incCgiBinaryNbr();
-}
-
-void	BlockConfig::incCgiFilenameNbrLocation(int i) {
-	this->_location.at(i).incCgiFilenameNbr();
+void	BlockConfig::addCgiToLocationMap(const std::string &key, const std::string &value, int loc_id) {
+	this->_location.at(loc_id).addCgiPath(key, value);
 }

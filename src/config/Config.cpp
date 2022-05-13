@@ -3,7 +3,6 @@
 Config::Config()
 	: _need_exit(false), _last_instruction(""), _word(""), _path(""),
 	_block_index(-1), _loc_id(-1), _new_instruction(true) {
-//	this->parsing();
 }
 
 Config::Config(Config &cp) {
@@ -11,10 +10,9 @@ Config::Config(Config &cp) {
 }
 
 Config::Config(const char *av)
-	: _in_file(av), _last_instruction(""), _word(""), _path(""),
+	: _need_exit(false), _in_file(av), _last_instruction(""), _word(""), _path(""),
 	_block_index(-1), _loc_id(-1), _new_instruction(true) {
 	this->parsing();
-	this->concatPath();
 }
 
 Config::~Config() {
@@ -41,6 +39,10 @@ bool	Config::getNeedExit() const {
 	return _need_exit;
 }
 
+void	Config::setNeedExit(const bool &need_exit) {
+	_need_exit = need_exit;
+}
+
 void	Config::setLastInstruction(const std::string &instru) {
 	_last_instruction = instru;
 }
@@ -54,7 +56,8 @@ void	Config::setPath(const std::string &path) {
 }
 
 void	Config::concatPath() {
-	_path = _config.at(0).getRoot();
+	if (_config.at(0).getRoot() != "")
+		_path = _config.at(0).getRoot();
 }
 
 void	Config::setBlockIndex(const int &index) {
@@ -150,19 +153,16 @@ void	Config::parsLocationIndex() {
 }
 
 void	Config::parsCgi() {
+	std::string keymap;
+
 	_in_file >> _word;
 	if (_word == "BINARY") {
 		_in_file >> _word;
-		_config.at(_block_index).incCgiBinaryNbrLocation(_loc_id);
-		if (_config.at(_block_index).getLocation().at(_loc_id).getCgiBinaryNbr() > 1)
-			this->errorTooMuchCgi();
-		_config.at(_block_index).addCgiBinaryToLocation(this->badEndOfLine(), _loc_id);
-	} else if (_word == "SCRIPT_FILENAME") {
+		keymap = this->badEndOfLine();
+		std::cerr << "key = " << keymap << std::endl;
+	} else if (_word == "SCRIPT_EXT") {
 		_in_file >> _word;
-		_config.at(_block_index).incCgiFilenameNbrLocation(_loc_id);
-		if (_config.at(_block_index).getLocation().at(_loc_id).getCgiFilenameNbr() > 1)
-			this->errorTooMuchCgi();
-		_config.at(_block_index).addCgiFilenameToLocation(this->badEndOfLine(), _loc_id);
+		_config.at(_block_index).addCgiToLocationMap(keymap, _word, _loc_id);
 	} else {
 		this->errorBadCgi();
 	}
@@ -207,6 +207,12 @@ void	Config::errorNoSemiColon() {
 	_need_exit = true;
 }
 
+void	Config::errorCantReadFile() {
+	if (_need_exit == false)
+		std::cerr << "Error: Can't read conf file." << std::endl;
+	_need_exit = true;
+}
+
 void	Config::errorBadConf() {
 	if (_need_exit == false)
 		std::cerr << "Error: Bad conf format" << std::endl;
@@ -243,6 +249,9 @@ void	Config::errorTooMuchCgi() {
 }
 
 void	Config::printAllConfig() const {
+	std::map<std::string, std::string>::const_iterator	it;
+	std::map<std::string, std::string>::const_iterator	ite;
+
 	for (size_t j = 0; j < _config.size(); j++) {
 		std::cout << "\nBlock Nb : " << j+1 << '\n' << std::endl;
 		std::cout << "	port = " << _config.at(j).getPort() << std::endl;
@@ -258,18 +267,27 @@ void	Config::printAllConfig() const {
 				std::cout << " ";
 		}
 		for (size_t i = 0; i < _config.at(j).getLocation().size(); i++) {
+			it = _config.at(j).getLocation().at(i).getCgiMap().begin();
+			ite = _config.at(j).getLocation().at(i).getCgiMap().end();
 			std::cout << "	location = "
 				<< _config.at(j).getLocation().at(i).getArg() << std::endl;
-			for (size_t k = 0; k < _config.at(j).getLocation().at(i).getCgiBinary().size(); k++) {
-				std::cout << "		cgi-bin BINARY = "
-					<< _config.at(j).getLocation().at(i).getCgiBinary().at(k)
-					<< std::endl;
+
+			while (it != ite) {
+				std::cerr << "		cgi-bin BINARY = " << it->first << "\n"
+				   << "		cgi-bin SCRIPT_EXT = " << it->second << std::endl;
+//				std::cerr << "bloque" << std::endl;
+				it++;
 			}
-			for (size_t k = 0; k < _config.at(j).getLocation().at(i).getCgiFilename().size(); k++) {
-				std::cout << "		cgi-bin FILENAME = "
-					<< _config.at(j).getLocation().at(i).getCgiFilename().at(k)
-					<< std::endl;
-			}
+//			for (size_t k = 0; k < _config.at(j).getLocation().at(i).getCgiBinary().size(); k++) {
+//				std::cout << "		cgi-bin BINARY = "
+//					<< _config.at(j).getLocation().at(i).getCgiBinary().at(k)
+//					<< std::endl;
+//			}
+//			for (size_t k = 0; k < _config.at(j).getLocation().at(i).getCgiFilename().size(); k++) {
+//				std::cout << "		cgi-bin FILENAME = "
+//					<< _config.at(j).getLocation().at(i).getCgiFilename().at(k)
+//					<< std::endl;
+//			}
 			for (size_t k = 0; k < _config.at(j).getLocation().at(i).getIndex().size(); k++) {
 				std::cout << "		index = "
 					<< _config.at(j).getLocation().at(i).getIndex().at(k)
@@ -344,11 +362,14 @@ void	Config::parsing() {
 		}
 		this->printAllConfig();
 	} else {
-		std::cerr << "Can't read conf file" << std::endl;
+		this->errorCantReadFile();
+		return ;
 	}
+	this->concatPath();
 }
 
 Config &Config::operator=(const Config &conf) {
+	this->setNeedExit(conf._need_exit);
 	this->setLastInstruction(conf._last_instruction);
 	this->setWord(conf._word);
 	this->setPath(conf._path);

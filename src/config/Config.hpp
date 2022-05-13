@@ -17,6 +17,7 @@ class Config {
 
 		bool						getNeedExit() const;
 
+		void						setNeedExit(const bool &need_exit);
 		void						setLastInstruction(const std::string &instru);
 		void						setWord(const std::string &word);
 		void						setPath(const std::string &path);
@@ -44,6 +45,7 @@ class Config {
 		void		parsCgi();
 
 		void		errorBadConf();
+		void		errorCantReadFile();
 		void		errorNoSemiColon();
 		void		errorBadKeyword();
 		void		errorScopeDepth();
