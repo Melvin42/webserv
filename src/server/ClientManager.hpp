@@ -21,7 +21,7 @@ class ClientManager {
 		ClientManager(int fd);
 
 		void		appendRead(char *buf);
-		bool		isReadOk(const std::string &path);
+		bool		isReadOk();
 
 		void		setFd(int fd);
 		void		setHeaderOk(bool ok);

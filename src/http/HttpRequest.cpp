@@ -3,7 +3,7 @@
 HttpRequest::HttpRequest() {
 }
 
-HttpRequest::HttpRequest(const char *buffer, int buf_size, const std::string &root) {
+HttpRequest::HttpRequest(const char *buffer, const std::string &root) {
 	std::stringstream	line;
 
 	line << buffer;
@@ -13,10 +13,9 @@ HttpRequest::HttpRequest(const char *buffer, int buf_size, const std::string &ro
 	_request["page"] = root + _request["page"];
 	line.ignore();
 	parseHeader(line);
-	if (_request.find("boundary") != _request.end() /*&& conf allow upload*/)
-		parseBody(line);
 	// std::cout << std::endl << "line: " << std::endl << line.str();
-	(void)buf_size;
+	// if (_request.find("boundary") != _request.end() /*&& conf allow upload*/)
+	// 	parseBody(line);
 }
 
 HttpRequest::HttpRequest(const HttpRequest &httprequest) {
@@ -56,6 +55,10 @@ size_t	HttpRequest::getContentLength(){
 	return std::atoi(_request["Content-Length"].c_str());
 }
 
+std::map<std::string, std::string> HttpRequest::getRequest() const {
+	return _request;
+}
+
 void	HttpRequest::parseHeader(std::stringstream &line) {
 	std::string buf;
 	std::string key;
@@ -89,7 +92,8 @@ void	HttpRequest::parseBody(std::stringstream &line) {
 // std::FILE* tmpf = fopen("/tmp/.tmp", "wb+");
 // (void)tmpf;
 // std::ofstream tmpst("/tmp/.tmp");
-// int i = 0;
+ int i = 0;
+ int j = 0;
 
 	while (std::getline(line, buf)) {
 		// tmpst << "buf is   :" << buf << std::endl;
@@ -100,12 +104,18 @@ void	HttpRequest::parseBody(std::stringstream &line) {
 		// i++;
 	}
 	while (42) {
-		if (line.eof() || line.bad() || buf == _request["boundaryEnd"])
+		// tmpst<< "buf is :" << buf << std::endl;
+		if (line.eof() || line.bad() || buf == (_request["boundaryEnd"]))
+		{
+			// tmpst<< "should be out of loop" << std::endl;
 			break ;
+		}
+		else if (buf != _request["boundary"])
+			std::getline(line, buf);
 		if (buf == _request["boundary"])
 		{
 			while (std::getline(line, buf)) {
-				// std::cout << "buf is :" << buf << std::endl;
+				// tmpst << "buf is :" << buf << std::endl;
 				if (line.eof() || line.bad() || buf == "\r")
 					break ;
 				bodyHeader[getKey(buf)] = getValue(buf);
@@ -114,25 +124,36 @@ void	HttpRequest::parseBody(std::stringstream &line) {
 				break ;
 			if (buf == "\r") {
 				filename = getFilename(bodyHeader);
-				file = fopen(filename.c_str(), "wb+");	
+				file = fopen(filename.c_str(), "wb+");
+				i++;
+				// tmpst<< "fd opened" << std::endl;
 			}
 			std::ofstream	filest(filename.c_str());
 			while (std::getline(line, buf))
 			{
-				// std::cout << "buf is :" << buf << std::endl;
-				if (line.eof() || line.bad() || buf.find("\r") != std::string::npos
-					|| buf.find(_request["boundary"]) != std::string::npos
-					|| buf.find(_request["boundaryEnd"]) != std::string::npos)
+				// tmpst << "buf is :" << buf << std::endl;
+				if (line.eof() || line.bad() || buf == "\r"
+					|| buf == _request["boundary"] || buf == _request["boundaryEnd"])
 				{
 					filest.close();
+					j++;
 					break ;
 				}
 				// std::cout << "deal with content" << std::endl;
 				filest << buf;
 				if (line.peek() != '\0')
 					filest << std::endl;
+				else
+					filest << std::ends;
 			}
 		}
+	}
+	if (i == j)
+		std::cout << "fds properly closed" << std::endl;
+	if (!line.bad())
+	{	
+		_request["posted"] = "true";
+		std::cout << "posted" << std::endl;
 	}
 }
 

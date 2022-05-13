@@ -114,6 +114,8 @@ void	SocketServer::setClientSocket() {
 
 	if (this->ready(this->getMasterFd(), this->getReadFds())) {
 		ClientManager	new_client(this->acceptSocket());
+		// std::cerr  << std::endl << "++++++++++++++++" << std::endl
+		// << "++++++++++++++++" << std::endl << std::endl
 		std::cerr << "New connection, socket fd is " << new_client.getFd() << std::endl;
 		this->getClientSocket().push_back(new_client);
 //		new_socket = this->acceptSocket();
@@ -156,22 +158,27 @@ void	SocketServer::simultaneousRead() {
 //						<< " content:\n" << it->getRead() << std::endl;
 //					std::cout << "++++++++received from client " << it->getFd()
 //					   << "++++++++++++" << std::endl;
-				if (it->isReadOk(this->_config.getPath())) {
+				if (it->isReadOk()) {
 //					std::cout << "read OK, val = " << valread
 //						<< " content:\n" << it->getRead() << std::endl;
-//					HttpRequest	req(buffer, BUFFER_SIZE);
-					HttpRequest	req(it->getRead().c_str(), it->getRead().size(),
-							_config.getPath());
+					// std::cout << "something here" << std::endl;
+					HttpRequest	req(it->getRead().c_str(), _config.getPath());
+					// std::cout << std::endl << "------ method " << req.getMethod() << " ------" << std::endl;
+					// std::cout << std::endl << "------request done------" << std::endl << std::endl;
 					//					std::cerr << _config.getPath() << std::endl;
 					std::cerr << req.getPage() << std::endl;
-					HttpResponse	msg(_env, _config);
-
-					str_file = msg.getHttpResponse(req.getPage());
+					HttpResponse	msg(_env, _config, req.getRequest());
+					str_file = msg.getHttpResponse();
+					// std::cout << std::endl << "------response done------" << std::endl << std::endl;
+					
 //					std::cerr << "BEFORE SEND =" << str_file << std::endl;
 //					std::cout << "+++++++sending data to client++++++++" << std::endl;
+					// std::cout << "SendOk: " << it->getSendOk() << std::endl;
+					// std::cout << "str_file.size(): " << str_file.size() << std::endl;
+					int retsend = 0;
 					if (it->getSendOk() == false 
-							&& send(this->getSocketUsed(), str_file.c_str(),
-							str_file.size(), 0) == static_cast<long>(str_file.size())) {
+							&& (retsend = send(this->getSocketUsed(), str_file.c_str(),
+							str_file.size(), 0)) == static_cast<long>(str_file.size())) {
 						it->setSendOk(true);
 						it->setSend(str_file);
 						this->closeClean();
@@ -179,7 +186,10 @@ void	SocketServer::simultaneousRead() {
 						it->setFd(0);
 						it->setReadOk(false);
 //						*it = 0;
+						// std::cout << "------client fd closed------" << std::endl;
 					}
+					// std::cout << "retsend        : " << retsend << std::endl;
+					// std::cout << "------page sent------" << std::endl;
 				}
 			}
 		}

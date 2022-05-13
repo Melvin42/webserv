@@ -22,23 +22,24 @@ class	HttpResponse {
 	public:
 
 		
-		HttpResponse(char **env, Config &config);
+		HttpResponse(char **env, Config &config, std::map<std::string, std::string> request);
 		~HttpResponse();
 
-		std::string	getHttpResponse(std::string requestedPagePath);
+		std::string	getHttpResponse();
 
 	private:
 
-		std::string							_ret;
-		std::string							_fullPath;
-		Config								_config;
-		std::map<std::string, std::string>	_status;
-		std::map<std::string, std::string>	_cgi;
 		char								**_env;
 		char								**_exec_argv;
+		Config								_config;
+		std::string							_ret;
+		std::map<std::string, std::string>	_cgi;
+		std::map<std::string, std::string>	_status;
+		std::map<std::string, std::string>	_request;
+		
 
 		HttpResponse();
-		int		is_cgi(std::string requestedPagePath);
+		int		is_cgi();
 		void	errRet(std::string errCode);
 		void	set_exec_argv(std::string cmdPath, std::string errPage);
 		int		cgi(std::string statusKey);
