@@ -50,6 +50,7 @@ class SocketServer : public Socket {
 		int		getSocketUsed() const;
 		void	setSocketUsed(int fd);
 		fd_set	getReadFds() const;
+		fd_set	getWriteFds() const;
 		Config	&getConfig() ;
 
 		int		acceptSocket();
@@ -58,12 +59,13 @@ class SocketServer : public Socket {
 		void	setClientSocket();
 		void	simultaneousRead();
 		void	run();
-		void	closeClean();
+		void	closeClean(fd_set *fds);
 
 	private:
 		int		_sd;
 		int		_max_sd;
 		fd_set	_readfds;
+		fd_set	_writefds;
 		Config	_config;
 };
 
