@@ -103,7 +103,7 @@ void	SocketServer::selectSocket() {
 
 	activity = select(_max_sd + 1, &_readfds, &_writefds, NULL, NULL);
 
-	if ((activity < 0) && (errno != EINTR))						//Don't use errno!!!
+	if ((activity < 0) && (errno != EINTR))
 		throw "SELECT FAILED";
 }
 
@@ -117,9 +117,6 @@ void	SocketServer::setClientSocket() {
 
 	if (this->ready(this->getMasterFd(), this->getReadFds())) {
 		ClientManager	new_client(this->acceptSocket());
-		// std::cerr  << std::endl << "++++++++++++++++" << std::endl
-		// << "++++++++++++++++" << std::endl << std::endl
-		std::cerr << "New connection, socket fd is " << new_client.getFd() << std::endl;
 		this->getClientSocket().push_back(new_client);
 	}
 }
@@ -134,15 +131,10 @@ void	SocketServer::simultaneousRead() {
 	for (it = this->getClientSocket().begin(); it != ite; it++) { //this loop is dedicated to every read fds ready for use 
 		this->setSocketUsed(it->getFd());
 		if (this->ready(this->getSocketUsed(), this->getReadFds())) { //here we check if the socket is ready for reading
-
-			// std::cerr << "read fd ready" << std::endl;
-			// std::cout << "+++++++receiving data from client++++++++" << std::endl;
-
 			long	valread = 0;
 
 			//here we read max BUFFER_SIZE (=2048) data for each sockets,
 			if ((valread = recv(this->getSocketUsed(), buffer, BUFFER_SIZE, 0)) == 0) { //if read == 0 means client disconnect
-				// std::cout << "valread <= 0 fd_used = " << it->getFd() << std::endl;
 				this->closeClean(&_readfds);
 				it->setFd(0);
 			} else if (valread < 0) { // if read < 0 is an error
@@ -170,20 +162,14 @@ void	SocketServer::simultaneousRead() {
 	for (it = this->getClientSocket().begin(); it != ite; it++) {//this loop is dedicated to every write fds ready for use 
 		this->setSocketUsed(it->getFd());
 		if (this->ready(this->getSocketUsed(), this->getWriteFds()) && it->getSendOk()) {//here we check if the socket is ready for writing
-
-			// std::cerr << "write fd ready" << std::endl;
-			// std::cout << "+++++++sending data to client++++++++" << std::endl;
-
 			int	valsend = 0;
 
 			//here we send in one time all the response (stored in ClientManager::_send) for each sockets,
 			if ((valsend = send(this->getSocketUsed(), it->getSend().c_str(), it->getSend().size(), 0)) == -1) { //if send == -1 is an error
-				std::cerr << "send failed: " << it->getSend().size()<< std::endl;
+				std::cerr << "send failed: " << it->getSend().size() << std::endl;
 			} else if (valsend < static_cast<int>(it->getSend().size())) { // if send < size means that we didn't send all the response
 				std::string	msg = it->getSend().substr(0, valsend);
 				//here i'm storing all datas that weren't send in order to try to send them later
-				std::cerr << "send left: " << valsend << std::endl;
-				std::cerr << "send left: " << msg.size() << std::endl;
 				it->setSend(msg); //updating ClientManager::_send (puting only what we didn't already send)
 			} else { //here is what we do if we had send all the response to the client
 				this->closeClean(&_writefds);
