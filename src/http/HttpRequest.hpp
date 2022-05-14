@@ -7,6 +7,7 @@
 #include <ctype.h>
 #include <limits>
 #include <stdlib.h>
+#include <sys/stat.h>
 #include "../server/ClientManager.hpp"
 
 class	HttpRequest {
@@ -19,7 +20,7 @@ class	HttpRequest {
 		HttpRequest &operator=(const HttpRequest &httprequest);
 
 		std::string							getMethod();
-		std::string							getPage();
+		std::string							getFullPage();
 		std::string							getVersion();
 		std::string							getHost();
 		std::string							getBody();
@@ -35,6 +36,7 @@ class	HttpRequest {
 		std::string							getFilename(std::map<std::string, std::string>	&bodyHeader);
 		std::string							getKey(std::string buf);
 		std::string							getValue(std::string buf);
+		bool								fileIssue(std::string filename);
 
 		std::map<std::string, std::string>	_request;
 		std::string							_body;

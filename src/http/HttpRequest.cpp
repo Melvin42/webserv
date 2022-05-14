@@ -10,12 +10,12 @@ HttpRequest::HttpRequest(const char *buffer, const std::string &root) {
 	line >> _request["method"];
 	line >> _request["page"];
 	line >> _request["version"];
-	_request["page"] = root + _request["page"];
+	_request["fullpage"] = root + _request["page"];
 	line.ignore();
 	parseHeader(line);
 	// std::cout << std::endl << "line: " << std::endl << line.str();
-	// if (_request.find("boundary") != _request.end() /*&& conf allow upload*/)
-	// 	parseBody(line);
+	if (_request.find("boundary") != _request.end() /*&& conf allow upload*/)
+		parseBody(line);
 }
 
 HttpRequest::HttpRequest(const HttpRequest &httprequest) {
@@ -35,8 +35,8 @@ std::string	HttpRequest::getMethod() {
 	return _request["method"];
 }
 
-std::string	HttpRequest::getPage() {
-	return _request["page"];
+std::string	HttpRequest::getFullPage() {
+	return _request["fullpage"];
 }
 
 std::string	HttpRequest::getVersion() {
@@ -92,8 +92,8 @@ void	HttpRequest::parseBody(std::stringstream &line) {
 // std::FILE* tmpf = fopen("/tmp/.tmp", "wb+");
 // (void)tmpf;
 // std::ofstream tmpst("/tmp/.tmp");
- int i = 0;
- int j = 0;
+//  int i = 0;
+//  int j = 0;
 
 	while (std::getline(line, buf)) {
 		// tmpst << "buf is   :" << buf << std::endl;
@@ -125,7 +125,7 @@ void	HttpRequest::parseBody(std::stringstream &line) {
 			if (buf == "\r") {
 				filename = getFilename(bodyHeader);
 				file = fopen(filename.c_str(), "wb+");
-				i++;
+				// i++;
 				// tmpst<< "fd opened" << std::endl;
 			}
 			std::ofstream	filest(filename.c_str());
@@ -136,11 +136,13 @@ void	HttpRequest::parseBody(std::stringstream &line) {
 					|| buf == _request["boundary"] || buf == _request["boundaryEnd"])
 				{
 					filest.close();
-					j++;
+					// j++;
 					break ;
 				}
 				// std::cout << "deal with content" << std::endl;
 				filest << buf;
+				if (filest.fail())
+					_request["posted"] = "false";
 				if (line.peek() != '\0')
 					filest << std::endl;
 				else
@@ -148,12 +150,13 @@ void	HttpRequest::parseBody(std::stringstream &line) {
 			}
 		}
 	}
-	if (i == j)
-		std::cout << "fds properly closed" << std::endl;
-	if (!line.bad())
+	// if (i == j)
+	// 	std::cout << "fds properly closed" << std::endl;
+
+	if (!line.bad() && _request["posted"] != "false")
 	{	
 		_request["posted"] = "true";
-		std::cout << "posted" << std::endl;
+		// std::cout << "posted" << std::endl;
 	}
 }
 
@@ -183,9 +186,9 @@ std::string		HttpRequest::getFilename(std::map<std::string, std::string>	&bodyHe
 		bodyHeader["Content-Disposition"].size());
 	}
 	filename.erase(std::remove(filename.begin(), filename.end(), '\"'), filename.end());
-	if (*_request["page"].end() -1 != '/')
-		filename = _request["page"] + '/' + filename;
+	if (*_request["fullpage"].end() -1 != '/')
+		filename = _request["fullpage"] + '/' + filename;
 	else
-		filename = _request["page"] + filename;
+		filename = _request["fullpage"] + filename;
 	return filename;
 }

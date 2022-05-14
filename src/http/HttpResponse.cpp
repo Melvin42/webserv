@@ -55,33 +55,23 @@ HttpResponse::~HttpResponse(void) {
 
 std::string	HttpResponse::getHttpResponse() {
 
-	/*
-		if check if posted
-			return status code 201
-			header add location
-		else
-			...;
-		
-		redirect to a done page
-	*/
 	if (_request["method"] == "GET")
-	{
-
-	}
+		methodGetRes();
 	else if (_request["method"] == "POST")
-	{
-
-	}
+		methodPostRes();
 	else if (_request["method"] == "DELETE")
-	{
-
-	}
+		methodDeleteRes();
 	/* else
-		method not allowed;
+		405 method not allowed;
 		std::cout << "" << std::endl;
 	*/
+	// std::cout << std::endl << "ret: " << std::endl << _ret.c_str() << std::endl; 
+	return _ret;
+}
+
+void	HttpResponse::methodGetRes() {
 	try {
-		std::ifstream	page(_request["page"].c_str());
+		std::ifstream	page(_request["fullpage"].c_str());
 		if (page) {
 			if (is_cgi() == 0)
 				setPage("200", page);
@@ -91,26 +81,39 @@ std::string	HttpResponse::getHttpResponse() {
 			if (page) {
 				setPage("404", page);
 			} else
-			errRet("404"); 
+			statusRet("404"); 
 		}
 	}
 	catch (std::exception &e) {
 //			std::cout << e.what();
-			if (*(_request["page"].end() - 1) != '/')
-				errRet("301");
+			if (*(_request["fullpage"].end() - 1) != '/')
+				statusRet("301");
 			else
 				autoIndex();
 			//if autoindex off, 403 forbidden
 			// errCgi("403");
 	}
-	// std::cout << std::endl << "ret: " << std::endl << _ret.c_str() << std::endl; 
-	return _ret;
+}
+
+void	HttpResponse::methodPostRes() {
+
+	std::string statusCode;
+	if (_request["posted"] == "true")
+		statusCode = "201";
+	else
+		statusCode = "424";
+
+	statusRet(statusCode);
+}
+
+void	HttpResponse::methodDeleteRes() {
+	
 }
 
 void	HttpResponse::setHeader(std::string statusKey) {
 	if (_request["method"] == "POST")
 		_ret = "HTTP/1.1 " + statusKey + " " + _status[statusKey] + "\r\n" 
-		+ "Location: " + "\r\n\r\n";
+		+ "Location: " + "http://" + _request["Host"] + _request["page"] + "\r\n\r\n";
 	else
 		_ret = "HTTP/1.1 " + statusKey + " " + _status[statusKey] + "\r\n\r\n";
 }
@@ -118,7 +121,7 @@ void	HttpResponse::setHeader(std::string statusKey) {
 void	HttpResponse::setCgiHeader(std::string statusKey) {
 	if (_request["method"] == "POST")
 		_ret = "HTTP/1.1 " + statusKey + " " + _status[statusKey] + "\r\n"
-		+ "Location: " + "\r\n";
+		+ "Location: " + "http://" + _request["Host"] + _request["page"] + "\r\n";
 	else
 		_ret = "HTTP/1.1 " + statusKey + " " + _status[statusKey] + "\r\n";
 }
@@ -149,28 +152,28 @@ void	HttpResponse::set_exec_argv(std::string cmdPath, std::string errCode) {
 		*(_exec_argv + 2) = (char *)malloc(sizeof(char) * 1);
 		*(_exec_argv + 2) = NULL;
 		*(_exec_argv + 0) = (char *)cmdPath.c_str();
-		*(_exec_argv + 1) = (char *)_request["page"].c_str();
+		*(_exec_argv + 1) = (char *)_request["fullpage"].c_str();
 	}
 	else {
 		_exec_argv = (char **)malloc(sizeof(char *) * 5);
 		*(_exec_argv + 4) = (char *)malloc(sizeof(char) * 1);
 		*(_exec_argv + 4) = NULL;
 		*(_exec_argv + 0) = (char *)cmdPath.c_str();
-		*(_exec_argv + 1) = (char *)_request["page"].c_str();
+		*(_exec_argv + 1) = (char *)_request["fullpage"].c_str();
 		*(_exec_argv + 2) = (char *)errCode.c_str();
 		*(_exec_argv + 3) = (char *)_status[errCode].c_str();
 	}
 }
 
 int	HttpResponse::is_cgi() {
-	if (_request["page"].find_first_of(".") != std::string::npos)
+	if (_request["fullpage"].find_first_of(".") != std::string::npos)
 	{
-		if (_request["page"].compare(_request["page"].find_first_of("."), 
+		if (_request["fullpage"].compare(_request["fullpage"].find_first_of("."), 
 				std::string::npos, ".pl", 3) == 0 ||
-			_request["page"].compare(_request["page"].find_first_of("."), 
+			_request["fullpage"].compare(_request["fullpage"].find_first_of("."), 
 				std::string::npos, ".php", 4) == 0)
 		{
-			set_exec_argv(_cgi[_request["page"].substr(_request["page"].find_first_of("."))], "");
+			set_exec_argv(_cgi[_request["fullpage"].substr(_request["fullpage"].find_first_of("."))], "");
 			cgi("200");
 		}
 		else
@@ -213,13 +216,13 @@ int HttpResponse::cgi(std::string statusKey) {
 	return 0;
 }
 
-void	HttpResponse::errRet(std::string errCode) {
+void	HttpResponse::statusRet(std::string errCode) {
 	std::stringstream output;
 	setHeader(errCode);
 	output	<< "<!DOCTYPE html>\n"
 			<< "<html>\n"
 			<< "<body>\n"
-			<< "<h1>ERROR "
+			<< "<h1>STATUS "
 			<< errCode
 			<< "</h1>\n"
 			<< "<p>"
@@ -233,7 +236,7 @@ void	HttpResponse::errRet(std::string errCode) {
 void	HttpResponse::autoIndex() {
 	DIR	*dp;
 	struct  dirent *ep;
-	dp = opendir(_request["page"].c_str());
+	dp = opendir(_request["fullpage"].c_str());
 	std::stringstream output;
 
 	setHeader("200");
