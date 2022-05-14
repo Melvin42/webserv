@@ -92,33 +92,18 @@ void	HttpRequest::parseBody(std::stringstream &line) {
 	std::map<std::string, std::string>	bodyHeader;
 	std::FILE*							file;
 
-// std::FILE* tmpf = fopen("/tmp/.tmp", "wb+");
-// (void)tmpf;
-// std::ofstream tmpst("/tmp/.tmp");
-//  int i = 0;
-//  int j = 0;
-
 	while (std::getline(line, buf)) {
-		// tmpst << "buf is   :" << buf << std::endl;
-		// tmpst << "boundary :" << _request["boundary"] << std::endl;
-		// tmpst << "i = " << i << std::endl;
 		if (line.eof() || line.bad() || buf == _request["boundary"])
 			break ;
-		// i++;
 	}
 	while (42) {
-		// tmpst<< "buf is :" << buf << std::endl;
 		if (line.eof() || line.bad() || buf == (_request["boundaryEnd"]))
-		{
-			// tmpst<< "should be out of loop" << std::endl;
 			break ;
-		}
 		else if (buf != _request["boundary"])
 			std::getline(line, buf);
 		if (buf == _request["boundary"])
 		{
 			while (std::getline(line, buf)) {
-				// tmpst << "buf is :" << buf << std::endl;
 				if (line.eof() || line.bad() || buf == "\r")
 					break ;
 				bodyHeader[getKey(buf)] = getValue(buf);
@@ -128,21 +113,16 @@ void	HttpRequest::parseBody(std::stringstream &line) {
 			if (buf == "\r") {
 				filename = getFilename(bodyHeader);
 				file = fopen(filename.c_str(), "wb+");
-				// i++;
-				// tmpst<< "fd opened" << std::endl;
 			}
 			std::ofstream	filest(filename.c_str());
 			while (std::getline(line, buf))
 			{
-				// tmpst << "buf is :" << buf << std::endl;
 				if (line.eof() || line.bad() || buf == "\r"
 					|| buf == _request["boundary"] || buf == _request["boundaryEnd"])
 				{
 					filest.close();
-					// j++;
 					break ;
 				}
-				// std::cout << "deal with content" << std::endl;
 				filest << buf;
 				if (filest.fail())
 					_request["posted"] = "false";
@@ -153,14 +133,8 @@ void	HttpRequest::parseBody(std::stringstream &line) {
 			}
 		}
 	}
-	// if (i == j)
-	// 	std::cout << "fds properly closed" << std::endl;
-
 	if (!line.bad() && _request["posted"] != "false")
-	{	
 		_request["posted"] = "true";
-		// std::cout << "posted" << std::endl;
-	}
 }
 
 std::string		HttpRequest::getKey(std::string buf) {
