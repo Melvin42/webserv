@@ -128,7 +128,10 @@ void	Config::parsPort() {
 		if (!isdigit(_word[i]))
 			this->errorBadConf();
 	}
-	_config.at(_block_index).setNewPort(atoi(this->_word.c_str()));
+	int	tmp = atoi(this->_word.c_str());
+	if (tmp < 2000 || tmp > 65535)
+		this->errorBadPort();
+	_config.at(_block_index).setNewPort(tmp);
 }
 
 void	Config::parsServerName() {
@@ -255,7 +258,7 @@ void	Config::parsLocation(int &location_scope) {
 
 void	Config::errorNoSemiColon() {
 	if (_need_exit == false)
-		std::cerr << "Error: Missing Semi Colon" << std::endl;
+		std::cerr << "Error: Semi Colon" << std::endl;
 	_need_exit = true;
 }
 
@@ -271,9 +274,14 @@ void	Config::errorBadConf() {
 	_need_exit = true;
 }
 
+void	Config::errorBadPort() {
+	if (_need_exit == false)
+		std::cerr << "Error: Bad port" << std::endl;
+	_need_exit = true;
+}
+
 void	Config::errorBadKeyword() {
 	if (_need_exit == false) {
-		std::cerr << "Cursor on : \"" << _word << "\"" << std::endl;
 		std::cerr << "Error: Bad Key _word" << std::endl;
 		std::cerr << "_word = " << _word << std::endl;
 	}
@@ -282,7 +290,6 @@ void	Config::errorBadKeyword() {
 
 void	Config::errorScopeDepth() {
 	if (_need_exit == false) {
-		std::cerr << "Cursor on : \"" << _word << "\"" << std::endl;
 		std::cerr << "Error: Trying to go depth 3 scope" << std::endl;
 	}
 	_need_exit = true;

@@ -46,6 +46,7 @@ class Config {
 		void		parsCgi();
 
 		void		errorBadConf();
+		void		errorBadPort();
 		void		errorCantReadFile();
 		void		errorNoSemiColon();
 		void		errorBadKeyword();
