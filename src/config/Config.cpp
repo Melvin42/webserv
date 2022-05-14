@@ -1,7 +1,7 @@
 #include "Config.hpp"
 
 Config::Config()
-	: _need_exit(false), _check_binary("SCRIPT_EXT"), _last_instruction(""), _word(""), _path(""),
+	: _need_exit(false), _check_binary("SCRIPT_EXT"), _last_instruction(""), _word(""),
 	_block_index(-1), _loc_id(-1), _new_instruction(true) {
 }
 
@@ -10,7 +10,7 @@ Config::Config(Config &cp) {
 }
 
 Config::Config(const char *av)
-	: _need_exit(false), _check_binary("SCRIPT_EXT"), _in_file(av), _last_instruction(""), _word(""), _path(""),
+	: _need_exit(false), _check_binary("SCRIPT_EXT"), _in_file(av), _last_instruction(""), _word(""),
 	_block_index(-1), _loc_id(-1), _new_instruction(true) {
 	this->parsing();
 }
@@ -31,10 +31,6 @@ std::vector<BlockConfig>	Config::getConfig() const {
 	return _config;
 }
 
-std::string	Config::getPath() const {
-	return _path;
-}
-
 bool	Config::getNeedExit() const {
 	return _need_exit;
 }
@@ -49,15 +45,6 @@ void	Config::setLastInstruction(const std::string &instru) {
 
 void	Config::setWord(const std::string &word) {
 	_word = word;
-}
-
-void	Config::setPath(const std::string &path) {
-	_path = path;
-}
-
-void	Config::concatPath() {
-	if (_config.at(0).getRoot() != "")
-		_path = _config.at(0).getRoot();
 }
 
 void	Config::setAllDefaultValue() {
@@ -119,12 +106,23 @@ void	Config::checkSemiColon() {
 bool	isInstruction(const std::string &word) {
 	if (word == "listen" || word == "server_name" || word == "root"
 		|| word == "index" || word == "location" || word == "server"
+		|| word == "autoindex" || word == "404_default"
+		|| word == "client_body_size_max" || word == "disallow"
 		|| word == "{" || word == "}")
 		return true;
 	return false;
 }
 
 void	Config::parsPort() {
+
+	size_t	found;
+
+	found = _word.find(":", 0);
+	
+	if (found < _word.size()) {
+		_config.at(_block_index).setNewHost(_word.substr(0, found));
+		_word = _word.substr(found + 1);
+	}
 	_word = this->badEndOfLine();
 	for (size_t i = 0; i < _word.size(); i++) {
 		if (!isdigit(_word[i]))
@@ -157,6 +155,45 @@ void	Config::parsLocationIndex() {
 		_config.at(_block_index).addIndexToLocation(this->checkEndOfLine(';'), _loc_id);
 	else
 		_config.at(_block_index).addIndexToLocation(_word, _loc_id);
+}
+
+void	Config::parsAutoindex() {
+	std::string	tmp = this->badEndOfLine();
+
+	if (tmp == "on") {
+		_config.at(_block_index).setAutoindex(true);
+	} else if (tmp == "off") {
+		_config.at(_block_index).setAutoindex(false);
+	} else {
+		this->errorBadConf();
+	}
+}
+
+void	Config::parsDefaultErrorPage() {
+}
+
+void	Config::parsClientMaxBodySize() {
+	_word = this->badEndOfLine();
+
+	for (size_t i = 0; i < _word.size(); i++) {
+		if (!isdigit(_word[i]) || i > 18) {
+			this->errorBadConf();
+		}
+	}
+	_config.at(_block_index).setBodySizeMax(atoi(this->_word.c_str()));
+}
+
+void	Config::parsDisallow() {
+	std::string	tmp = this->badEndOfLine();
+	if (tmp == "POST") {
+		_config.at(_block_index).setCanPost(false);
+	} else if (tmp == "GET") {
+		_config.at(_block_index).setCanGet(false);
+	} else if (tmp == "DELETE") {
+		_config.at(_block_index).setCanDelete(false);
+	} else {
+		this->errorBadConf();
+	}
 }
 
 void	Config::parsCgi() {
@@ -266,6 +303,7 @@ void	Config::errorTooMuchCgi() {
 void	Config::printAllConfig() const {
 	for (size_t j = 0; j < _config.size(); j++) {
 		std::cout << "\nBlock Nb : " << j+1 << '\n' << std::endl;
+		std::cout << "	host = " << _config.at(j).getHost() << std::endl;
 		std::cout << "	port = " << _config.at(j).getPort() << std::endl;
 		std::cout << "	server_name = " << _config.at(j).getServerName() << std::endl;
 		std::cout << "	root = " << _config.at(j).getRoot() << std::endl;
@@ -287,12 +325,23 @@ void	Config::printAllConfig() const {
 				if (k == 0)
 					std::cout << "		index = ";
 				std::cout << _config.at(j).getLocation().at(i).getIndex().at(k);
-				if (i == _config.at(j).getLocation().at(i).getIndex().size() - 1)
+				if (k == _config.at(j).getLocation().at(i).getIndex().size() - 1)
 					std::cout << std::endl;
 				else
 					std::cout << " ";
 			}
 		}
+		std::cerr << "	POST = " << _config.at(j).getCanPost() << std::endl;
+		std::cerr << "	GET = " << _config.at(j).getCanGet() << std::endl;
+		std::cerr << "	DEL = " << _config.at(j).getCanDelete() << std::endl;
+
+		if (_config.at(j).getAutoindex())
+			std::cerr << "	autoindex = " << "ON" << std::endl;
+		else
+			std::cerr << "	autoindex = " << "OFF" << std::endl;
+
+		std::cerr << "	client_body_size_max = " << _config.at(j).getBodySizeMax() << std::endl;
+
 	}
 }
 
@@ -334,8 +383,15 @@ void	Config::parsing() {
 								_last_instruction = _word;
 							} else if (_word == "index") {
 								_last_instruction = _word;
-							}
-							else if (_word == "location") {
+							} else if (_word == "autoindex") {
+								_last_instruction = _word;
+							} else if (_word == "404_default") {
+								_last_instruction = _word;
+							} else if (_word == "client_body_size_max") {
+								_last_instruction = _word;
+							} else if (_word == "disallow") {
+								_last_instruction = _word;
+							} else if (_word == "location") {
 								_loc_id++;
 								_last_instruction = _word;
 							}
@@ -348,6 +404,14 @@ void	Config::parsing() {
 								this->parsRoot();
 							} else if (_last_instruction == "index") {
 								this->parsIndex();
+							} else if (_last_instruction == "autoindex") {
+								this->parsAutoindex();
+							} else if (_last_instruction == "404_default") {
+								this->parsDefaultErrorPage();
+							} else if (_last_instruction == "client_body_size_max") {
+								this->parsClientMaxBodySize();
+							} else if (_last_instruction == "disallow") {
+								this->parsDisallow();
 							} else if (_last_instruction == "location") {
 								this->parsLocation(location_scope);
 							}
@@ -366,7 +430,6 @@ void	Config::parsing() {
 		this->errorCantReadFile();
 		return ;
 	}
-	this->concatPath();
 	this->setAllDefaultValue();
 }
 
@@ -374,7 +437,6 @@ Config &Config::operator=(const Config &conf) {
 	this->setNeedExit(conf._need_exit);
 	this->setLastInstruction(conf._last_instruction);
 	this->setWord(conf._word);
-	this->setPath(conf._path);
 	this->setBlockIndex(conf._block_index);
 	this->setLocId(conf._loc_id);
 	this->setBlockInstruction(conf._new_instruction);

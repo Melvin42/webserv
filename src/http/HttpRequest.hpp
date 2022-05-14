@@ -8,12 +8,13 @@
 #include <limits>
 #include <stdlib.h>
 #include "../server/ClientManager.hpp"
+#include "../config/Config.hpp"
 
 class	HttpRequest {
 
 	public:
 
-		HttpRequest(const char *buffer, const std::string &root);
+		HttpRequest(const char *buffer, const BlockConfig &conf);
 		HttpRequest(const HttpRequest &httprequest);
 		~HttpRequest();
 		HttpRequest &operator=(const HttpRequest &httprequest);

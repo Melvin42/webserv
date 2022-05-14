@@ -21,20 +21,20 @@ class Socket {
 		Socket();
 		virtual ~Socket();
 
-		std::string			receiveLine();
-		void				closeFd();
-		int					getMasterFd() const;
-		char				**getEnv();
+		std::string					receiveLine();
+		void						closeFd();
+		int							getMasterFd() const;
+		char						**getEnv();
 		std::vector<ClientManager>	&getClientSocket();
 
 
 	protected:
 		friend class SocketServer;
 
-		int					_server_fd;
-		char				**_env;
+		int							_server_fd;
+		char						**_env;
 		std::vector<ClientManager>	_clientSocket;
-		struct sockaddr_in	_address;
+		struct sockaddr_in			_address;
 
 	private:
 };

@@ -256,7 +256,7 @@ void	HttpResponse::autoIndex() {
 				output << "/";
 			std::string tmp(ep->d_name);
 				output << "\">"
-					<< ep->d_name
+//					<< ep->d_name
 					<< "</a></p>\n";
 		}
 		output << "</body>\n</html>";

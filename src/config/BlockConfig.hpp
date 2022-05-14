@@ -14,13 +14,21 @@ class BlockConfig {
 		BlockConfig();
 		~BlockConfig();
 
+		std::string					getHost() const;
 		int							getPort() const;
 		std::string					getServerName() const;
 		std::string					getRoot() const;
 		std::vector<std::string>	getIndex() const;
 		std::vector<Location>		getLocation() const;
+		std::string					getDefaultIndex() const;
+		bool						getCanPost() const;
+		bool						getCanGet() const;
+		bool						getCanDelete() const;
+		bool						getAutoindex() const;
+		size_t						getBodySizeMax() const;
 
 		void	setDefaultIndex();
+		void	setNewHost(const std::string &host);
 		void	setNewPort(int port);
 		void	setNewServerName(const std::string &name);
 		void	setNewRoot(const std::string &root);
@@ -28,18 +36,26 @@ class BlockConfig {
 		void	setNewLocation(const std::string &arg);
 		void	addIndexToLocation(const std::string &index, int i);
 		void	addCgiToLocationMap(const std::string &key, const std::string &value, int loc_id);
+		void	setCanPost(const bool &can_post);
+		void	setCanGet(const bool &can_get);
+		void	setCanDelete(const bool &can_delete);
+		void	setAutoindex(const bool &autoindex);
+		void	setBodySizeMax(const size_t &size_max);
 
 	private:
 		std::string					_default_index;
 		std::string					_default_404;
+		std::string					_host;
 		int							_port;
 		std::string					_server_name;
 		std::string					_root;
 		std::vector<std::string>	_index;
 		std::vector<Location>		_location;
-//		bool						_can_post;
-//		bool						_autoindex;
-//		size_t						_body_size_max;
+		bool						_can_post;
+		bool						_can_get;
+		bool						_can_delete;
+		bool						_autoindex;
+		size_t						_body_size_max;
 };
 
 #endif

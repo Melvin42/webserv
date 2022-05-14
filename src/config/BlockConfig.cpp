@@ -1,10 +1,16 @@
 #include "BlockConfig.hpp"
 
 BlockConfig::BlockConfig() : _default_index(""), _default_404(""),
-	_port(8080), _server_name("localhost"), _root("./") {//, _can_post(false), _autoindex(false), _body_size_max(0) {
+	_host("0.0.0.0"), _port(8080), _server_name("localhost"), _root("./"),
+	_can_post(true), _can_get(true), _can_delete(true),
+	_autoindex(false), _body_size_max(0) {
 }
 
 BlockConfig::~BlockConfig() {
+}
+
+std::string	BlockConfig::getHost() const {
+	return _host;
 }
 
 int	BlockConfig::getPort() const {
@@ -27,6 +33,30 @@ std::vector<Location>	BlockConfig::getLocation() const {
 	return _location;
 }
 
+std::string	BlockConfig::getDefaultIndex() const {
+	return _default_index;
+}
+
+bool	BlockConfig::getCanPost() const {
+	return _can_post;
+}
+
+bool	BlockConfig::getCanGet() const {
+	return _can_get;
+}
+
+bool	BlockConfig::getCanDelete() const {
+	return _can_delete;
+}
+
+bool	BlockConfig::getAutoindex() const {
+	return _autoindex;
+}
+
+size_t	BlockConfig::getBodySizeMax() const {
+	return _body_size_max;
+}
+
 void	BlockConfig::setDefaultIndex() {
 	for (size_t i = 0; i < _index.size(); i++) {
 		std::string	tmp = _root + "/" + _index.at(i);
@@ -44,6 +74,10 @@ void	BlockConfig::setDefaultIndex() {
 			}
 		}
 	}
+}
+
+void	BlockConfig::setNewHost(const std::string &host) {
+	_host = host;
 }
 
 void	BlockConfig::setNewPort(int port) {
@@ -74,4 +108,24 @@ void	BlockConfig::addIndexToLocation(const std::string &index, int i) {
 
 void	BlockConfig::addCgiToLocationMap(const std::string &key, const std::string &value, int loc_id) {
 	this->_location.at(loc_id).addCgiPath(key, value);
+}
+
+void	BlockConfig::setCanPost(const bool &can_post) {
+	_can_post = can_post;
+}
+
+void	BlockConfig::setCanGet(const bool &can_get) {
+	_can_get = can_get;
+}
+
+void	BlockConfig::setCanDelete(const bool &can_delete) {
+	_can_delete = can_delete;
+}
+
+void	BlockConfig::setAutoindex(const bool &autoindex) {
+	_autoindex = autoindex;
+}
+
+void	BlockConfig::setBodySizeMax(const size_t &size_max) {
+	_body_size_max = size_max;
 }

@@ -3,14 +3,19 @@
 HttpRequest::HttpRequest() {
 }
 
-HttpRequest::HttpRequest(const char *buffer, const std::string &root) {
+HttpRequest::HttpRequest(const char *buffer, const BlockConfig &conf) {
 	std::stringstream	line;
 
 	line << buffer;
 	line >> _request["method"];
 	line >> _request["page"];
 	line >> _request["version"];
-	_request["page"] = root + _request["page"];
+	if (_request["page"] == "/")
+		_request["page"] = conf.getDefaultIndex();
+	else
+		_request["page"] = conf.getRoot() + _request["page"];
+	std::cerr << conf.getDefaultIndex() << std::endl;
+	std::cerr << conf.getDefaultIndex() << std::endl;
 	line.ignore();
 	parseHeader(line);
 	// std::cout << std::endl << "line: " << std::endl << line.str();

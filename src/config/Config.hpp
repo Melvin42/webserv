@@ -12,7 +12,6 @@ class Config {
 		~Config();
 
 		std::vector<BlockConfig>	getConfig() const;
-		std::string					getPath() const;
 		void						addConfig();
 
 		bool						getNeedExit() const;
@@ -20,13 +19,11 @@ class Config {
 		void						setNeedExit(const bool &need_exit);
 		void						setLastInstruction(const std::string &instru);
 		void						setWord(const std::string &word);
-		void						setPath(const std::string &path);
 		void						setBlockIndex(const int &index);
 		void						setLocId(const int &id);
 		void						setBlockInstruction(const int &flag);
 		void						setConfig(const std::vector<BlockConfig> &conf);
 
-		void						concatPath();
 		void						setAllDefaultValue();
 
 
@@ -39,8 +36,10 @@ class Config {
 		void		parsServerName();
 		void		parsRoot();
 		void		parsIndex();
-		void		parsCgiBinary();
-		void		parsCgiFilename();
+		void		parsAutoindex();
+		void		parsDefaultErrorPage();
+		void		parsClientMaxBodySize();
+		void		parsDisallow();
 		void		parsLocationIndex();
 		void		parsLocation(int &location_scope);
 		void		parsServerScope();
@@ -63,7 +62,6 @@ class Config {
 		std::ifstream				_in_file;
 		std::string					_last_instruction;
 		std::string					_word;
-		std::string					_path;
 		int							_block_index;
 		int							_loc_id;
 		bool						_new_instruction;
