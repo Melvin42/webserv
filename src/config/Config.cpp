@@ -1,7 +1,7 @@
 #include "Config.hpp"
 
 Config::Config()
-	: _need_exit(false), _last_instruction(""), _word(""), _path(""),
+	: _need_exit(false), _check_binary("SCRIPT_EXT"), _last_instruction(""), _word(""), _path(""),
 	_block_index(-1), _loc_id(-1), _new_instruction(true) {
 }
 
@@ -10,7 +10,7 @@ Config::Config(Config &cp) {
 }
 
 Config::Config(const char *av)
-	: _need_exit(false), _in_file(av), _last_instruction(""), _word(""), _path(""),
+	: _need_exit(false), _check_binary("SCRIPT_EXT"), _in_file(av), _last_instruction(""), _word(""), _path(""),
 	_block_index(-1), _loc_id(-1), _new_instruction(true) {
 	this->parsing();
 }
@@ -58,6 +58,13 @@ void	Config::setPath(const std::string &path) {
 void	Config::concatPath() {
 	if (_config.at(0).getRoot() != "")
 		_path = _config.at(0).getRoot();
+}
+
+void	Config::setAllDefaultValue() {
+	for (size_t i = 0; i < _config.size(); i++) {
+		_config.at(i).setDefaultIndex();
+	}
+
 }
 
 void	Config::setBlockIndex(const int &index) {
@@ -153,16 +160,21 @@ void	Config::parsLocationIndex() {
 }
 
 void	Config::parsCgi() {
-	std::string keymap;
+	std::string valuemap;
 
 	_in_file >> _word;
-	if (_word == "BINARY") {
+	if (_word == "BINARY" && _check_binary == "SCRIPT_EXT") {
 		_in_file >> _word;
-		keymap = this->badEndOfLine();
-		std::cerr << "key = " << keymap << std::endl;
-	} else if (_word == "SCRIPT_EXT") {
+		valuemap = this->badEndOfLine();
+		_check_binary = "BINARY";
 		_in_file >> _word;
-		_config.at(_block_index).addCgiToLocationMap(keymap, _word, _loc_id);
+	}
+	if (_word == "cgi-bin")
+		_in_file >> _word;
+	if (_word == "SCRIPT_EXT" && _check_binary == "BINARY") {
+		_in_file >> _word;
+		_check_binary = "SCRIPT_EXT";
+		_config.at(_block_index).addCgiToLocationMap(_word, valuemap, _loc_id);
 	} else {
 		this->errorBadCgi();
 	}
@@ -185,11 +197,14 @@ void	Config::parsLocation(int &location_scope) {
 			return ;
 		}
 		_new_instruction = false;
-		std::cerr << _word << std::endl;
 		if (_word == "index" || _word == "cgi-bin" || _word == "}") {
 			if (_word == "index") {
-				while (!_new_instruction) {
+				while (!_new_instruction && !_in_file.eof()) {
 					_in_file >> _word;
+					if (isInstruction(_word)) {
+						this->errorBadConf();
+						_new_instruction = true;
+					}
 					this->parsLocationIndex();
 				}
 			} else if (_word == "cgi-bin") {
@@ -249,9 +264,6 @@ void	Config::errorTooMuchCgi() {
 }
 
 void	Config::printAllConfig() const {
-	std::map<std::string, std::string>::const_iterator	it;
-	std::map<std::string, std::string>::const_iterator	ite;
-
 	for (size_t j = 0; j < _config.size(); j++) {
 		std::cout << "\nBlock Nb : " << j+1 << '\n' << std::endl;
 		std::cout << "	port = " << _config.at(j).getPort() << std::endl;
@@ -267,31 +279,18 @@ void	Config::printAllConfig() const {
 				std::cout << " ";
 		}
 		for (size_t i = 0; i < _config.at(j).getLocation().size(); i++) {
-			it = _config.at(j).getLocation().at(i).getCgiMap().begin();
-			ite = _config.at(j).getLocation().at(i).getCgiMap().end();
 			std::cout << "	location = "
 				<< _config.at(j).getLocation().at(i).getArg() << std::endl;
 
-			while (it != ite) {
-				std::cerr << "		cgi-bin BINARY = " << it->first << "\n"
-				   << "		cgi-bin SCRIPT_EXT = " << it->second << std::endl;
-//				std::cerr << "bloque" << std::endl;
-				it++;
-			}
-//			for (size_t k = 0; k < _config.at(j).getLocation().at(i).getCgiBinary().size(); k++) {
-//				std::cout << "		cgi-bin BINARY = "
-//					<< _config.at(j).getLocation().at(i).getCgiBinary().at(k)
-//					<< std::endl;
-//			}
-//			for (size_t k = 0; k < _config.at(j).getLocation().at(i).getCgiFilename().size(); k++) {
-//				std::cout << "		cgi-bin FILENAME = "
-//					<< _config.at(j).getLocation().at(i).getCgiFilename().at(k)
-//					<< std::endl;
-//			}
+			_config.at(j).getLocation().at(i).printCgiMap();
 			for (size_t k = 0; k < _config.at(j).getLocation().at(i).getIndex().size(); k++) {
-				std::cout << "		index = "
-					<< _config.at(j).getLocation().at(i).getIndex().at(k)
-					<< std::endl;
+				if (k == 0)
+					std::cout << "		index = ";
+				std::cout << _config.at(j).getLocation().at(i).getIndex().at(k);
+				if (i == _config.at(j).getLocation().at(i).getIndex().size() - 1)
+					std::cout << std::endl;
+				else
+					std::cout << " ";
 			}
 		}
 	}
@@ -318,6 +317,8 @@ void	Config::parsing() {
 			} else {
 				if (_word == "}" && location_scope == false) {
 					server_scope = false;
+//				} else if (_word == "}" && location_scope == true) {
+//					location_scope = false;
 				} else {
 					if (location_scope == false) {
 						if (_new_instruction == true) {
@@ -366,6 +367,7 @@ void	Config::parsing() {
 		return ;
 	}
 	this->concatPath();
+	this->setAllDefaultValue();
 }
 
 Config &Config::operator=(const Config &conf) {

@@ -12,10 +12,13 @@ class Location {
 
 		std::string							getArg() const;
 		std::vector<std::string>			getIndex() const;
-		std::map<std::string, std::string>	&getCgiMap();
+		std::map<std::string, std::string>	getCgiMap() const;
 
 		void								addIndex(const std::string &index);
-		void								addCgiPath(const std::string &key, const std::string &value);
+		void								addCgiPath(const std::string &key,
+													const std::string &value);
+
+		void	printCgiMap();
 
 	private:
 		Location();

@@ -1,9 +1,10 @@
 #include "HttpResponse.hpp"
 
-HttpResponse::HttpResponse(void) : _ret(""), _fullPath(""), _config(NULL), _env(NULL), _exec_argv(NULL) {
+HttpResponse::HttpResponse() {
 }
 
-HttpResponse::HttpResponse(char **env, Config &config) : _ret(""), _fullPath(""), _config(config), _env(env), _exec_argv(NULL) {
+HttpResponse::HttpResponse(char **env, Config &config, std::map<std::string, std::string> request)
+ : _env(env), _exec_argv(NULL), _config(config), _ret(""), _request(request) {
 	_status.insert(std::pair<std::string, std::string>("100", "Continue"));
 	_status.insert(std::pair<std::string, std::string>("101", "Switching Protocols"));
 	_status.insert(std::pair<std::string, std::string>("200", "OK"));
@@ -52,41 +53,37 @@ HttpResponse::~HttpResponse(void) {
 		free(_exec_argv);
 }
 
-void	HttpResponse::setHeader(std::string statusKey) {
-	_ret = "HTTP/1.1 " + statusKey + " " + _status[statusKey] + "\r\n\r\n";
-}
+std::string	HttpResponse::getHttpResponse() {
 
-void	HttpResponse::setCgiHeader(std::string statusKey) {
-	_ret = "HTTP/1.1 " + statusKey + " " + _status[statusKey] + "\r\n";
-}
-
-void	HttpResponse::setPage(std::string statusKey, std::ifstream &page) {
-	size_t pos = -1;
-	std::string	str_page = std::string(
-			std::istreambuf_iterator<char>(page),
-			std::istreambuf_iterator<char>());
-	if ((pos = str_page.find("status: ", 0, 7)) != std::string::npos ||
-		(pos = str_page.find_first_of("Status: ", 0, 7)) != std::string::npos ||
-		(pos = str_page.find_first_of("STATUS: ", 0, 7)) != std::string::npos)
+	/*
+		if check if posted
+			return status code 201
+			header add location
+		else
+			...;
+		
+		redirect to a done page
+	*/
+	if (_request["method"] == "GET")
 	{
-		while (str_page[pos + 7] == ' ')
-			pos++;
-		statusKey = str_page.substr(pos + 7, 3);
-	}
-	if ((pos = str_page.find("\r\n\r\n")) != std::string::npos)
-		setCgiHeader(statusKey);
-	else
-		setHeader(statusKey);
-	_ret += str_page;
-}
 
-std::string	HttpResponse::getHttpResponse(std::string requestedPagePath) {
-	_fullPath += requestedPagePath;
-	// std::cout << "fullpath again in response: " << _fullPath << std::endl;
+	}
+	else if (_request["method"] == "POST")
+	{
+
+	}
+	else if (_request["method"] == "DELETE")
+	{
+
+	}
+	/* else
+		method not allowed;
+		std::cout << "" << std::endl;
+	*/
 	try {
-		std::ifstream	page(_fullPath.c_str());
+		std::ifstream	page(_request["page"].c_str());
 		if (page) {
-			if (is_cgi(requestedPagePath) == 0)
+			if (is_cgi() == 0)
 				setPage("200", page);
 		}
 		else {
@@ -99,14 +96,51 @@ std::string	HttpResponse::getHttpResponse(std::string requestedPagePath) {
 	}
 	catch (std::exception &e) {
 //			std::cout << e.what();
-			if (*(_fullPath.end() - 1) != '/')
+			if (*(_request["page"].end() - 1) != '/')
 				errRet("301");
 			else
 				autoIndex();
 			//if autoindex off, 403 forbidden
 			// errCgi("403");
 	}
+	// std::cout << std::endl << "ret: " << std::endl << _ret.c_str() << std::endl; 
 	return _ret;
+}
+
+void	HttpResponse::setHeader(std::string statusKey) {
+	if (_request["method"] == "POST")
+		_ret = "HTTP/1.1 " + statusKey + " " + _status[statusKey] + "\r\n" 
+		+ "Location: " + "\r\n\r\n";
+	else
+		_ret = "HTTP/1.1 " + statusKey + " " + _status[statusKey] + "\r\n\r\n";
+}
+
+void	HttpResponse::setCgiHeader(std::string statusKey) {
+	if (_request["method"] == "POST")
+		_ret = "HTTP/1.1 " + statusKey + " " + _status[statusKey] + "\r\n"
+		+ "Location: " + "\r\n";
+	else
+		_ret = "HTTP/1.1 " + statusKey + " " + _status[statusKey] + "\r\n";
+}
+
+void	HttpResponse::setPage(std::string statusKey, std::ifstream &page) {
+	size_t pos = std::string::npos;
+	std::string	str_page = std::string(
+			std::istreambuf_iterator<char>(page),
+			std::istreambuf_iterator<char>());
+	if ((pos = str_page.find("status: ", 0, 7)) != std::string::npos ||
+		(pos = str_page.find("Status: ", 0, 7)) != std::string::npos||
+		(pos = str_page.find("STATUS: ", 0, 7)) != std::string::npos)
+	{
+		while (str_page[pos + 7] == ' ')
+			pos++;
+		statusKey = str_page.substr(pos + 7, 3);
+	}
+	if ((pos = str_page.find("\r\n\r\n")) != std::string::npos)
+		setCgiHeader(statusKey);
+	else
+		setHeader(statusKey);
+	_ret += str_page;
 }
 
 void	HttpResponse::set_exec_argv(std::string cmdPath, std::string errCode) {
@@ -115,28 +149,28 @@ void	HttpResponse::set_exec_argv(std::string cmdPath, std::string errCode) {
 		*(_exec_argv + 2) = (char *)malloc(sizeof(char) * 1);
 		*(_exec_argv + 2) = NULL;
 		*(_exec_argv + 0) = (char *)cmdPath.c_str();
-		*(_exec_argv + 1) = (char *)_fullPath.c_str();
+		*(_exec_argv + 1) = (char *)_request["page"].c_str();
 	}
 	else {
 		_exec_argv = (char **)malloc(sizeof(char *) * 5);
 		*(_exec_argv + 4) = (char *)malloc(sizeof(char) * 1);
 		*(_exec_argv + 4) = NULL;
 		*(_exec_argv + 0) = (char *)cmdPath.c_str();
-		*(_exec_argv + 1) = (char *)_fullPath.c_str();
+		*(_exec_argv + 1) = (char *)_request["page"].c_str();
 		*(_exec_argv + 2) = (char *)errCode.c_str();
 		*(_exec_argv + 3) = (char *)_status[errCode].c_str();
 	}
 }
 
-int	HttpResponse::is_cgi(std::string requestedPagePath) {
-	if (requestedPagePath.find_first_of(".") != std::string::npos)
+int	HttpResponse::is_cgi() {
+	if (_request["page"].find_first_of(".") != std::string::npos)
 	{
-		if (requestedPagePath.compare(requestedPagePath.find_first_of("."), 
-					std::string::npos, ".pl", 3) == 0 ||
-				requestedPagePath.compare(requestedPagePath.find_first_of("."), 
-					std::string::npos, ".php", 4) == 0)
+		if (_request["page"].compare(_request["page"].find_first_of("."), 
+				std::string::npos, ".pl", 3) == 0 ||
+			_request["page"].compare(_request["page"].find_first_of("."), 
+				std::string::npos, ".php", 4) == 0)
 		{
-			set_exec_argv(_cgi[requestedPagePath.substr(requestedPagePath.find_first_of("."))], "");
+			set_exec_argv(_cgi[_request["page"].substr(_request["page"].find_first_of("."))], "");
 			cgi("200");
 		}
 		else
@@ -147,19 +181,25 @@ int	HttpResponse::is_cgi(std::string requestedPagePath) {
 	return 1;
 }
 
+	/***************
+	*
+	*	if method is get, params should be set to env  
+	*	if method is post, params should be sent as stdin
+	*	https://en.wikipedia.org/wiki/Common_Gateway_Interface
+	*
+	***************/
+
 int HttpResponse::cgi(std::string statusKey) {
 	int     pipefd[2] = {0, 1};
 	pid_t   pid = fork();
 	std::FILE* tmp = freopen("/tmp/.tmpExecveFd", "wb+", stdout);
+	(void)tmp;
 
 	if (pipe(pipefd) == -1)
 		std::cout << "pipe failed" <<std::endl;
 	if (pid == -1)
 		std::cout << "cgi failed" <<std::endl;
 	if (pid == 0) {
-		// if method is get, params should be set to env  
-		// if method is post, params should be sent as stdin
-		// https://en.wikipedia.org/wiki/Common_Gateway_Interface
 		if (execve(_exec_argv[0], _exec_argv, _env) == -1)
 			perror("execve");
 	}
@@ -169,7 +209,6 @@ int HttpResponse::cgi(std::string statusKey) {
 		close(pipefd[1]);
 		std::ifstream tmpst("/tmp/.tmpExecveFd");
 		setPage(statusKey, tmpst);
-		(void)tmp;
 	}
 	return 0;
 }
@@ -194,7 +233,7 @@ void	HttpResponse::errRet(std::string errCode) {
 void	HttpResponse::autoIndex() {
 	DIR	*dp;
 	struct  dirent *ep;
-	dp = opendir(_fullPath.c_str());
+	dp = opendir(_request["page"].c_str());
 	std::stringstream output;
 
 	setHeader("200");
@@ -206,6 +245,7 @@ void	HttpResponse::autoIndex() {
 			<< "\t\t<title>Melval Kingdom</title>\n"
 			<< "\t</head>\n"
 			<< "<body>\n";
+
 	if (dp != NULL)
 	{
 		while ((ep = readdir(dp)))
@@ -214,7 +254,8 @@ void	HttpResponse::autoIndex() {
 					<< ep->d_name;
 			if (ep->d_type == DT_DIR)
 				output << "/";
-			output << "\">"
+			std::string tmp(ep->d_name);
+				output << "\">"
 					<< ep->d_name
 					<< "</a></p>\n";
 		}

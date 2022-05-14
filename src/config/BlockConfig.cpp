@@ -1,7 +1,7 @@
 #include "BlockConfig.hpp"
 
-BlockConfig::BlockConfig() : _port(8080), _server_name("localhost"),
-	_root("./") {//, _can_post(false), _autoindex(false), _body_size_max(0) {
+BlockConfig::BlockConfig() : _default_index(""), _default_404(""),
+	_port(8080), _server_name("localhost"), _root("./") {//, _can_post(false), _autoindex(false), _body_size_max(0) {
 }
 
 BlockConfig::~BlockConfig() {
@@ -25,6 +25,25 @@ std::string	BlockConfig::getServerName() const {
 
 std::vector<Location>	BlockConfig::getLocation() const {
 	return _location;
+}
+
+void	BlockConfig::setDefaultIndex() {
+	for (size_t i = 0; i < _index.size(); i++) {
+		std::string	tmp = _root + "/" + _index.at(i);
+		if (access(tmp.c_str(), R_OK) == 0) {
+			_default_index = tmp;
+			return ;
+		}
+	}
+	for (size_t i = 0; i < this->getLocation().size(); i++) {
+		for (size_t j = 0; j < this->getLocation().at(i).getIndex().size(); j++) {
+			std::string	tmp = _root + "/" + this->getLocation().at(i).getArg() + "/" + this->getLocation().at(i).getIndex().at(j);
+			if (access(tmp.c_str(), R_OK) == 0) {
+				_default_index = tmp;
+				return ;
+			}
+		}
+	}
 }
 
 void	BlockConfig::setNewPort(int port) {

@@ -51,7 +51,6 @@ SocketServer::SocketServer(char **env, const Config &conf, int connections) : So
 }
 
 int	SocketServer::getSocketUsed() const {
-//	std::cerr << '[' <<_sd << ']';
 	return _sd;
 }
 
@@ -61,6 +60,10 @@ void	SocketServer::setSocketUsed(int fd) {
 
 fd_set	SocketServer::getReadFds() const {
 	return _readfds;
+}
+
+fd_set	SocketServer::getWriteFds() const {
+	return _writefds;
 }
 
 Config	&SocketServer::getConfig() {
@@ -79,24 +82,28 @@ int	SocketServer::acceptSocket() {
 
 void	SocketServer::selectSocket() {
 	int											activity;
-	std::vector<ClientManager>::iterator			it;
+	std::vector<ClientManager>::iterator		it;
 	std::vector<ClientManager>::const_iterator	ite = this->getClientSocket().end();
 
 	FD_ZERO(&_readfds);
 	FD_SET(_server_fd, &_readfds);
+	FD_ZERO(&_writefds);
+	FD_SET(_server_fd, &_writefds);
 	_max_sd = _server_fd;
-//
+
 	for (it = this->getClientSocket().begin(); it != ite; it++) {
 		_sd = it->getFd();
-		if (_sd > 0)
+		if (_sd > 0) {
 			FD_SET(_sd, &_readfds);
+			FD_SET(_sd, &_writefds);
+		}
 		if (_sd > _max_sd)
 			_max_sd = _sd;
 	}
 
-	activity = select(_max_sd + 1, &_readfds, NULL, NULL, NULL);
+	activity = select(_max_sd + 1, &_readfds, &_writefds, NULL, NULL);
 
-	if ((activity < 0) && (errno != EINTR))						//Don't use errno!!!
+	if ((activity < 0) && (errno != EINTR))
 		throw "SELECT FAILED";
 }
 
@@ -107,97 +114,86 @@ bool	SocketServer::ready(int fd, fd_set set) {
 }
 
 void	SocketServer::setClientSocket() {
-//	std::vector<ClientManager>::iterator		it;
-//	std::vector<ClientManager>::const_iterator	ite;
-//	int									new_socket = 0;
 
 	if (this->ready(this->getMasterFd(), this->getReadFds())) {
 		ClientManager	new_client(this->acceptSocket());
-		std::cerr << "New connection, socket fd is " << new_client.getFd() << std::endl;
 		this->getClientSocket().push_back(new_client);
-//		new_socket = this->acceptSocket();
-//		std::cerr << "New connection, socket fd is " << new_socket << std::endl;
-//		for (it = this->getClientSocket().begin(); it != ite; it++) {
-//			if (*it == 0) {
-//				it->setFd(new_socket);
-//				*it = new_socket;
-//				break ;
-//			}
-//		}
 	}
 }
 
 void	SocketServer::simultaneousRead() {
-	std::vector<ClientManager>::iterator			it;
+	std::vector<ClientManager>::iterator		it;
 	std::vector<ClientManager>::const_iterator	ite;
 	char	buffer[BUFFER_SIZE + 1] = {0};
-	long	valread = 0;
 
 	ite = this->getClientSocket().end();
 	std::string	str_file = "";
-	for (it = this->getClientSocket().begin(); it != ite; it++) {
+	for (it = this->getClientSocket().begin(); it != ite; it++) { //this loop is dedicated to every read fds ready for use 
 		this->setSocketUsed(it->getFd());
-		if (this->ready(this->getSocketUsed(), this->getReadFds())) {
-			if ((valread = read(this->getSocketUsed(), buffer, BUFFER_SIZE)) <= 0) {
-//				std::cout << "valread = 0 fd_used = " << it->getFd() << std::endl;	
-				std::cerr << it->getFd() << std::endl;
-				if (it->getSendOk() && it->getFd() > 2) {
-					it->setSendOk(false);
-					this->closeClean();
+		if (this->ready(this->getSocketUsed(), this->getReadFds())) { //here we check if the socket is ready for reading
+			long	valread = 0;
+
+			//here we read max BUFFER_SIZE (=2048) data for each sockets,
+			if ((valread = recv(this->getSocketUsed(), buffer, BUFFER_SIZE, 0)) == 0) { //if read == 0 means client disconnect
+				this->closeClean(&_readfds);
+				it->setFd(0);
+			} else if (valread < 0) { // if read < 0 is an error
+				perror("recv failed");
+				this->closeClean(&_readfds);
+				it->setFd(0);
+			} else { //here is what we do when the client send us a request
+				it->appendRead(buffer); //we will append to ClientManager::_read as long as we haven't recv all the request from the client
+				if (it->isReadOk()) { //this is where we check if we have all the request in ClientManager::_read
+					HttpRequest	req(it->getRead().c_str(),	_config.getPath());
+					HttpResponse	msg(_env, _config, req.getRequest());
+					str_file = msg.getHttpResponse();
+					it->setSend(str_file); //this is where the response is stored
+					// std::cerr << "bytes to send: " << it->getSend().size() << std::endl;
+					str_file = "";
 					it->setRead("");
-					it->setFd(0);
 					it->setReadOk(false);
-				}
-//				std::cout << "read = 0" << buffer  << std::endl;
-				// maybe with POST: this->closeClean();
-			} else {
-				it->appendRead(buffer);
-//					std::cout << "read = " << valread
-//						<< " content:\n" << it->getRead() << std::endl;
-//					std::cout << "++++++++received from client " << it->getFd()
-//					   << "++++++++++++" << std::endl;
-				if (it->isReadOk(this->_config.getPath())) {
-//					std::cout << "read OK, val = " << valread
-//						<< " content:\n" << it->getRead() << std::endl;
-//					HttpRequest	req(buffer, BUFFER_SIZE);
-					HttpRequest	req(it->getRead().c_str(), it->getRead().size(),
-							_config.getPath());
-//					std::cerr << _config.getPath() << std::endl;
-					std::cerr << req.getPage() << std::endl;
-					HttpResponse	msg(_env, _config);
-					str_file = msg.getHttpResponse(req.getPage());
-//					std::cerr << "BEFORE SEND =" << str_file << std::endl;
-//					std::cout << "+++++++sending data to client++++++++" << std::endl;
-					if (it->getSendOk() == false
-							&& send(this->getSocketUsed(), str_file.c_str(),
-							str_file.size(), 0) == static_cast<long>(str_file.size())) {
-						it->setSendOk(true);
-						it->setSend(str_file);
-						this->closeClean();
-						it->setRead("");
-						it->setFd(0);
-						it->setReadOk(false);
-//						*it = 0;
-					}
+					it->setSendOk(true);
+					//at this stage the response is already stored in ClientManager::_send
+					//the response will be send in the second loop if the socket is ready for writing
 				}
 			}
 		}
 	}
-}
+	for (it = this->getClientSocket().begin(); it != ite; it++) {//this loop is dedicated to every write fds ready for use 
+		this->setSocketUsed(it->getFd());
+		if (this->ready(this->getSocketUsed(), this->getWriteFds()) && it->getSendOk()) {//here we check if the socket is ready for writing
+			int	valsend = 0;
 
+			//here we send in one time all the response (stored in ClientManager::_send) for each sockets,
+			if ((valsend = send(this->getSocketUsed(), it->getSend().c_str(), it->getSend().size(), 0)) == -1) { //if send == -1 is an error
+				std::cerr << "send failed: " << it->getSend().size() << std::endl;
+			} else if (valsend < static_cast<int>(it->getSend().size())) { // if send < size means that we didn't send all the response
+				std::string	msg = it->getSend().substr(0, valsend);
+				//here i'm storing all datas that weren't send in order to try to send them later
+				it->setSend(msg); //updating ClientManager::_send (puting only what we didn't already send)
+			} else { //here is what we do if we had send all the response to the client
+				this->closeClean(&_writefds);
+				it->setSend("");
+				it->setSendOk(false);
+				it->setFd(0);
+				//at this stage the request from the client should be satisfied
+				//no data needs to be stored anymore (until a new request happend) and the socket need to be closed
+			}
+		}
+	}
+}
+					
 void	SocketServer::run() {
 	int	count_loop = 0;
 	while (true) {
 		count_loop++;
-//		std::cout << "count_loop = " << count_loop << std::endl;
 		this->selectSocket();
-//		std::cout << "\n+++++++ Waiting for new connection ++++++++\n" << std::endl;
 		this->setClientSocket();
 		this->simultaneousRead();
 	}
 }
 
-void	SocketServer::closeClean() {
+void	SocketServer::closeClean(fd_set *fds) {
 	close(_sd);
-	FD_CLR(_sd, &_readfds);
+	FD_CLR(_sd, fds);
 }

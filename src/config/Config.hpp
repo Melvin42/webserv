@@ -27,6 +27,8 @@ class Config {
 		void						setConfig(const std::vector<BlockConfig> &conf);
 
 		void						concatPath();
+		void						setAllDefaultValue();
+
 
 		std::string	checkEndOfLine(char c);
 		std::string	badEndOfLine();
@@ -57,6 +59,7 @@ class Config {
 		Config &operator=(const Config &conf);
 	private:
 		bool						_need_exit;
+		std::string					_check_binary;
 		std::ifstream				_in_file;
 		std::string					_last_instruction;
 		std::string					_word;

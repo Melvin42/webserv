@@ -69,10 +69,39 @@ void	ClientManager::appendRead(char *buf) {
 	_read.append(buf);
 }
 
-bool	ClientManager::isReadOk(const std::string &path) {
-	HttpRequest	req(_read.c_str(), static_cast<int>(_read.size()), path);
-	if (req.getBody().size() == req.getContentLength()) {
-		_read_ok = true;
+bool	ClientManager::isReadOk() {
+	std::stringstream 	buf;
+	std::string			line;
+	std::string			boundry;
+	std::string			boundryEnd;
+	size_t				bodySize = 0;
+	size_t				contentLength = 0;
+
+	buf <<  _read;
+	while (std::getline(buf, line))
+	{
+		if (buf.eof() || buf.bad() || line == "\r")
+			break ;
+		if (line.find("Content-Length: ") != std::string::npos)
+			contentLength = std::atoi(line.substr(line.find("Content-Length: ") + 16).c_str());
+		if (line.find("boundary=") != std::string::npos)
+		{
+			boundry = "--" + line.substr(line.find("boundary=") + 9) + "\r";
+			boundryEnd = "--" + line.substr(line.find("boundary=") + 9) + "--" + "\r";
+		}
 	}
+	if (contentLength)
+	{
+		while (std::getline(buf, line))
+		{
+			if (buf.eof() || buf.bad())
+				break ;
+			bodySize += line.size() + 1;
+			if (line == boundryEnd)
+				break ;
+		}
+	}
+	if (contentLength == bodySize)
+		_read_ok = true;
 	return _read_ok;
 }

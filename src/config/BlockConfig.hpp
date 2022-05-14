@@ -6,6 +6,7 @@
 #include <inttypes.h>
 #include <algorithm>
 #include <vector>
+#include <unistd.h>
 #include "Location.hpp"
 
 class BlockConfig {
@@ -19,6 +20,7 @@ class BlockConfig {
 		std::vector<std::string>	getIndex() const;
 		std::vector<Location>		getLocation() const;
 
+		void	setDefaultIndex();
 		void	setNewPort(int port);
 		void	setNewServerName(const std::string &name);
 		void	setNewRoot(const std::string &root);
@@ -28,14 +30,16 @@ class BlockConfig {
 		void	addCgiToLocationMap(const std::string &key, const std::string &value, int loc_id);
 
 	private:
-		int												_port;
-		std::string										_server_name;
-		std::string										_root;
-		std::vector<std::string>						_index;
-		std::vector<Location>							_location;
-//		bool											_can_post;
-//		bool											_autoindex;
-//		size_t											_body_size_max;
+		std::string					_default_index;
+		std::string					_default_404;
+		int							_port;
+		std::string					_server_name;
+		std::string					_root;
+		std::vector<std::string>	_index;
+		std::vector<Location>		_location;
+//		bool						_can_post;
+//		bool						_autoindex;
+//		size_t						_body_size_max;
 };
 
 #endif
