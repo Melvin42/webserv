@@ -21,13 +21,16 @@ class BlockConfig {
 		std::vector<std::string>	getIndex() const;
 		std::vector<Location>		getLocation() const;
 		std::string					getDefaultIndex() const;
+		std::string					getDefault404() const;
 		bool						getCanPost() const;
 		bool						getCanGet() const;
 		bool						getCanDelete() const;
 		bool						getAutoindex() const;
 		size_t						getBodySizeMax() const;
+		size_t						getId() const;
 
 		void	setDefaultIndex();
+		void	setDefault404();
 		void	setNewHost(const std::string &host);
 		void	setNewPort(int port);
 		void	setNewServerName(const std::string &name);
@@ -41,6 +44,7 @@ class BlockConfig {
 		void	setCanDelete(const bool &can_delete);
 		void	setAutoindex(const bool &autoindex);
 		void	setBodySizeMax(const size_t &size_max);
+		void	setId(const size_t &id);
 
 	private:
 		std::string					_default_index;
@@ -56,6 +60,7 @@ class BlockConfig {
 		bool						_can_delete;
 		bool						_autoindex;
 		size_t						_body_size_max;
+		size_t						_id;
 };
 
 #endif

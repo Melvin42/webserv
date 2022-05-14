@@ -30,7 +30,7 @@ int	main(int ac, char **av, char **env) {
 				return EXIT_FAILURE;
 			SocketServer server(env, conf, 30);
 
-			server.run();
+			server.run(conf.getConfig());
 	} else {
 			Config conf("config/simple.conf");
 
@@ -38,7 +38,7 @@ int	main(int ac, char **av, char **env) {
 				return EXIT_FAILURE;
 			SocketServer server(env, conf, 30);
 
-			server.run();
+			server.run(conf.getConfig());
 	}
 	return EXIT_SUCCESS;
 }

@@ -1,6 +1,7 @@
 #ifndef SOCKETS_HPP
 #define SOCKETS_HPP
 
+#define MAXCLIENT 30
 #include <iostream>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -23,7 +24,7 @@ class Socket {
 
 		std::string					receiveLine();
 		void						closeFd();
-		int							getMasterFd() const;
+		int							getMasterFd(size_t i) const;
 		char						**getEnv();
 		std::vector<ClientManager>	&getClientSocket();
 
@@ -31,7 +32,7 @@ class Socket {
 	protected:
 		friend class SocketServer;
 
-		int							_server_fd;
+		std::vector<int>			_server_fd;
 		char						**_env;
 		std::vector<ClientManager>	_clientSocket;
 		struct sockaddr_in			_address;
@@ -47,14 +48,15 @@ class SocketServer : public Socket {
 		void	setSocketUsed(int fd);
 		fd_set	getReadFds() const;
 		fd_set	getWriteFds() const;
-		Config	&getConfig() ;
 
-		int		acceptSocket();
-		void	selectSocket();
+		void	setUpSocket(const BlockConfig &block, int connections);
+		int		acceptSocket(int server_fd);
+		void	selectSocket(const BlockConfig &block);
 		bool	ready(int fd, fd_set set);
-		void	setClientSocket();
-		void	simultaneousRead();
-		void	run();
+		void	setClientSocket(size_t id);
+		void	simultaneousRead(const BlockConfig &block);
+		void	runBlock(const BlockConfig &block);
+		void	run(const std::vector<BlockConfig> &conf);
 		void	closeClean(fd_set *fds);
 
 	private:
@@ -62,7 +64,6 @@ class SocketServer : public Socket {
 		int		_max_sd;
 		fd_set	_readfds;
 		fd_set	_writefds;
-		Config	_config;
 };
 
 #endif

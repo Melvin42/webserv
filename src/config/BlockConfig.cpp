@@ -37,6 +37,10 @@ std::string	BlockConfig::getDefaultIndex() const {
 	return _default_index;
 }
 
+std::string	BlockConfig::getDefault404() const {
+	return _default_404;
+}
+
 bool	BlockConfig::getCanPost() const {
 	return _can_post;
 }
@@ -57,6 +61,10 @@ size_t	BlockConfig::getBodySizeMax() const {
 	return _body_size_max;
 }
 
+size_t	BlockConfig::getId() const {
+	return _id;
+}
+
 void	BlockConfig::setDefaultIndex() {
 	for (size_t i = 0; i < _index.size(); i++) {
 		std::string	tmp = _root + "/" + _index.at(i);
@@ -74,6 +82,10 @@ void	BlockConfig::setDefaultIndex() {
 			}
 		}
 	}
+}
+
+void	BlockConfig::setDefault404() {
+	(void)_default_404;
 }
 
 void	BlockConfig::setNewHost(const std::string &host) {
@@ -128,4 +140,8 @@ void	BlockConfig::setAutoindex(const bool &autoindex) {
 
 void	BlockConfig::setBodySizeMax(const size_t &size_max) {
 	_body_size_max = size_max;
+}
+
+void	BlockConfig::setId(const size_t &id) {
+	_id = id;
 }

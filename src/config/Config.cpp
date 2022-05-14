@@ -50,6 +50,8 @@ void	Config::setWord(const std::string &word) {
 void	Config::setAllDefaultValue() {
 	for (size_t i = 0; i < _config.size(); i++) {
 		_config.at(i).setDefaultIndex();
+//		_config.at(i).setDefault404();
+		_config.at(i).setId(i);
 	}
 
 }
