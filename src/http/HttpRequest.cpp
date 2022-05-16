@@ -6,6 +6,7 @@ HttpRequest::HttpRequest() {
 HttpRequest::HttpRequest(const char *buffer, const BlockConfig &conf) {
 	std::stringstream	line;
 
+//	std::cerr << "
 	line << buffer;
 	line >> _request["method"];
 	line >> _request["page"];

@@ -53,7 +53,9 @@ class SocketServer : public Socket {
 		void	setUpBlockServer();
 		void	bindSocket(const BlockConfig &block);
 		int		acceptSocket(const BlockConfig &block);
-		void	selectSocket(const BlockConfig &block);
+		void	FdZero();
+		void	setFdSet(const BlockConfig &block);
+		void	selectSocket();
 		bool	ready(int fd, fd_set set);
 		void	setClientSocket(const BlockConfig &block);
 		void	simultaneousRead();

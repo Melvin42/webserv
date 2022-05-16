@@ -93,17 +93,21 @@ int	SocketServer::acceptSocket(const BlockConfig &block) {
 	return new_socket;
 }
 
-void	SocketServer::selectSocket(const BlockConfig &block) {
-	int											activity;
-	std::vector<ClientManager>::iterator		it;
-	std::vector<ClientManager>::const_iterator	ite = this->getClientSocket().end();
-
+void	SocketServer::FdZero() {
 	FD_ZERO(&_readfds);
-	FD_SET(_server_fd.at(block.getId()), &_readfds);
 	FD_ZERO(&_writefds);
+}
+
+void	SocketServer::setFdSet(const BlockConfig &block) {
+	FD_SET(_server_fd.at(block.getId()), &_readfds);
 	FD_SET(_server_fd.at(block.getId()), &_writefds);
 	_max_sd = _server_fd.at(block.getId());
+}
 
+void	SocketServer::selectSocket() {
+	int											activity = 0;
+	std::vector<ClientManager>::iterator		it;
+	std::vector<ClientManager>::const_iterator	ite = this->getClientSocket().end();
 	for (it = this->getClientSocket().begin(); it != ite; it++) {
 		//if (it->getPort() == block.getPort())
 		_sd = it->getFd();
@@ -129,6 +133,7 @@ bool	SocketServer::ready(int fd, fd_set set) {
 
 void	SocketServer::setClientSocket(const BlockConfig &block) {
 
+	std::cerr << "Acceptready " << block.getId() << std::endl;
 	if (this->ready(this->getMasterFd(block.getId()), this->getReadFds())) {
 
 		ClientManager	new_client(this->acceptSocket(block), block);
@@ -156,6 +161,7 @@ void	SocketServer::simultaneousRead() {
 			long	valread = 0;
 
 			//here we read max BUFFER_SIZE (=2048) data for each sockets,
+			std::cerr << "READready " << it->getFd() << std::endl;
 			if ((valread = recv(this->getSocketUsed(), buffer, BUFFER_SIZE, 0)) == 0) { //if read == 0 means client disconnect
 				this->closeClean(&_readfds);
 				it->setFd(0);
@@ -194,6 +200,7 @@ void	SocketServer::simultaneousRead() {
 				//here i'm storing all datas that weren't send in order to try to send them later
 				it->setSend(msg); //updating ClientManager::_send (puting only what we didn't already send)
 			} else { //here is what we do if we had send all the response to the client
+				std::cerr << "Enovyer" << std::endl;
 				this->closeClean(&_writefds);
 				it->setSend("");
 				it->setSendOk(false);
@@ -215,8 +222,12 @@ void	SocketServer::run() {
 	this->setUpBlockServer();
 	while (true) {
 		count_loop++;
+		this->FdZero();
 		for (size_t i = 0; i < _config.getConfig().size(); i++) {
-			this->selectSocket(_config.getConfig().at(i));
+			this->setFdSet(_config.getConfig().at(i));
+		}
+		this->selectSocket();
+		for (size_t i = 0; i < _config.getConfig().size(); i++) {
 			this->setClientSocket(_config.getConfig().at(i));
 		}
 		this->simultaneousRead();
