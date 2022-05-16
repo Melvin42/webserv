@@ -3,21 +3,19 @@
 HttpRequest::HttpRequest() {
 }
 
-HttpRequest::HttpRequest(const char *buffer, const BlockConfig &conf) {
+HttpRequest::HttpRequest(const char *buffer, Config &conf) {
 	std::stringstream	line;
 
 	line << buffer;
 	line >> _request["method"];
 	line >> _request["page"];
 	line >> _request["version"];
-	if (_request["page"] == "/")
-		_request["fullpage"] = conf.getDefaultIndex();
-	else
-		_request["fullpage"] = conf.getRoot() + _request["page"];
 	line.ignore();
 	parseHeader(line);
+	pickConfBlock(conf);
+	setFullPage();
 	// std::cout << std::endl << "line: " << std::endl << line.str();
-	if (_request.find("boundary") != _request.end() /*&& conf allow upload*/)
+	if (_request.find("boundary") != _request.end() && _conf.getCanPost())
 		parseBody(line);
 }
 
@@ -27,7 +25,6 @@ HttpRequest::HttpRequest(const HttpRequest &httprequest) {
 
 HttpRequest &HttpRequest::operator=(const HttpRequest &httprequest) {
 	_request = httprequest._request;
-	_body = httprequest._body;
 	return *this;
 }
 
@@ -50,8 +47,8 @@ std::string	HttpRequest::getHost() {
 	return _request["Host"];
 }
 
-std::string	HttpRequest::getBody() {
-	return _body;
+BlockConfig	HttpRequest::getConf() {
+	return _conf;
 }
 
 size_t	HttpRequest::getContentLength(){
@@ -60,6 +57,30 @@ size_t	HttpRequest::getContentLength(){
 
 std::map<std::string, std::string> HttpRequest::getRequest() const {
 	return _request;
+}
+
+void	HttpRequest::pickConfBlock(Config &conf) {
+	std::stringstream host;
+
+	for (size_t i = 0; i < conf.getConfig().size(); i++)
+	{
+		host << conf.getConfig().at(i).getHost();
+		host << ":";
+		host << conf.getConfig().at(i).getPort();
+		if (host.str() == _request["Host"])
+		{
+			_conf = conf.getConfig().at(i);
+			break ;
+		}
+		host.clear();
+	}
+}
+
+void	HttpRequest::setFullPage() {
+	if (_request["page"] == "/")
+		_request["fullpage"] = _conf.getDefaultIndex();
+	else
+		_request["fullpage"] = _conf.getRoot() + _request["page"];
 }
 
 void	HttpRequest::parseHeader(std::stringstream &line) {
@@ -117,6 +138,7 @@ void	HttpRequest::parseBody(std::stringstream &line) {
 			std::ofstream	filest(filename.c_str());
 			while (std::getline(line, buf))
 			{
+				// std::cout << buf << std::endl ;
 				if (line.eof() || line.bad() || buf == "\r"
 					|| buf == _request["boundary"] || buf == _request["boundaryEnd"])
 				{
