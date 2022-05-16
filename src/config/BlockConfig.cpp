@@ -3,7 +3,11 @@
 BlockConfig::BlockConfig() : _default_index(""), _default_404(""),
 	_host("0.0.0.0"), _port(8080), _server_name("localhost"), _root("./"),
 	_can_post(true), _can_get(true), _can_delete(true),
-	_autoindex(false), _body_size_max(0) {
+	_autoindex(false), _body_size_max(0), _id(0) {
+}
+
+BlockConfig::BlockConfig(const BlockConfig &cp) {
+	*this = cp;
 }
 
 BlockConfig::~BlockConfig() {
@@ -144,4 +148,22 @@ void	BlockConfig::setBodySizeMax(const size_t &size_max) {
 
 void	BlockConfig::setId(const size_t &id) {
 	_id = id;
+}
+
+BlockConfig &BlockConfig::operator=(const BlockConfig &block) {
+	_default_index = block._default_index;
+	_default_404 = block._default_404;
+	_host = block._host;
+	_port = block._port;
+	_server_name = block._server_name;
+	_root = block._root;
+	_index = block._index;
+	_location = block._location;
+	_can_post = block._can_post;
+	_can_get = block._can_get;
+	_can_delete = block._can_delete;
+	_autoindex = block._autoindex;
+	_body_size_max = block._body_size_max;
+	_id = block._id;
+	return *this;
 }

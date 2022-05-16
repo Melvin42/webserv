@@ -6,6 +6,10 @@ Location::Location() : _arg(""), _type("") {
 Location::Location(const std::string &arg) : _arg(arg), _type("") {
 }
 
+Location::Location(const Location &cp) {
+	*this = cp;
+}
+
 Location::~Location() {
 }
 
@@ -36,4 +40,12 @@ void	Location::printCgiMap() {
 
 void	Location::addCgiPath(const std::string &key, const std::string &value) {
 	_cgi.insert(std::pair<std::string, std::string>(key, value));
+}
+
+Location &Location::operator=(const Location &loc) {
+	_arg = loc._arg;
+	_type = loc._type;
+	_index = loc._index;
+	_cgi = loc._cgi;
+	return *this;
 }

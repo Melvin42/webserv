@@ -24,9 +24,10 @@ class Socket {
 
 		std::string					receiveLine();
 		void						closeFd();
-		int							getMasterFd(size_t i) const;
+		int							getMasterFd(size_t id) const;
 		char						**getEnv();
 		std::vector<ClientManager>	&getClientSocket();
+		void						addServerFd(int fd);
 
 
 	protected:
@@ -42,21 +43,21 @@ class Socket {
 
 class SocketServer : public Socket {
 	public:
-		SocketServer(char **env, const Config &conf, int connections);
+		SocketServer(char **env, const Config &conf);
 
 		int		getSocketUsed() const;
 		void	setSocketUsed(int fd);
 		fd_set	getReadFds() const;
 		fd_set	getWriteFds() const;
 
-		void	setUpSocket(const BlockConfig &block, int connections);
-		int		acceptSocket(int server_fd);
+		void	setUpBlockServer();
+		void	bindSocket(const BlockConfig &block);
+		int		acceptSocket(const BlockConfig &block);
 		void	selectSocket(const BlockConfig &block);
 		bool	ready(int fd, fd_set set);
-		void	setClientSocket(size_t id);
-		void	simultaneousRead(const BlockConfig &block);
-		void	runBlock(const BlockConfig &block);
-		void	run(const std::vector<BlockConfig> &conf);
+		void	setClientSocket(const BlockConfig &block);
+		void	simultaneousRead();
+		void	run();
 		void	closeClean(fd_set *fds);
 
 	private:

@@ -4,7 +4,7 @@
 
 /**** SOCKET ****/
 
-Socket::Socket() : _env(NULL), _clientSocket(1, 0) {
+Socket::Socket() : _env(NULL) {
 }
 
 Socket::~Socket() {
@@ -13,21 +13,57 @@ Socket::~Socket() {
 	}
 }
 
-int	Socket::getMasterFd(size_t i) const {
-	return _server_fd.at(i);
+int	Socket::getMasterFd(size_t id) const {
+	return _server_fd.at(id);
 }
 
 std::vector<ClientManager>	&Socket::getClientSocket() {
 	return _clientSocket;
 }
 
+void	Socket::addServerFd(int fd) {
+	_server_fd.push_back(fd);
+}
+
 /**** SOCKET SERVER ****/
 
-SocketServer::SocketServer(char **env, const Config &conf, int connections) : Socket() {
+SocketServer::SocketServer(char **env, const Config &conf) : Socket() {
+	_config = conf;
 	_env = env;
+	_sd = 0;
+	_max_sd = 0;
+}
 
-	for (size_t i = 0; i < conf.getConfig().size(); i++) {
-		this->setUpSocket(conf.getConfig().at(i), connections);
+void	SocketServer::bindSocket(const BlockConfig &block) {
+	int					opt = true;
+	int					tmp = 0;
+	struct sockaddr_in	address;
+
+	memset(&address, 0, sizeof(address));
+
+	
+	if ((tmp = socket(AF_INET, SOCK_STREAM, 0)) == 0) {
+		throw "INVALID SOCKET";
+	}
+	this->addServerFd(tmp);
+
+	std::cerr << "block id = " << block.getId() << std::endl;
+	std::cerr << "block fd = " << tmp << std::endl;
+
+	if (setsockopt(_server_fd.at(block.getId()), SOL_SOCKET, SO_REUSEADDR, (char *)&opt,
+			sizeof(opt)) < 0) {
+		throw "INVALID SOCKET";
+	}
+	address.sin_family = AF_INET;
+	address.sin_addr.s_addr = INADDR_ANY;
+	address.sin_port = htons(block.getPort());
+	memset(address.sin_zero, 0, sizeof(address.sin_zero));
+
+	if (bind(_server_fd.at(block.getId()), (struct sockaddr *)&address, sizeof(address)) < 0) {
+		throw "INVALID SOCKET";
+	}
+	if (listen(_server_fd.at(block.getId()), 0) < 0) {
+		throw "INVALID SOCKET";
 	}
 }
 
@@ -79,11 +115,11 @@ void	SocketServer::setUpSocket(const BlockConfig &block, int connections) {
 	}
 }
 
-int	SocketServer::acceptSocket(int server_fd) {
+int	SocketServer::acceptSocket(const BlockConfig &block) {
 	int	new_socket;
 	int	addrlen = sizeof(_address);
 
-	if ((new_socket = accept(server_fd, (struct sockaddr *)&_address, (socklen_t *)&addrlen)) < 0) {
+	if ((new_socket = accept(_server_fd.at(block.getId()), (struct sockaddr *)&_address, (socklen_t *)&addrlen)) < 0) {
 		throw "INVALID SOCKET";
 	}
 	return new_socket;
@@ -96,10 +132,10 @@ void	SocketServer::selectSocket(const BlockConfig &block) {
 	int											server_fd = _server_fd.at(block.getId());
 
 	FD_ZERO(&_readfds);
-	FD_SET(server_fd, &_readfds);
+	FD_SET(_server_fd.at(block.getId()), &_readfds);
 	FD_ZERO(&_writefds);
-	FD_SET(server_fd, &_writefds);
-	_max_sd = server_fd;
+	FD_SET(_server_fd.at(block.getId()), &_writefds);
+	_max_sd = _server_fd.at(block.getId());
 
 	for (it = this->getClientSocket().begin(); it != ite; it++) {
 		//if (it->getPort() == block.getPort())
@@ -124,13 +160,19 @@ bool	SocketServer::ready(int fd, fd_set set) {
 	return false;
 }
 
-void	SocketServer::setClientSocket(size_t id) {
-	(void)id;
+void	SocketServer::setClientSocket(const BlockConfig &block) {
 
-	if (this->ready(this->getMasterFd(id), this->getReadFds())) {
-		ClientManager	new_client(this->acceptSocket(_server_fd.at(id)));
+	if (this->ready(this->getMasterFd(block.getId()), this->getReadFds())) {
+
+		ClientManager	new_client(this->acceptSocket(block), block);
 
 		this->getClientSocket().push_back(new_client);
+		for (size_t i = 0; i < this->getClientSocket().size(); i++) {
+			std::cerr << "fd = " << this->getClientSocket().at(i).getFd() << std::endl;
+			std::cerr << "block id = " << this->getClientSocket().at(i).getBlock().getId() << std::endl;
+			std::cerr << "block root  = " << this->getClientSocket().at(i).getBlock().getRoot() << std::endl;
+			std::cerr << "block port = " << this->getClientSocket().at(i).getBlock().getPort() << std::endl;
+		}
 	}
 }
 
@@ -157,7 +199,7 @@ void	SocketServer::simultaneousRead(const BlockConfig &block) {
 			} else { //here is what we do when the client send us a request
 				it->appendRead(buffer); //we will append to ClientManager::_read as long as we haven't recv all the request from the client
 				if (it->isReadOk()) { //this is where we check if we have all the request in ClientManager::_read
-					HttpRequest	req(it->getRead().c_str(), block);
+					HttpRequest	req(it->getRead().c_str(), it->getBlock());
 					HttpResponse	msg(_env, req.getRequest());
 					str_file = msg.getHttpResponse();
 					it->setSend(str_file); //this is where the response is stored
@@ -196,19 +238,21 @@ void	SocketServer::simultaneousRead(const BlockConfig &block) {
 	}
 }
 
-void	SocketServer::runBlock(const BlockConfig &block) {
-	this->selectSocket(block);
-	this->setClientSocket(block.getId());
-	this->simultaneousRead(block);
+void	SocketServer::setUpBlockServer() {
+	for (size_t i = 0; i < _config.getConfig().size(); i++)
+		this->bindSocket(_config.getConfig().at(i));
 }
 
-void	SocketServer::run(const std::vector<BlockConfig> &conf) {
+void	SocketServer::run() {
 	int	count_loop = 0;
+	this->setUpBlockServer();
 	while (true) {
-			count_loop++;
-		for (size_t i = 0; i < conf.size(); i++) {
-			this->runBlock(conf.at(i));
+		count_loop++;
+		for (size_t i = 0; i < _config.getConfig().size(); i++) {
+			this->selectSocket(_config.getConfig().at(i));
+			this->setClientSocket(_config.getConfig().at(i));
 		}
+		this->simultaneousRead();
 	}
 }
 

@@ -12,6 +12,7 @@
 class BlockConfig {
 	public:
 		BlockConfig();
+		BlockConfig(const BlockConfig &cp);
 		~BlockConfig();
 
 		std::string					getHost() const;
@@ -45,6 +46,8 @@ class BlockConfig {
 		void	setAutoindex(const bool &autoindex);
 		void	setBodySizeMax(const size_t &size_max);
 		void	setId(const size_t &id);
+
+		BlockConfig &operator=(const BlockConfig &block);
 
 	private:
 		std::string					_default_index;

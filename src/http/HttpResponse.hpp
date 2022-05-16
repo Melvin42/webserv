@@ -39,13 +39,17 @@ class	HttpResponse {
 
 		HttpResponse();
 		int		is_cgi();
-		void	errRet(std::string errCode);
+		void	statusRet(std::string errCode);
 		void	set_exec_argv(std::string cmdPath, std::string errPage);
 		int		cgi(std::string statusKey);
 		void	setHeader(std::string statusKey);
 		void	setCgiHeader(std::string statusKey);
 		void	setPage(std::string statusKey, std::ifstream &page);
 		void	autoIndex();
+
+		void	methodGetRes();
+		void	methodPostRes();
+		void	methodDeleteRes();
 		// std::string	interface(std::string errorCode);
 };
 

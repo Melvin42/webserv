@@ -5,7 +5,7 @@ Config::Config()
 	_block_index(-1), _loc_id(-1), _new_instruction(true) {
 }
 
-Config::Config(Config &cp) {
+Config::Config(const Config &cp) {
 	*this = cp;
 }
 
