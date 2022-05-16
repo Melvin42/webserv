@@ -28,7 +28,7 @@ int	main(int ac, char **av, char **env) {
 
 			if (conf.getNeedExit())
 				return EXIT_FAILURE;
-			SocketServer server(env, conf, 30);
+			SocketServer server(env, conf);
 
 			server.run();
 	} else {
@@ -36,7 +36,7 @@ int	main(int ac, char **av, char **env) {
 
 			if (conf.getNeedExit())
 				return EXIT_FAILURE;
-			SocketServer server(env, conf, 30);
+			SocketServer server(env, conf);
 
 			server.run();
 	}

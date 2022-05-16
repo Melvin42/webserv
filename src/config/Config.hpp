@@ -8,7 +8,7 @@ class Config {
 	public:
 		Config();
 		Config(const char *av);
-		Config(Config &cp);
+		Config(const Config &cp);
 		~Config();
 
 		std::vector<BlockConfig>	getConfig() const;
@@ -26,7 +26,7 @@ class Config {
 
 		void						setAllDefaultValue();
 
-
+//////
 		std::string	checkEndOfLine(char c);
 		std::string	badEndOfLine();
 		void		checkSemiColon();

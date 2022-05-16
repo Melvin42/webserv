@@ -12,6 +12,7 @@
 class BlockConfig {
 	public:
 		BlockConfig();
+		BlockConfig(const BlockConfig &cp);
 		~BlockConfig();
 
 		std::string					getHost() const;
@@ -26,6 +27,7 @@ class BlockConfig {
 		bool						getCanDelete() const;
 		bool						getAutoindex() const;
 		size_t						getBodySizeMax() const;
+		size_t						getId() const;
 
 		void	setDefaultIndex();
 		void	setNewHost(const std::string &host);
@@ -41,6 +43,9 @@ class BlockConfig {
 		void	setCanDelete(const bool &can_delete);
 		void	setAutoindex(const bool &autoindex);
 		void	setBodySizeMax(const size_t &size_max);
+		void	setId(const size_t &id);
+
+		BlockConfig &operator=(const BlockConfig &block);
 
 	private:
 		std::string					_default_index;
@@ -56,6 +61,7 @@ class BlockConfig {
 		bool						_can_delete;
 		bool						_autoindex;
 		size_t						_body_size_max;
+		size_t						_id;
 };
 
 #endif

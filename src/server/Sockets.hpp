@@ -23,15 +23,16 @@ class Socket {
 
 		std::string					receiveLine();
 		void						closeFd();
-		int							getMasterFd() const;
+		int							getMasterFd(size_t id) const;
 		char						**getEnv();
 		std::vector<ClientManager>	&getClientSocket();
+		void						addServerFd(int fd);
 
 
 	protected:
 		friend class SocketServer;
 
-		int							_server_fd;
+		std::vector<int>			_server_fd;
 		char						**_env;
 		std::vector<ClientManager>	_clientSocket;
 		struct sockaddr_in			_address;
@@ -41,7 +42,7 @@ class Socket {
 
 class SocketServer : public Socket {
 	public:
-		SocketServer(char **env, const Config &conf, int connections);
+		SocketServer(char **env, const Config &conf);
 
 		int		getSocketUsed() const;
 		void	setSocketUsed(int fd);
@@ -49,10 +50,12 @@ class SocketServer : public Socket {
 		fd_set	getWriteFds() const;
 		Config	&getConfig() ;
 
-		int		acceptSocket();
-		void	selectSocket();
+		void	setUpBlockServer();
+		void	bindSocket(const BlockConfig &block);
+		int		acceptSocket(const BlockConfig &block);
+		void	selectSocket(const BlockConfig &block);
 		bool	ready(int fd, fd_set set);
-		void	setClientSocket();
+		void	setClientSocket(const BlockConfig &block);
 		void	simultaneousRead();
 		void	run();
 		void	closeClean(fd_set *fds);

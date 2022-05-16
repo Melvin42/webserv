@@ -22,7 +22,7 @@ class	HttpResponse {
 	public:
 
 		
-		HttpResponse(char **env, Config &config, std::map<std::string, std::string> request);
+		HttpResponse(char **env, std::map<std::string, std::string> request);
 		~HttpResponse();
 
 		std::string	getHttpResponse();

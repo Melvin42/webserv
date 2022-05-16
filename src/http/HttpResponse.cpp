@@ -3,8 +3,8 @@
 HttpResponse::HttpResponse() {
 }
 
-HttpResponse::HttpResponse(char **env, Config &config, std::map<std::string, std::string> request)
- : _env(env), _exec_argv(NULL), _config(config), _ret(""), _request(request) {
+HttpResponse::HttpResponse(char **env, std::map<std::string, std::string> request)
+ : _env(env), _exec_argv(NULL), _ret(""), _request(request) {
 	_status.insert(std::pair<std::string, std::string>("100", "Continue"));
 	_status.insert(std::pair<std::string, std::string>("101", "Switching Protocols"));
 	_status.insert(std::pair<std::string, std::string>("200", "OK"));

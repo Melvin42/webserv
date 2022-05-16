@@ -6,8 +6,12 @@ ClientManager::ClientManager() : _fd(1), _header_ok(false),
 	_read_ok(false), _send_ok(false), _read(""), _send("") {
 }
 
-ClientManager::ClientManager(int fd) : _fd(fd), _header_ok(false), _read_ok(false),
-	_send_ok(false), _read(""), _send("") {
+ClientManager::ClientManager(int fd, const BlockConfig &block) : _fd(fd), _header_ok(false), _read_ok(false),
+	_send_ok(false), _read(""), _send(""), _block(block) {
+	std::cerr << "fd = " << _fd << std::endl;
+	std::cerr << "block id = " << block.getId() << std::endl;
+	std::cerr << "block root  = " << block.getRoot() << std::endl;
+	std::cerr << "block port = " << block.getPort() << std::endl;
 }
 
 ClientManager::~ClientManager() {
@@ -37,6 +41,10 @@ std::string	ClientManager::getRead() const {
 
 std::string	ClientManager::getSend() const {
 	return _send;
+}
+
+BlockConfig	ClientManager::getBlock() const {
+	return _block;
 }
 
 void	ClientManager::setFd(int fd) {

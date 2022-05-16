@@ -5,7 +5,7 @@ Config::Config()
 	_block_index(-1), _loc_id(-1), _new_instruction(true) {
 }
 
-Config::Config(Config &cp) {
+Config::Config(const Config &cp) {
 	*this = cp;
 }
 
@@ -50,6 +50,7 @@ void	Config::setWord(const std::string &word) {
 void	Config::setAllDefaultValue() {
 	for (size_t i = 0; i < _config.size(); i++) {
 		_config.at(i).setDefaultIndex();
+		_config.at(i).setId(i);
 	}
 
 }

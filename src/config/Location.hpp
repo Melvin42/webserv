@@ -8,6 +8,7 @@
 class Location {
 	public:
 		Location(const std::string &arg);
+		Location(const Location &cp);
 		~Location();
 
 		std::string							getArg() const;
@@ -19,6 +20,8 @@ class Location {
 													const std::string &value);
 
 		void	printCgiMap();
+
+		Location &operator=(const Location &loc);
 
 	private:
 		Location();
