@@ -65,6 +65,7 @@ class SocketServer : public Socket {
 		int		_max_sd;
 		fd_set	_readfds;
 		fd_set	_writefds;
+		Config	_config;
 };
 
 #endif

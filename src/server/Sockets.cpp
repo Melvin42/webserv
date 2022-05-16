@@ -83,38 +83,6 @@ fd_set	SocketServer::getWriteFds() const {
 	return _writefds;
 }
 
-void	SocketServer::setUpSocket(const BlockConfig &block, int connections) {
-	int					opt = true;
-	int					fd;
-	struct sockaddr_in	address;
-
-	memset(&address, 0, sizeof(address));
-
-	if ((fd = socket(AF_INET, SOCK_STREAM, 0)) == 0) {
-		throw "INVALID SOCKET";
-	}
-	_server_fd.push_back(fd);
-	if (setsockopt(_server_fd.at(block.getId()), SOL_SOCKET, SO_REUSEADDR, (char *)&opt,
-			sizeof(opt)) < 0) {
-		throw "INVALID SOCKET";
-	}
-	address.sin_family = AF_INET;
-	address.sin_addr.s_addr = htonl(INADDR_ANY);
-	address.sin_port = htons(block.getPort());
-	std::cerr << address.sin_port << std::endl;
-	std::cerr << address.sin_addr.s_addr << std::endl;
-	memset(address.sin_zero, 0, sizeof(address.sin_zero));
-
-	if (bind(_server_fd.at(block.getId()), (struct sockaddr *)&address, sizeof(address)) < 0) {
-		std::cerr << "VILAIN" << std::endl;
-		perror("bind failed");
-		throw "INVALID SOCKET";
-	}
-	if (listen(_server_fd.at(block.getId()), connections) < 0) {
-		throw "INVALID SOCKET";
-	}
-}
-
 int	SocketServer::acceptSocket(const BlockConfig &block) {
 	int	new_socket;
 	int	addrlen = sizeof(_address);
@@ -129,7 +97,6 @@ void	SocketServer::selectSocket(const BlockConfig &block) {
 	int											activity;
 	std::vector<ClientManager>::iterator		it;
 	std::vector<ClientManager>::const_iterator	ite = this->getClientSocket().end();
-	int											server_fd = _server_fd.at(block.getId());
 
 	FD_ZERO(&_readfds);
 	FD_SET(_server_fd.at(block.getId()), &_readfds);
@@ -176,7 +143,7 @@ void	SocketServer::setClientSocket(const BlockConfig &block) {
 	}
 }
 
-void	SocketServer::simultaneousRead(const BlockConfig &block) {
+void	SocketServer::simultaneousRead() {
 	std::vector<ClientManager>::iterator		it;
 	std::vector<ClientManager>::const_iterator	ite;
 	char	buffer[BUFFER_SIZE + 1] = {0};
