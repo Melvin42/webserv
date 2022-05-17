@@ -209,10 +209,16 @@ bool	SocketServer::setUpBlockServer() {
 	return false;
 }
 
+void	sig_handler(int signum) {
+	if (signum == SIGINT)
+		g_sigbool = true;
+}
+
 void	SocketServer::run() {
 	int	count_loop = 0;
 	if (this->setUpBlockServer())
 		return ;
+	signal(SIGINT, sig_handler);
 	while (true) {
 //		std::cout << count_loop << std::endl;
 		count_loop++;
@@ -221,6 +227,9 @@ void	SocketServer::run() {
 			for (size_t i = 0; i < _config.getConfig().size(); i++) {
 				this->setFdSet(_config.getConfig().at(i));
 			}
+			std::cerr << g_sigbool << std::endl;
+			if (g_sigbool)
+				return ;
 			this->selectSocket();
 			for (size_t i = 0; i < _config.getConfig().size(); i++) {
 				this->setClientSocket(_config.getConfig().at(i));

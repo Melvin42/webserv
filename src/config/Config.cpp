@@ -54,7 +54,35 @@ void	Config::setAllDefaultValue() {
 		_config.at(i).setDefaultIndex();
 		_config.at(i).setId(i);
 	}
+}
 
+void	Config::setAllDefaultServer() {
+	std::vector<int>	priority;
+
+	for (size_t i = 0; i < _config.size(); i++) {
+		if (_config.at(i).getHost() != ""
+				&& std::find(priority.begin(), priority.end(),
+					_config.at(i).getPort()) == priority.end()) {
+			priority.push_back(_config.at(i).getPort());
+
+			_config.at(i).setIsDefault(true);
+		}
+	}
+	for (size_t i = 0; i < _config.size(); i++) {
+		if (_config.at(i).getServerName() != ""
+				&& std::find(priority.begin(), priority.end(),
+					_config.at(i).getPort()) == priority.end()) {
+			priority.push_back(_config.at(i).getPort());
+			_config.at(i).setIsDefault(true);
+		}
+	}
+	for (size_t i = 0; i < _config.size(); i++) {
+		if (std::find(priority.begin(), priority.end(),
+				_config.at(i).getPort()) == priority.end()) {
+			priority.push_back(_config.at(i).getPort());
+			_config.at(i).setIsDefault(true);
+		}
+	}
 }
 
 void	Config::setBlockIndex(const int &index) {
@@ -330,6 +358,7 @@ void	Config::printAllConfig() const {
 		std::cout << "	404_default = " << _config.at(j).getDefault404() << std::endl;
 		std::cout << "	Toredirect = " << _config.at(j).getToRedirect() << std::endl;
 		std::cout << "	redirectTo = " << _config.at(j).getRedirectTo() << std::endl;
+		std::cout << "	Is Default = " << _config.at(j).getIsDefault() << std::endl;
 		for (size_t i = 0; i < _config.at(j).getIndex().size(); i++) {
 			if (i == 0)
 				std::cout << "	index = ";
@@ -459,12 +488,13 @@ void	Config::parsing(const char *av) {
 				}
 			}
 		}
-		this->printAllConfig();
 	} else {
 		this->errorCantReadFile();
 		return ;
 	}
 	this->setAllDefaultValue();
+	this->setAllDefaultServer();
+	this->printAllConfig();
 }
 
 Config &Config::operator=(const Config &conf) {

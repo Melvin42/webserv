@@ -2,9 +2,9 @@
 
 BlockConfig::BlockConfig() : _default_index(""), _default_404(""),
 	_to_redirect(""), _redirect_to(""),
-	_host("0.0.0.0"), _port(8080), _server_name("localhost"), _root("./"),
+	_host(""), _port(0), _server_name(""), _root(""),
 	_can_post(true), _can_get(true), _can_delete(true),
-	_autoindex(false), _body_size_max(0), _id(0) {
+	_autoindex(false), _is_default(false), _body_size_max(0), _id(0) {
 }
 
 BlockConfig::BlockConfig(const BlockConfig &cp) {
@@ -68,6 +68,10 @@ bool	BlockConfig::getCanDelete() const {
 
 bool	BlockConfig::getAutoindex() const {
 	return _autoindex;
+}
+
+bool	BlockConfig::getIsDefault() const {
+	return _is_default;
 }
 
 size_t	BlockConfig::getBodySizeMax() const {
@@ -166,6 +170,12 @@ void	BlockConfig::setAutoindex(const bool &autoindex) {
 	_autoindex = autoindex;
 }
 
+void	BlockConfig::setIsDefault(const bool &is_default) {
+	std::cerr << "set is default" << is_default << std::endl;
+	_is_default = is_default;
+	std::cerr << "set is default" << _is_default << std::endl;
+}
+
 void	BlockConfig::setBodySizeMax(const size_t &size_max) {
 	_body_size_max = size_max;
 }
@@ -189,6 +199,7 @@ BlockConfig &BlockConfig::operator=(const BlockConfig &block) {
 	_can_get = block._can_get;
 	_can_delete = block._can_delete;
 	_autoindex = block._autoindex;
+	_is_default = block._is_default;
 	_body_size_max = block._body_size_max;
 	_id = block._id;
 	return *this;

@@ -16,6 +16,8 @@
 #include "../http/HttpRequest.hpp"
 #include "../http/HttpResponse.hpp"
 
+extern bool	g_sigbool;
+
 class Socket {
 	public:
 
@@ -28,7 +30,6 @@ class Socket {
 		char						**getEnv();
 		std::vector<ClientManager>	&getClientSocket();
 		void						addServerFd(int fd);
-
 
 	protected:
 		friend class SocketServer;
@@ -69,5 +70,7 @@ class SocketServer : public Socket {
 		fd_set	_writefds;
 		Config	_config;
 };
+
+void	sig_handler(int signum);
 
 #endif

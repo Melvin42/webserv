@@ -26,6 +26,7 @@ class Config {
 		void						setConfig(const std::vector<BlockConfig> &conf);
 
 		void						setAllDefaultValue();
+		void						setAllDefaultServer();
 
 		std::string	checkEndOfLine(char c);
 		std::string	badEndOfLine();

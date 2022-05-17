@@ -19,6 +19,8 @@
 #include "config/BlockConfig.hpp"
 #include "config/Config.hpp"
 
+bool	g_sigbool = false;
+
 int	main(int ac, char **av, char **env) {
 	if (ac > 2) {
 		std::cout << "Need a NGINX file.conf as second arg" << std::endl;

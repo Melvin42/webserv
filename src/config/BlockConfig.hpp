@@ -29,6 +29,7 @@ class BlockConfig {
 		bool						getCanGet() const;
 		bool						getCanDelete() const;
 		bool						getAutoindex() const;
+		bool						getIsDefault() const;
 		size_t						getBodySizeMax() const;
 		size_t						getId() const;
 
@@ -48,6 +49,7 @@ class BlockConfig {
 		void	setCanGet(const bool &can_get);
 		void	setCanDelete(const bool &can_delete);
 		void	setAutoindex(const bool &autoindex);
+		void	setIsDefault(const bool &is_default);
 		void	setBodySizeMax(const size_t &size_max);
 		void	setId(const size_t &id);
 
@@ -68,6 +70,7 @@ class BlockConfig {
 		bool						_can_get;
 		bool						_can_delete;
 		bool						_autoindex;
+		bool						_is_default;
 		size_t						_body_size_max;
 		size_t						_id;
 };
