@@ -15,7 +15,7 @@ class	HttpRequest {
 
 	public:
 
-		HttpRequest(const char *buffer, Config &conf);
+		HttpRequest(const char *buffer, const BlockConfig &conf);
 		HttpRequest(const HttpRequest &httprequest);
 		~HttpRequest();
 		HttpRequest &operator=(const HttpRequest &httprequest);
@@ -26,7 +26,6 @@ class	HttpRequest {
 		std::string							getHost();
 		size_t								getContentLength();
 		std::map<std::string, std::string>	getRequest() const;
-		BlockConfig							getConf();
 
 		void								parseHeader(std::stringstream &line);
 		void								parseBody(std::stringstream &line);
@@ -35,7 +34,6 @@ class	HttpRequest {
 
 		HttpRequest();
 		void								setFullPage();
-		void								pickConfBlock(Config &conf);
 		std::string							getFilename(std::map<std::string, std::string>	&bodyHeader);
 		std::string							getKey(std::string buf);
 		std::string							getValue(std::string buf);
