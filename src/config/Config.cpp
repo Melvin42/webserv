@@ -83,6 +83,20 @@ void	Config::setAllDefaultServer() {
 			_config.at(i).setIsDefault(true);
 		}
 	}
+	std::vector<BlockConfig>	tmp;
+
+	std::vector<BlockConfig>::iterator	it;
+	for (it = _config.begin(); it != _config.end(); it++) {
+		if (it->getIsDefault() == true)
+			tmp.push_back(*it);
+	}
+	_config.clear();
+	size_t	id = 0;
+	for (it = tmp.begin(); it != tmp.end(); it++) {
+		it->setId(id);
+		_config.push_back(*it);
+		id++;
+	}
 }
 
 void	Config::setBlockIndex(const int &index) {
@@ -233,11 +247,8 @@ void	Config::parsRewrite() {
 	if (_is_to_redirect) {
 		_config.at(_block_index).setToRedirect(this->checkEndOfLine(';'));
 		_is_to_redirect = false;
-		std::cerr << "to_r" << std::endl;
-	} else {
+	} else
 		_config.at(_block_index).setRedirectTo(this->badEndOfLine());
-		std::cerr << "r_to" << std::endl;
-	}
 }
 
 void	Config::parsCgi(std::ifstream &in_file) {
@@ -256,9 +267,8 @@ void	Config::parsCgi(std::ifstream &in_file) {
 		in_file >> _word;
 		_check_binary = "SCRIPT_EXT";
 		_config.at(_block_index).addCgiToLocationMap(_word, valuemap, _loc_id);
-	} else {
+	} else
 		this->errorBadCgi();
-	}
 }
 
 void	Config::parsLocation(std::ifstream &in_file, int &location_scope) {
@@ -268,9 +278,8 @@ void	Config::parsLocation(std::ifstream &in_file, int &location_scope) {
 		if (_word == "{") {
 			location_scope = true;
 			_new_instruction = false;
-		} else {
+		} else
 			this->errorBadConf();
-		}
 	} else {
 		if (_word == "}") {
 			location_scope = false;
@@ -288,12 +297,10 @@ void	Config::parsLocation(std::ifstream &in_file, int &location_scope) {
 					}
 					this->parsLocationIndex();
 				}
-			} else if (_word == "cgi-bin") {
+			} else if (_word == "cgi-bin")
 				this->parsCgi(in_file);
-			}
-		} else {
+		} else
 			this->errorBadConf();
-		}
 	}
 }
 
@@ -398,27 +405,26 @@ void	Config::printAllConfig() const {
 }
 
 void	Config::saveLastInstruction() {
-	if (!isInstruction(_word)) {
+	if (!isInstruction(_word))
 		this->errorBadConf();
-	}
 	_new_instruction = false;
-	if (_word == "listen") {
+	if (_word == "listen")
 		_last_instruction = _word;
-	} else if (_word == "server_name") {
+	else if (_word == "server_name")
 		_last_instruction = _word;
-	} else if (_word == "root") {
+	else if (_word == "root")
 		_last_instruction = _word;
-	} else if (_word == "index") {
+	else if (_word == "index")
 		_last_instruction = _word;
-	} else if (_word == "autoindex") {
+	else if (_word == "autoindex")
 		_last_instruction = _word;
-	} else if (_word == "404_default") {
+	else if (_word == "404_default")
 		_last_instruction = _word;
-	} else if (_word == "client_body_size_max") {
+	else if (_word == "client_body_size_max")
 		_last_instruction = _word;
-	} else if (_word == "disallow") {
+	else if (_word == "disallow")
 		_last_instruction = _word;
-	} else if (_word == "rewrite") {
+	else if (_word == "rewrite") {
 		_last_instruction = _word;
 		_is_to_redirect = true;
 	} else if (_word == "location") {
@@ -428,30 +434,28 @@ void	Config::saveLastInstruction() {
 }
 
 void	Config::parsInstruction(std::ifstream &in_file, int &location_scope) {
-	if (_last_instruction == "listen") {
+	if (_last_instruction == "listen")
 		this->parsPort();
-	} else if (_last_instruction == "server_name") {
+	else if (_last_instruction == "server_name")
 		this->parsServerName();
-	} else if (_last_instruction == "root") {
+	else if (_last_instruction == "root")
 		this->parsRoot();
-	} else if (_last_instruction == "index") {
+	else if (_last_instruction == "index")
 		this->parsIndex();
-	} else if (_last_instruction == "autoindex") {
+	else if (_last_instruction == "autoindex")
 		this->parsAutoindex();
-	} else if (_last_instruction == "404_default") {
+	else if (_last_instruction == "404_default")
 		this->parsDefaultErrorPage();
-	} else if (_last_instruction == "client_body_size_max") {
+	else if (_last_instruction == "client_body_size_max")
 		this->parsClientMaxBodySize();
-	} else if (_last_instruction == "disallow") {
+	else if (_last_instruction == "disallow")
 		this->parsDisallow();
-	} else if (_last_instruction == "rewrite") {
+	else if (_last_instruction == "rewrite")
 		this->parsRewrite();
-	} else if (_last_instruction == "location") {
+	else if (_last_instruction == "location")
 		this->parsLocation(in_file, location_scope);
-	}
-	else {
+	else
 		this->errorBadConf();
-	}
 }
 
 void	Config::parsing(const char *av) {
@@ -473,11 +477,9 @@ void	Config::parsing(const char *av) {
 				} else
 					this->errorBadConf();
 			} else {
-				if (_word == "}" && location_scope == false) {
+				if (_word == "}" && location_scope == false)
 					server_scope = false;
-//				} else if (_word == "}" && location_scope == true) {
-//					location_scope = false;
-				} else {
+				else {
 					if (location_scope == false) {
 						if (_new_instruction == true)
 							this->saveLastInstruction();

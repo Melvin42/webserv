@@ -105,7 +105,6 @@ void	SocketServer::selectSocket() {
 	std::vector<ClientManager>::const_iterator	ite = this->getClientSocket().end();
 
 	for (it = this->getClientSocket().begin(); it != ite; it++) {
-		//if (it->getPort() == block.getPort())
 		_sd = it->getFd();
 		if (_sd > 0) {
 			FD_SET(_sd, &_readfds);
@@ -164,7 +163,6 @@ void	SocketServer::simultaneousRead() {
 					HttpResponse	msg(_env, req.getRequest());
 					str_file = msg.getHttpResponse();
 					it->setSend(str_file);										 //this is where the response is stored
-																				 // std::cerr << "bytes to send: " << it->getSend().size() << std::endl;
 					str_file = "";
 					it->setRead("");
 					it->setReadOk(false);
@@ -215,21 +213,15 @@ void	sig_handler(int signum) {
 }
 
 void	SocketServer::run() {
-	int	count_loop = 0;
 	if (this->setUpBlockServer())
 		return ;
 	signal(SIGINT, sig_handler);
 	while (true) {
-//		std::cout << count_loop << std::endl;
-		count_loop++;
 //		try {
 			this->FdZero();
 			for (size_t i = 0; i < _config.getConfig().size(); i++) {
 				this->setFdSet(_config.getConfig().at(i));
 			}
-			std::cerr << g_sigbool << std::endl;
-			if (g_sigbool)
-				return ;
 			this->selectSocket();
 			for (size_t i = 0; i < _config.getConfig().size(); i++) {
 				this->setClientSocket(_config.getConfig().at(i));

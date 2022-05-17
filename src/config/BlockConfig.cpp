@@ -171,9 +171,7 @@ void	BlockConfig::setAutoindex(const bool &autoindex) {
 }
 
 void	BlockConfig::setIsDefault(const bool &is_default) {
-	std::cerr << "set is default" << is_default << std::endl;
 	_is_default = is_default;
-	std::cerr << "set is default" << _is_default << std::endl;
 }
 
 void	BlockConfig::setBodySizeMax(const size_t &size_max) {
