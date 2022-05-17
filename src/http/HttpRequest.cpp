@@ -13,6 +13,8 @@ HttpRequest::HttpRequest(const char *buffer, const BlockConfig &conf) {
 	line >> _request["version"];
 	if (_request["page"] == "/")
 		_request["fullpage"] = conf.getDefaultIndex();
+	else if (_request["page"] == conf.getToRedirect())
+		_request["fullpage"] = conf.getRedirectTo();
 	else
 		_request["fullpage"] = conf.getRoot() + _request["page"];
 	line.ignore();

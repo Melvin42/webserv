@@ -77,6 +77,7 @@ void	HttpResponse::methodGetRes() {
 				setPage("200", page);
 		}
 		else {
+			//Put the variable default_404 in ifstream page() to get the good one from the conf file
 			std::ifstream	page("./www/index/index_404.html");
 			if (page) {
 				setPage("404", page);
@@ -259,7 +260,7 @@ void	HttpResponse::autoIndex() {
 				output << "/";
 			std::string tmp(ep->d_name);
 				output << "\">"
-//					<< ep->d_name
+					<< ep->d_name
 					<< "</a></p>\n";
 		}
 		output << "</body>\n</html>";

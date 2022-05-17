@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<link rel="icon" type="image/png" href="img/haddock.png" />
+		<title>README</title>
+	</head>
+
+	<body>
+
+		<h1>/*******	README.conf		********/</h1>
+
+		<p>
+
+		READ THIS FILE BEFORE MODIFY THE CONF FILE</br>
+</br>
+		<h2>/***** SERVER *****/</h2>
+</br>
+		-"server" keyword need to be follow by a '{'</br>
+</br>
+		-each server block need to be in separate scope</br>
+</br>
+		<h2>/***** INSTRUCTIONS *****/</h2>
+</br>
+		-all instructions line have to be finish by a ';' (just one ';' per line is accepted)</br>
+</br>
+		-listen instruction can have only one port (port has to be between 2000 and 65535)</br>
+</br>
+				listen		"port";</br>
+				or</br>
+				listen		"host:port";</br>
+</br>
+		-server_name instruction takes only one string argument (whithout white_space or ';')</br>
+</br>
+				server_name	localhost;</br>
+</br>
+		-root instruction is the absolute path to your webserver (the last of each server block will be used)</br>
+</br>
+				root	/data/www;</br>
+</br>
+		-index instruction can content as many index as u want, separate by space or tab;</br>
+</br>
+				index		index.html index.php. index;</br>
+</br>
+		-disallow instruction follow by GET, POST or DELETE to disabled the request method</br>
+</br>
+				disallow	POST;</br>
+</br>
+		-autoindex instruction follow by on or off to switch autoindex</br>
+</br>
+				autoindex	on;</br>
+</br>
+		-client_body_size_max instruction follow by a size_t value to set a maximum size for the client body</br>
+</br>
+				client_body_size_max	10000000;</br>
+</br>
+		-rewrite instruction follow by uri to redirect and just after by path redirect to</br>
+</br>
+				rewrite		/kapouet /data/www;</br>
+</br>
+		<h2>/***** Location *****/</h2>
+</br>
+		one server block can content as many location block as u want, you can't imbricate them</br>
+</br>
+		the root of the location need to past as an argument betweent "location" and the opening bracket "{"</br>
+</br>
+		-in each location block, you can use two different instructions.</br>
+</br>
+				-new location index</br>
+</br>
+				-new location cgi</br>
+</br>
+		for the cgi, you have to put the path of the binary</br>
+</br>
+				-cgi-bin BINARY   "path";</br>
+</br>
+		and juste follow on the next line by the extention type</br>
+</br>
+				-cgi-bin SCRIPT_EXT   ".ext";</br>
+</br>
+		<h3>/*****	example	******/</h3>
+</br>
+		server {</br>
+				listen			0.0.0.0:8080;</br>
+				server_name		localhost;</br>
+				root			/data/www;</br>
+</br>
+				disallow					POST;</br>
+</br>
+				autoindex					on;</br>
+</br>
+				client_body_size_max		10000000;</br>
+</br>
+				rewrite		/kapouet /data/www;</br>
+</br>
+				location /index/ {</br>
+					index	index.php index.html;</br>
+				}</br>
+</br>
+				location /cgi_folder/ {</br>
+					cgi-bin BINARY		/usr/bin/perl;</br>
+					cgi-bin SCRIPT-EXT	.pl;</br>
+				}</br>
+		}</br>
+</br>
+		</p>
+		<img src="img/captain.jpg">
+	</body>
+</html>
+

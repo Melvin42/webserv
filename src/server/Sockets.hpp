@@ -1,7 +1,6 @@
 #ifndef SOCKETS_HPP
 #define SOCKETS_HPP
 
-#define MAXCLIENT 30
 #include <iostream>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -10,6 +9,7 @@
 #include <vector>
 #include <errno.h>
 #include <algorithm>
+#include <exception>
 
 #include "ClientManager.hpp"
 #include "../config/Config.hpp"
@@ -50,8 +50,8 @@ class SocketServer : public Socket {
 		fd_set	getReadFds() const;
 		fd_set	getWriteFds() const;
 
-		void	setUpBlockServer();
-		void	bindSocket(const BlockConfig &block);
+		bool	setUpBlockServer();
+		bool	bindSocket(const BlockConfig &block);
 		int		acceptSocket(const BlockConfig &block);
 		void	FdZero();
 		void	setFdSet(const BlockConfig &block);
