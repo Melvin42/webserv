@@ -3,7 +3,7 @@
 HttpRequest::HttpRequest() {
 }
 
-HttpRequest::HttpRequest(const char *buffer, const BlockConfig &conf) {
+HttpRequest::HttpRequest(const char *buffer, Config &conf) {
 	std::stringstream	line;
 
 //	std::cerr << "
@@ -11,16 +11,12 @@ HttpRequest::HttpRequest(const char *buffer, const BlockConfig &conf) {
 	line >> _request["method"];
 	line >> _request["page"];
 	line >> _request["version"];
-	if (_request["page"] == "/")
-		_request["fullpage"] = conf.getDefaultIndex();
-	else if (_request["page"] == conf.getToRedirect())
-		_request["fullpage"] = conf.getRedirectTo();
-	else
-		_request["fullpage"] = conf.getRoot() + _request["page"];
 	line.ignore();
 	parseHeader(line);
+	pickConfBlock(conf);
+	setFullPage();
 	// std::cout << std::endl << "line: " << std::endl << line.str();
-	if (_request.find("boundary") != _request.end() /*&& conf allow upload*/)
+	if (_request.find("boundary") != _request.end() && _conf.getCanPost())
 		parseBody(line);
 }
 
@@ -30,7 +26,6 @@ HttpRequest::HttpRequest(const HttpRequest &httprequest) {
 
 HttpRequest &HttpRequest::operator=(const HttpRequest &httprequest) {
 	_request = httprequest._request;
-	_body = httprequest._body;
 	return *this;
 }
 
@@ -53,8 +48,8 @@ std::string	HttpRequest::getHost() {
 	return _request["Host"];
 }
 
-std::string	HttpRequest::getBody() {
-	return _body;
+BlockConfig	HttpRequest::getConf() {
+	return _conf;
 }
 
 size_t	HttpRequest::getContentLength(){
@@ -63,6 +58,30 @@ size_t	HttpRequest::getContentLength(){
 
 std::map<std::string, std::string> HttpRequest::getRequest() const {
 	return _request;
+}
+
+void	HttpRequest::pickConfBlock(Config &conf) {
+	std::stringstream host;
+
+	for (size_t i = 0; i < conf.getConfig().size(); i++)
+	{
+		host << conf.getConfig().at(i).getHost();
+		host << ":";
+		host << conf.getConfig().at(i).getPort();
+		if (host.str() == _request["Host"])
+		{
+			_conf = conf.getConfig().at(i);
+			break ;
+		}
+		host.clear();
+	}
+}
+
+void	HttpRequest::setFullPage() {
+	if (_request["page"] == "/")
+		_request["fullpage"] = _conf.getDefaultIndex();
+	else
+		_request["fullpage"] = _conf.getRoot() + _request["page"];
 }
 
 void	HttpRequest::parseHeader(std::stringstream &line) {
@@ -95,33 +114,18 @@ void	HttpRequest::parseBody(std::stringstream &line) {
 	std::map<std::string, std::string>	bodyHeader;
 	std::FILE*							file;
 
-// std::FILE* tmpf = fopen("/tmp/.tmp", "wb+");
-// (void)tmpf;
-// std::ofstream tmpst("/tmp/.tmp");
-//  int i = 0;
-//  int j = 0;
-
 	while (std::getline(line, buf)) {
-		// tmpst << "buf is   :" << buf << std::endl;
-		// tmpst << "boundary :" << _request["boundary"] << std::endl;
-		// tmpst << "i = " << i << std::endl;
 		if (line.eof() || line.bad() || buf == _request["boundary"])
 			break ;
-		// i++;
 	}
 	while (42) {
-		// tmpst<< "buf is :" << buf << std::endl;
 		if (line.eof() || line.bad() || buf == (_request["boundaryEnd"]))
-		{
-			// tmpst<< "should be out of loop" << std::endl;
 			break ;
-		}
 		else if (buf != _request["boundary"])
 			std::getline(line, buf);
 		if (buf == _request["boundary"])
 		{
 			while (std::getline(line, buf)) {
-				// tmpst << "buf is :" << buf << std::endl;
 				if (line.eof() || line.bad() || buf == "\r")
 					break ;
 				bodyHeader[getKey(buf)] = getValue(buf);
@@ -131,21 +135,17 @@ void	HttpRequest::parseBody(std::stringstream &line) {
 			if (buf == "\r") {
 				filename = getFilename(bodyHeader);
 				file = fopen(filename.c_str(), "wb+");
-				// i++;
-				// tmpst<< "fd opened" << std::endl;
 			}
 			std::ofstream	filest(filename.c_str());
 			while (std::getline(line, buf))
 			{
-				// tmpst << "buf is :" << buf << std::endl;
+				// std::cout << buf << std::endl ;
 				if (line.eof() || line.bad() || buf == "\r"
 					|| buf == _request["boundary"] || buf == _request["boundaryEnd"])
 				{
 					filest.close();
-					// j++;
 					break ;
 				}
-				// std::cout << "deal with content" << std::endl;
 				filest << buf;
 				if (filest.fail())
 					_request["posted"] = "false";
@@ -156,14 +156,8 @@ void	HttpRequest::parseBody(std::stringstream &line) {
 			}
 		}
 	}
-	// if (i == j)
-	// 	std::cout << "fds properly closed" << std::endl;
-
 	if (!line.bad() && _request["posted"] != "false")
-	{	
 		_request["posted"] = "true";
-		// std::cout << "posted" << std::endl;
-	}
 }
 
 std::string		HttpRequest::getKey(std::string buf) {

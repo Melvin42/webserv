@@ -3,46 +3,11 @@
 HttpResponse::HttpResponse() {
 }
 
-HttpResponse::HttpResponse(char **env, std::map<std::string, std::string> request)
- : _env(env), _exec_argv(NULL), _ret(""), _request(request) {
-	_status.insert(std::pair<std::string, std::string>("100", "Continue"));
-	_status.insert(std::pair<std::string, std::string>("101", "Switching Protocols"));
-	_status.insert(std::pair<std::string, std::string>("200", "OK"));
-	_status.insert(std::pair<std::string, std::string>("201", "Created"));
-	_status.insert(std::pair<std::string, std::string>("202", "Accepted"));
-	_status.insert(std::pair<std::string, std::string>("203", "Non-Authoritative Information"));
-	_status.insert(std::pair<std::string, std::string>("204", "No Content"));
-	_status.insert(std::pair<std::string, std::string>("205", "Reset Content"));
-	_status.insert(std::pair<std::string, std::string>("206", "Partial Content"));
-	_status.insert(std::pair<std::string, std::string>("300", "Multiple Choices"));
-	_status.insert(std::pair<std::string, std::string>("301", "Moved Permanently"));
-	_status.insert(std::pair<std::string, std::string>("302", "Moved Temporarily"));
-	_status.insert(std::pair<std::string, std::string>("303", "See Other"));
-	_status.insert(std::pair<std::string, std::string>("304", "Not Modified"));
-	_status.insert(std::pair<std::string, std::string>("305", "Use Proxy"));
-	_status.insert(std::pair<std::string, std::string>("400", "Bad Request"));
-	_status.insert(std::pair<std::string, std::string>("401", "Unauthorized"));
-	_status.insert(std::pair<std::string, std::string>("402", "Payment Required"));
-	_status.insert(std::pair<std::string, std::string>("403", "Forbidden"));
-	_status.insert(std::pair<std::string, std::string>("404", "Not Found"));
-	_status.insert(std::pair<std::string, std::string>("405", "Method Not Allowed"));
-	_status.insert(std::pair<std::string, std::string>("406", "Not Acceptable"));
-	_status.insert(std::pair<std::string, std::string>("407", "Proxy Authentication Required"));
-	_status.insert(std::pair<std::string, std::string>("408", "Request Time-out"));
-	_status.insert(std::pair<std::string, std::string>("409", "Conflict"));
-	_status.insert(std::pair<std::string, std::string>("410", "Gone"));
-	_status.insert(std::pair<std::string, std::string>("411", "Length Required"));
-	_status.insert(std::pair<std::string, std::string>("412", "Precondition Failed"));
-	_status.insert(std::pair<std::string, std::string>("413", "Request Entity Too Large"));
-	_status.insert(std::pair<std::string, std::string>("414", "Request-URI Too Large"));
-	_status.insert(std::pair<std::string, std::string>("415", "Unsupported Media Type"));
-	_status.insert(std::pair<std::string, std::string>("500", "Internal Server Error"));
-	_status.insert(std::pair<std::string, std::string>("501", "Not Implemented"));
-	_status.insert(std::pair<std::string, std::string>("502", "Bad Gateway"));
-	_status.insert(std::pair<std::string, std::string>("503", "Service Unavailable"));
-	_status.insert(std::pair<std::string, std::string>("504", "Gateway Time-out"));
-	_status.insert(std::pair<std::string, std::string>("505", "HTTP Version not supported"));
+HttpResponse::HttpResponse(char **env, BlockConfig config, std::map<std::string, std::string> request)
+ : _env(env), _exec_argv(NULL), _conf(config), _ret(""), _request(request) {
 
+	initStatus();
+	// initCgi();
 	//tmply be like this, _cgi should be configured by input .conf file
 	_cgi.insert(std::pair<std::string, std::string>(".pl", "/usr/bin/perl"));
 	_cgi.insert(std::pair<std::string, std::string>(".php", "/usr/bin/php"));
@@ -55,21 +20,19 @@ HttpResponse::~HttpResponse(void) {
 
 std::string	HttpResponse::getHttpResponse() {
 
-	if (_request["method"] == "GET")
-		methodGetRes();
-	else if (_request["method"] == "POST")
-		methodPostRes();
-	else if (_request["method"] == "DELETE")
-		methodDeleteRes();
-	/* else
-		405 method not allowed;
-		std::cout << "" << std::endl;
-	*/
+	if (_conf.getCanGet() && _request["method"] == "GET")
+		methodGet();
+	else if (_conf.getCanPost() && _request["method"] == "POST")
+		methodPost();
+	else if (_conf.getCanDelete() && _request["method"] == "DELETE")
+		methodDelete();
+	else
+		statusRet("405");
 	// std::cout << std::endl << "ret: " << std::endl << _ret.c_str() << std::endl; 
 	return _ret;
 }
 
-void	HttpResponse::methodGetRes() {
+void	HttpResponse::methodGet() {
 	try {
 		std::ifstream	page(_request["fullpage"].c_str());
 		if (page) {
@@ -89,25 +52,24 @@ void	HttpResponse::methodGetRes() {
 //			std::cout << e.what();
 			if (*(_request["fullpage"].end() - 1) != '/')
 				statusRet("301");
-			else
+			else if (_conf.getAutoindex())
 				autoIndex();
-			//if autoindex off, 403 forbidden
-			// errCgi("403");
+			else
+				statusRet("403");
 	}
 }
 
-void	HttpResponse::methodPostRes() {
+void	HttpResponse::methodPost() {
 
 	std::string statusCode;
 	if (_request["posted"] == "true")
 		statusCode = "201";
 	else
 		statusCode = "424";
-
 	statusRet(statusCode);
 }
 
-void	HttpResponse::methodDeleteRes() {
+void	HttpResponse::methodDelete() {
 	
 }
 
@@ -269,6 +231,46 @@ void	HttpResponse::autoIndex() {
 	}
 }
 
-// std::string HttpResponse::interface(std::string errorCode) {
+void	HttpResponse::initStatus() {
+	_status.insert(std::pair<std::string, std::string>("100", "Continue"));
+	_status.insert(std::pair<std::string, std::string>("101", "Switching Protocols"));
+	_status.insert(std::pair<std::string, std::string>("200", "OK"));
+	_status.insert(std::pair<std::string, std::string>("201", "Created"));
+	_status.insert(std::pair<std::string, std::string>("202", "Accepted"));
+	_status.insert(std::pair<std::string, std::string>("203", "Non-Authoritative Information"));
+	_status.insert(std::pair<std::string, std::string>("204", "No Content"));
+	_status.insert(std::pair<std::string, std::string>("205", "Reset Content"));
+	_status.insert(std::pair<std::string, std::string>("206", "Partial Content"));
+	_status.insert(std::pair<std::string, std::string>("300", "Multiple Choices"));
+	_status.insert(std::pair<std::string, std::string>("301", "Moved Permanently"));
+	_status.insert(std::pair<std::string, std::string>("302", "Moved Temporarily"));
+	_status.insert(std::pair<std::string, std::string>("303", "See Other"));
+	_status.insert(std::pair<std::string, std::string>("304", "Not Modified"));
+	_status.insert(std::pair<std::string, std::string>("305", "Use Proxy"));
+	_status.insert(std::pair<std::string, std::string>("400", "Bad Request"));
+	_status.insert(std::pair<std::string, std::string>("401", "Unauthorized"));
+	_status.insert(std::pair<std::string, std::string>("402", "Payment Required"));
+	_status.insert(std::pair<std::string, std::string>("403", "Forbidden"));
+	_status.insert(std::pair<std::string, std::string>("404", "Not Found"));
+	_status.insert(std::pair<std::string, std::string>("405", "Method Not Allowed"));
+	_status.insert(std::pair<std::string, std::string>("406", "Not Acceptable"));
+	_status.insert(std::pair<std::string, std::string>("407", "Proxy Authentication Required"));
+	_status.insert(std::pair<std::string, std::string>("408", "Request Time-out"));
+	_status.insert(std::pair<std::string, std::string>("409", "Conflict"));
+	_status.insert(std::pair<std::string, std::string>("410", "Gone"));
+	_status.insert(std::pair<std::string, std::string>("411", "Length Required"));
+	_status.insert(std::pair<std::string, std::string>("412", "Precondition Failed"));
+	_status.insert(std::pair<std::string, std::string>("413", "Request Entity Too Large"));
+	_status.insert(std::pair<std::string, std::string>("414", "Request-URI Too Large"));
+	_status.insert(std::pair<std::string, std::string>("415", "Unsupported Media Type"));
+	_status.insert(std::pair<std::string, std::string>("500", "Internal Server Error"));
+	_status.insert(std::pair<std::string, std::string>("501", "Not Implemented"));
+	_status.insert(std::pair<std::string, std::string>("502", "Bad Gateway"));
+	_status.insert(std::pair<std::string, std::string>("503", "Service Unavailable"));
+	_status.insert(std::pair<std::string, std::string>("504", "Gateway Time-out"));
+	_status.insert(std::pair<std::string, std::string>("505", "HTTP Version not supported"));
+}
+
+// void	HttpResponse::initCgi() {
 
 // }
