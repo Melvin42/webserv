@@ -160,7 +160,7 @@ void	SocketServer::simultaneousRead() {
 				it->appendRead(buffer);											 //we will append to ClientManager::_read as long as we haven't recv all the request from the client
 				if (it->isReadOk()) {											 //this is where we check if we have all the request in ClientManager::_read
 					HttpRequest		req(it->getRead().c_str(), it->getBlock());
-					HttpResponse	msg(_env, req.getRequest());
+					HttpResponse	msg(_env, it->getBlock(), req.getRequest());
 					str_file = msg.getHttpResponse();
 					it->setSend(str_file);										 //this is where the response is stored
 					str_file = "";
