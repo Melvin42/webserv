@@ -142,8 +142,16 @@ void	SocketServer::simultaneousRead() {
 				this->closeClean(&_readfds);
 				it->setFd(0);
 			} else { //here is what we do when the client send us a request
+				if (it->getRead() != "")
+				{	
+					// std::cerr << "buffer: " << buffer << std::endl;
+					std::cerr << "valread: " << valread << std::endl; }
+				it->incrementValRead(valread);
 				it->appendRead(buffer); //we will append to ClientManager::_read as long as we haven't recv all the request from the client
-				if (it->isReadOk()) { //this is where we check if we have all the request in ClientManager::_read
+				// std::cerr << "it client: " << it->getRead() << std::endl;
+				if (it->isReadOk()) {
+					std::cerr << "ReadOk" << std::endl;
+					 //this is where we check if we have all the request in ClientManager::_read
 					HttpRequest	req(it->getRead().c_str(), _config);
 					HttpResponse	msg(_env, req.getConf(), req.getRequest());
 					str_file = msg.getHttpResponse();

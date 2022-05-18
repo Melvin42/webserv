@@ -20,6 +20,7 @@ class ClientManager {
 		~ClientManager();
 		ClientManager(int fd);
 
+		void		incrementValRead(int valread);
 		void		appendRead(char *buf);
 		bool		isReadOk();
 
@@ -45,6 +46,7 @@ class ClientManager {
 		bool			_send_ok;
 		std::string		_read;
 		std::string		_send;
+		int				_valRead;
 };
 
 #endif

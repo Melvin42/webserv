@@ -3,11 +3,11 @@
 /**** CONDESTRUCT ****/
 
 ClientManager::ClientManager() : _fd(1), _header_ok(false), 
-	_read_ok(false), _send_ok(false), _read(""), _send("") {
+	_read_ok(false), _send_ok(false), _read(""), _send(""), _valRead(0) {
 }
 
 ClientManager::ClientManager(int fd) : _fd(fd), _header_ok(false), _read_ok(false),
-	_send_ok(false), _read(""), _send("") {
+	_send_ok(false), _read(""), _send(""), _valRead(0) {
 }
 
 ClientManager::~ClientManager() {
@@ -65,6 +65,10 @@ void	ClientManager::setSend(std::string str) {
 
 /**** USE ****/
 
+void		ClientManager::incrementValRead(int valread) {
+	_valRead += valread;
+}
+
 void	ClientManager::appendRead(char *buf) {
 	_read.append(buf);
 }
@@ -74,10 +78,11 @@ bool	ClientManager::isReadOk() {
 	std::string			line;
 	std::string			boundry;
 	std::string			boundryEnd;
+	size_t				headerSize = 0;
 	size_t				bodySize = 0;
 	size_t				contentLength = 0;
 
-	buf <<  _read;
+	buf << _read;
 	while (std::getline(buf, line))
 	{
 		if (buf.eof() || buf.bad() || line == "\r")
@@ -89,18 +94,12 @@ bool	ClientManager::isReadOk() {
 			boundry = "--" + line.substr(line.find("boundary=") + 9) + "\r";
 			boundryEnd = "--" + line.substr(line.find("boundary=") + 9) + "--" + "\r";
 		}
+		headerSize += line.size() + 1;
 	}
+	headerSize += 2;
+	line = buf.str();
 	if (contentLength)
-	{
-		while (std::getline(buf, line))
-		{
-			if (buf.eof() || buf.bad())
-				break ;
-			bodySize += line.size() + 1;
-			if (line == boundryEnd)
-				break ;
-		}
-	}
+		bodySize = _valRead - headerSize;
 	if (contentLength == bodySize)
 		_read_ok = true;
 	return _read_ok;

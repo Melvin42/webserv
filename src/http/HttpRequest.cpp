@@ -138,7 +138,7 @@ void	HttpRequest::parseBody(std::stringstream &line) {
 			std::ofstream	filest(filename.c_str());
 			while (std::getline(line, buf))
 			{
-				// std::cout << buf << std::endl ;
+// std::cout << buf << std::endl ;
 				if (line.eof() || line.bad() || buf == "\r"
 					|| buf == _request["boundary"] || buf == _request["boundaryEnd"])
 				{
