@@ -11,6 +11,7 @@
 #include <errno.h>
 #include <algorithm>
 
+#include "../config/BlockConfig.hpp"
 #include "../http/HttpRequest.hpp"
 
 class ClientManager {
@@ -18,7 +19,7 @@ class ClientManager {
 
 		ClientManager();
 		~ClientManager();
-		ClientManager(int fd);
+		ClientManager(int fd, const BlockConfig &block);
 
 		void		incrementValRead(int valread);
 		void		appendRead(char *buf);
@@ -37,6 +38,7 @@ class ClientManager {
 		bool			getSendOk() const;
 		std::string		getRead() const;
 		std::string		getSend() const;
+		BlockConfig		getBlock() const;
 
 	private:
 
@@ -47,6 +49,7 @@ class ClientManager {
 		std::string		_read;
 		std::string		_send;
 		int				_valRead;
+		BlockConfig		_block;
 };
 
 #endif

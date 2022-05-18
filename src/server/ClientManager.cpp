@@ -6,8 +6,8 @@ ClientManager::ClientManager() : _fd(1), _header_ok(false),
 	_read_ok(false), _send_ok(false), _read(""), _send(""), _valRead(0) {
 }
 
-ClientManager::ClientManager(int fd) : _fd(fd), _header_ok(false), _read_ok(false),
-	_send_ok(false), _read(""), _send(""), _valRead(0) {
+ClientManager::ClientManager(int fd, const BlockConfig &block) : _fd(fd), _header_ok(false), _read_ok(false),
+	_send_ok(false), _read(""), _send(""), _valRead(0), _block(block) {
 }
 
 ClientManager::~ClientManager() {
@@ -37,6 +37,10 @@ std::string	ClientManager::getRead() const {
 
 std::string	ClientManager::getSend() const {
 	return _send;
+}
+
+BlockConfig	ClientManager::getBlock() const {
+	return _block;
 }
 
 void	ClientManager::setFd(int fd) {

@@ -3,17 +3,18 @@
 HttpRequest::HttpRequest() {
 }
 
-HttpRequest::HttpRequest(const char *buffer, Config &conf) {
+HttpRequest::HttpRequest(const char *buffer, const BlockConfig &conf): _conf(conf) {
 	std::stringstream	line;
 
+//	std::cerr << "
 	line << buffer;
 	line >> _request["method"];
 	line >> _request["page"];
 	line >> _request["version"];
 	line.ignore();
-	parseHeader(line);
-	pickConfBlock(conf);
 	setFullPage();
+	parseHeader(line);
+	std::cout << "fullPage: " << _request["fullpage"] << std::endl;
 	// std::cout << std::endl << "line: " << std::endl << line.str();
 	if (_request.find("boundary") != _request.end() && _conf.getCanPost())
 		parseBody(line);
@@ -47,33 +48,12 @@ std::string	HttpRequest::getHost() {
 	return _request["Host"];
 }
 
-BlockConfig	HttpRequest::getConf() {
-	return _conf;
-}
-
 size_t	HttpRequest::getContentLength(){
 	return std::atoi(_request["Content-Length"].c_str());
 }
 
 std::map<std::string, std::string> HttpRequest::getRequest() const {
 	return _request;
-}
-
-void	HttpRequest::pickConfBlock(Config &conf) {
-	std::stringstream host;
-
-	for (size_t i = 0; i < conf.getConfig().size(); i++)
-	{
-		host << conf.getConfig().at(i).getHost();
-		host << ":";
-		host << conf.getConfig().at(i).getPort();
-		if (host.str() == _request["Host"])
-		{
-			_conf = conf.getConfig().at(i);
-			break ;
-		}
-		host.clear();
-	}
 }
 
 void	HttpRequest::setFullPage() {

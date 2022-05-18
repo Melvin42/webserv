@@ -12,6 +12,7 @@
 class BlockConfig {
 	public:
 		BlockConfig();
+		BlockConfig(const BlockConfig &cp);
 		~BlockConfig();
 
 		std::string					getHost() const;
@@ -21,13 +22,21 @@ class BlockConfig {
 		std::vector<std::string>	getIndex() const;
 		std::vector<Location>		getLocation() const;
 		std::string					getDefaultIndex() const;
+		std::string					getDefault404() const;
+		std::string					getToRedirect() const;
+		std::string					getRedirectTo() const;
 		bool						getCanPost() const;
 		bool						getCanGet() const;
 		bool						getCanDelete() const;
 		bool						getAutoindex() const;
+		bool						getIsDefault() const;
 		size_t						getBodySizeMax() const;
+		size_t						getId() const;
 
 		void	setDefaultIndex();
+		void	setDefault404(const std::string &page);
+		void	setToRedirect(const std::string &path);
+		void	setRedirectTo(const std::string &path);
 		void	setNewHost(const std::string &host);
 		void	setNewPort(int port);
 		void	setNewServerName(const std::string &name);
@@ -40,11 +49,17 @@ class BlockConfig {
 		void	setCanGet(const bool &can_get);
 		void	setCanDelete(const bool &can_delete);
 		void	setAutoindex(const bool &autoindex);
+		void	setIsDefault(const bool &is_default);
 		void	setBodySizeMax(const size_t &size_max);
+		void	setId(const size_t &id);
+
+		BlockConfig &operator=(const BlockConfig &block);
 
 	private:
 		std::string					_default_index;
 		std::string					_default_404;
+		std::string					_to_redirect;
+		std::string					_redirect_to;
 		std::string					_host;
 		int							_port;
 		std::string					_server_name;
@@ -55,7 +70,9 @@ class BlockConfig {
 		bool						_can_get;
 		bool						_can_delete;
 		bool						_autoindex;
+		bool						_is_default;
 		size_t						_body_size_max;
+		size_t						_id;
 };
 
 #endif

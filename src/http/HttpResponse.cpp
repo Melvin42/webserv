@@ -40,6 +40,7 @@ void	HttpResponse::methodGet() {
 				setPage("200", page);
 		}
 		else {
+			//Put the variable default_404 in ifstream page() to get the good one from the conf file
 			std::ifstream	page("./www/index/index_404.html");
 			if (page) {
 				setPage("404", page);

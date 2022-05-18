@@ -8,15 +8,16 @@ class Config {
 	public:
 		Config();
 		Config(const char *av);
-		Config(Config &cp);
+		Config(const Config &cp);
 		~Config();
 
 		std::vector<BlockConfig>	getConfig() const;
-		void						addConfig();
+		void						addConfig(std::ifstream &in_file);
 
 		bool						getNeedExit() const;
 
 		void						setNeedExit(const bool &need_exit);
+		void						set(const bool &need_exit);
 		void						setLastInstruction(const std::string &instru);
 		void						setWord(const std::string &word);
 		void						setBlockIndex(const int &index);
@@ -25,13 +26,15 @@ class Config {
 		void						setConfig(const std::vector<BlockConfig> &conf);
 
 		void						setAllDefaultValue();
-
+		void						setAllDefaultServer();
 
 		std::string	checkEndOfLine(char c);
 		std::string	badEndOfLine();
 		void		checkSemiColon();
 
-		void		parsing();
+		void		parsing(const char *av);
+		void		saveLastInstruction();
+		void		parsInstruction(std::ifstream &in_file, int &location_scope);
 		void		parsPort();
 		void		parsServerName();
 		void		parsRoot();
@@ -40,10 +43,11 @@ class Config {
 		void		parsDefaultErrorPage();
 		void		parsClientMaxBodySize();
 		void		parsDisallow();
+		void		parsRewrite();
 		void		parsLocationIndex();
-		void		parsLocation(int &location_scope);
+		void		parsLocation(std::ifstream &in_file, int &location_scope);
 		void		parsServerScope();
-		void		parsCgi();
+		void		parsCgi(std::ifstream &in_file);
 
 		void		errorBadConf();
 		void		errorBadPort();
@@ -58,6 +62,7 @@ class Config {
 
 		Config &operator=(const Config &conf);
 	private:
+		bool						_is_to_redirect;
 		bool						_need_exit;
 		std::string					_check_binary;
 		std::ifstream				_in_file;
