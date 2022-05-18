@@ -35,27 +35,47 @@ std::string	HttpResponse::getHttpResponse() {
 void	HttpResponse::methodGet() {
 	try {
 		std::ifstream	page(_request["fullpage"].c_str());
-		if (page) {
-			if (is_cgi() == 0)
-				setPage("200", page);
-		}
-		else {
-			//Put the variable default_404 in ifstream page() to get the good one from the conf file
-			std::ifstream	page("./www/index/index_404.html");
+		DIR				*dp;
+		struct dirent	*ep;
+
+		dp = opendir(_request["fullpage"].c_str());
+		if (dp != NULL) {
+			ep = readdir(dp);
+			if (page && ep->d_type != DT_DIR) {
+				if (is_cgi() == 0) {
+					setPage("200", page);
+				}
+			} else if (page && *(_request["fullpage"].end() - 1) == '/') {
+					if (_conf.getAutoindex())
+						autoIndex();
+					else
+						statusRet("403");
+			} else {
+				//Put the variable default_404 in ifstream page() to get the good one from the conf file
+				std::ifstream	page(_conf.getDefault404().c_str());
+				if (page) {
+					setPage("404", page);
+				} else
+					statusRet("404"); 
+			}
+			closedir(dp);
+		} else {
 			if (page) {
-				setPage("404", page);
-			} else
-			statusRet("404"); 
+				if (is_cgi() == 0) {
+					setPage("200", page);
+				}
+			} else {
+				std::ifstream	page(_conf.getDefault404().c_str());
+				if (page) {
+					setPage("404", page);
+				} else
+					statusRet("404"); 
+			}
 		}
 	}
 	catch (std::exception &e) {
 //			std::cout << e.what();
-			if (*(_request["fullpage"].end() - 1) != '/')
-				statusRet("301");
-			else if (_conf.getAutoindex())
-				autoIndex();
-			else
-				statusRet("403");
+		statusRet("301");
 	}
 }
 
@@ -94,6 +114,7 @@ void	HttpResponse::setPage(std::string statusKey, std::ifstream &page) {
 	std::string	str_page = std::string(
 			std::istreambuf_iterator<char>(page),
 			std::istreambuf_iterator<char>());
+	std::cerr << "pas crash" << std::endl;
 	if ((pos = str_page.find("status: ", 0, 7)) != std::string::npos ||
 		(pos = str_page.find("Status: ", 0, 7)) != std::string::npos||
 		(pos = str_page.find("STATUS: ", 0, 7)) != std::string::npos)

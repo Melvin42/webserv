@@ -106,6 +106,7 @@ void	BlockConfig::setDefaultIndex() {
 void	BlockConfig::setDefault404(const std::string &page) {
 	std::string	tmp = _root + "/" + page;
 
+	std::cerr << tmp << std::endl;
 	if (access(tmp.c_str(), R_OK) == 0) {
 		_default_404 = tmp;
 		return ;

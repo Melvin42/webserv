@@ -163,7 +163,7 @@ void	Config::parsPort() {
 	size_t	found;
 
 	found = _word.find(":", 0);
-	
+
 	if (found < _word.size()) {
 		_config.at(_block_index).setNewHost(_word.substr(0, found));
 		_word = _word.substr(found + 1);
@@ -185,6 +185,14 @@ void	Config::parsServerName() {
 
 void	Config::parsRoot() {
 	_config.at(_block_index).setNewRoot(this->badEndOfLine());
+}
+
+void	Config::parsLocationRoot() {
+	this->checkSemiColon();
+	if (_new_instruction)
+		_config.at(_block_index).addIndexToLocation(this->checkEndOfLine(';'), _loc_id);
+	else
+		_config.at(_block_index).addIndexToLocation(_word, _loc_id);
 }
 
 void	Config::parsIndex() {
@@ -287,7 +295,8 @@ void	Config::parsLocation(std::ifstream &in_file, int &location_scope) {
 			return ;
 		}
 		_new_instruction = false;
-		if (_word == "index" || _word == "cgi-bin" || _word == "}") {
+		if (_word == "index" || _word == "cgi-bin"
+				|| _word == "root" || _word == "}") {
 			if (_word == "index") {
 				while (!_new_instruction && !in_file.eof()) {
 					in_file >> _word;
@@ -296,6 +305,7 @@ void	Config::parsLocation(std::ifstream &in_file, int &location_scope) {
 						_new_instruction = true;
 					}
 					this->parsLocationIndex();
+//					this->parsLocationRoot();
 				}
 			} else if (_word == "cgi-bin")
 				this->parsCgi(in_file);

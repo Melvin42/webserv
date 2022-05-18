@@ -45,6 +45,7 @@ class Config {
 		void		parsDisallow();
 		void		parsRewrite();
 		void		parsLocationIndex();
+		void		parsLocationRoot();
 		void		parsLocation(std::ifstream &in_file, int &location_scope);
 		void		parsServerScope();
 		void		parsCgi(std::ifstream &in_file);
