@@ -65,7 +65,6 @@ class Config {
 		bool						_is_to_redirect;
 		bool						_need_exit;
 		std::string					_check_binary;
-		std::ifstream				_in_file;
 		std::string					_last_instruction;
 		std::string					_word;
 		int							_block_index;

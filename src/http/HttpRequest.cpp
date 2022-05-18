@@ -59,6 +59,14 @@ std::map<std::string, std::string> HttpRequest::getRequest() const {
 void	HttpRequest::setFullPage() {
 	if (_request["page"] == "/")
 		_request["fullpage"] = _conf.getDefaultIndex();
+	else if (_request["page"] == _conf.getToRedirect())
+		_request["fullpage"] = _conf.getRedirectTo();
+
+	// This is the way we intent to handle redirections,
+	// we will go further by looking in vector of redirections
+	// this way the user will be able to set up multiple
+	// redirections in the conf file 
+
 	else
 		_request["fullpage"] = _conf.getRoot() + _request["page"];
 }
@@ -114,6 +122,7 @@ void	HttpRequest::parseBody(std::stringstream &line) {
 			if (buf == "\r") {
 				filename = getFilename(bodyHeader);
 				file = fopen(filename.c_str(), "wb+");
+				(void)file;
 			}
 			std::ofstream	filest(filename.c_str());
 			while (std::getline(line, buf))
