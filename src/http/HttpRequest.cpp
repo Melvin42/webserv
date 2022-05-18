@@ -15,7 +15,7 @@ HttpRequest::HttpRequest(const char *buffer, const BlockConfig &conf): _conf(con
 	setFullPage();
 	parseHeader(line);
 	std::cout << "fullPage: " << _request["fullpage"] << std::endl;
-	// std::cout << std::endl << "line: " << std::endl << line.str();
+	 std::cout << std::endl << "line: " << std::endl << line.str();
 	if (_request.find("boundary") != _request.end() && _conf.getCanPost())
 		parseBody(line);
 }
@@ -162,6 +162,7 @@ std::string		HttpRequest::getValue(std::string buf) {
 
 std::string		HttpRequest::getFilename(std::map<std::string, std::string>	&bodyHeader) {
 	std::string		filename;
+
 	if (bodyHeader["Content-Disposition"].find(" filename=") != std::string::npos)
 	{
 		filename = bodyHeader["Content-Disposition"].substr(
@@ -178,5 +179,6 @@ std::string		HttpRequest::getFilename(std::map<std::string, std::string>	&bodyHe
 		filename = _request["fullpage"] + '/' + filename;
 	else
 		filename = _request["fullpage"] + filename;
+	std::cerr << filename;
 	return filename;
 }

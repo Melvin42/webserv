@@ -143,6 +143,7 @@ void	SocketServer::simultaneousRead() {
 	ite = this->getClientSocket().end();
 	std::string	str_file = "";
 	for (it = this->getClientSocket().begin(); it != ite; it++) {				 //this loop is dedicated to every read fds ready for use 
+
 		this->setSocketUsed(it->getFd());
 		if (this->ready(this->getSocketUsed(), this->getReadFds())) {			 //here we check if the socket is ready for reading
 			long	valread = 0;
