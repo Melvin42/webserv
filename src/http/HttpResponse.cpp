@@ -64,6 +64,10 @@ void	HttpResponse::methodPost() {
 	std::string statusCode;
 	if (_request["posted"] == "true")
 		statusCode = "201";
+	else if (_request["posted"] == "tooBig")
+		statusCode = "413";
+	else if (_request["posted"] == "noCL")
+		statusCode = "411";
 	else
 		statusCode = "424";
 	statusRet(statusCode);

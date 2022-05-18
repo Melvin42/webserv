@@ -14,10 +14,10 @@ HttpRequest::HttpRequest(const char *buffer, const BlockConfig &conf): _conf(con
 	line.ignore();
 	setFullPage();
 	parseHeader(line);
+	if (_request["method"] == "POST")
+		postCheck();
 	std::cout << "fullPage: " << _request["fullpage"] << std::endl;
 	// std::cout << std::endl << "line: " << std::endl << line.str();
-	if (_request.find("boundary") != _request.end() && _conf.getCanPost())
-		parseBody(line);
 }
 
 HttpRequest::HttpRequest(const HttpRequest &httprequest) {
@@ -61,6 +61,19 @@ void	HttpRequest::setFullPage() {
 		_request["fullpage"] = _conf.getDefaultIndex();
 	else
 		_request["fullpage"] = _conf.getRoot() + _request["page"];
+}
+
+void	HttpRequest::postCheck() {
+
+	if (_request.find("Content-Length") == _request.end())
+		_request["posted"] = "noCL";
+	else if (getContentLength() > _conf.getBodySizeMax())
+	{
+		_request["posted"] = "tooBig";
+		 	return ;
+	}
+	else if (_request.find("boundary") != _request.end() && _conf.getCanPost())
+		parseBody(line);
 }
 
 void	HttpRequest::parseHeader(std::stringstream &line) {

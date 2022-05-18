@@ -3,7 +3,7 @@
 /**** CONDESTRUCT ****/
 
 ClientManager::ClientManager() : _fd(1), _header_ok(false), 
-	_read_ok(false), _send_ok(false), _read(""), _send(""), _valRead(0) {
+	_read_ok(0), _send_ok(false), _read(""), _send(""), _valRead(0) {
 }
 
 ClientManager::ClientManager(int fd, const BlockConfig &block) : _fd(fd), _header_ok(false), _read_ok(false),
@@ -27,7 +27,7 @@ bool	ClientManager::getSendOk() const {
 	return _send_ok;
 }
 
-bool	ClientManager::getReadOk() const {
+int		ClientManager::getReadOk() const {
 	return _read_ok;
 }
 
@@ -55,7 +55,7 @@ void	ClientManager::setSendOk(bool ok) {
 	_send_ok = ok;
 }
 
-void	ClientManager::setReadOk(bool ok) {
+void	ClientManager::setReadOk(int ok) {
 	_read_ok = ok;
 }
 
@@ -77,7 +77,7 @@ void	ClientManager::appendRead(char *buf) {
 	_read.append(buf);
 }
 
-bool	ClientManager::isReadOk() {
+int		ClientManager::isReadOk() {
 	std::stringstream 	buf;
 	std::string			line;
 	std::string			boundry;
@@ -102,9 +102,11 @@ bool	ClientManager::isReadOk() {
 	}
 	headerSize += 2;
 	line = buf.str();
+	// if (contentLength && contentLength > _block.getBodySizeMax())
+	// 	_read_ok = -1;
 	if (contentLength)
 		bodySize = _valRead - headerSize;
 	if (contentLength == bodySize)
-		_read_ok = true;
+		_read_ok = 1;
 	return _read_ok;
 }

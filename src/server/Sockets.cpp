@@ -164,16 +164,16 @@ void	SocketServer::simultaneousRead() {
 				it->incrementValRead(valread);
 				it->appendRead(buffer); //we will append to ClientManager::_read as long as we haven't recv all the request from the client
 				// std::cerr << "it client: " << it->getRead() << std::endl;
-				if (it->isReadOk()) {
+				if (it->isReadOk() || it->isReadOk() == -1) {
 					std::cerr << "ReadOk" << std::endl;
 					 //this is where we check if we have all the request in ClientManager::_read
-					HttpRequest	req(it->getRead().c_str(), _config);
-					HttpResponse	msg(_env, req.getConf(), req.getRequest());
+					HttpRequest	req(it->getRead().c_str(), it->getBlock());
+					HttpResponse	msg(_env, it->getBlock(), req.getRequest());
 					str_file = msg.getHttpResponse();
 					it->setSend(str_file);										 //this is where the response is stored
 					str_file = "";
 					it->setRead("");
-					it->setReadOk(false);
+					it->setReadOk(0);
 					it->setSendOk(true);
 																				 //at this stage the response is already stored in ClientManager::_send
 																				 //the response will be send in the second loop if the socket is ready for writing
