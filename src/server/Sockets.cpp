@@ -158,23 +158,21 @@ void	SocketServer::simultaneousRead() {
 																				//here we read max BUFFER_SIZE (=2048) data for each sockets,
 			if ((valread = recv(this->getSocketUsed(), buffer,
 							BUFFER_SIZE, 0)) == 0) {							 //if read == 0 means client disconnect
-				this->closeClean(&_readfds);
-				this->getClientSocket().erase(it);
+				it->setReadOk(true);
 			} else if (valread < 0) {											 // if read < 0 is an error
 				std::cerr << "recv failed" << std::endl;
-				this->closeClean(&_readfds);
-				this->getClientSocket().erase(it);
+				it->setReadOk(true);
 			} else {															 //here is what we do when the client send us a request
 				it->appendRead(buffer);											 //we will append to ClientManager::_read as long as we haven't recv all the request from the client
 				if (it->isReadOk()) {											 //this is where we check if we have all the request in ClientManager::_read
+					std::cerr << "readfds, read ok" << std::endl;
 					HttpRequest		req(it->getRead().c_str(), it->getBlock());
+					std::cerr << "readfds, req ok" << std::endl;
 					HttpResponse	msg(_env, it->getBlock(), req.getRequest());
-					str_file = msg.getHttpResponse();
-					it->setSend(str_file);										 //this is where the response is stored
-					str_file = "";
+					std::cerr << "readfds, rep ok" << std::endl;
+					it->setSend(msg.getHttpResponse());										 //this is where the response is stored
+					std::cerr << "readfds, rep in *it._send" << std::endl;
 					it->setRead("");
-					it->setReadOk(false);
-					it->setSendOk(true);
 																				 //at this stage the response is already stored in ClientManager::_send
 																				 //the response will be send in the second loop if the socket is ready for writing
 				}
@@ -184,29 +182,49 @@ void	SocketServer::simultaneousRead() {
 	ite = this->getClientSocket().end();
 	for (it = this->getClientSocket().begin(); it != ite; it++) {				 //this loop is dedicated to every write fds ready for use 
 		this->setSocketUsed(it->getFd());
-		if (this->ready(this->getSocketUsed(), this->getWriteFds())
-				&& it->getSendOk()) {											 //here we check if the socket is ready for writing
-			int	valsend = 0;
+		if (this->ready(this->getSocketUsed(), this->getWriteFds())) {
+			if (it->getReadOk() && it->getSend() != "") {											 //here we check if the socket is ready for writing
+				int	valsend = 0;
+				std::cerr << "writefds, read ok" << std::endl;
 
-																				 //here we send in one time all the response (stored in ClientManager::_send) for each sockets,
-			if ((valsend = send(this->getSocketUsed(), it->getSend().c_str(),
-							it->getSend().size(), 0)) == -1) {					 //if send == -1 is an error
-//				this->closeClean(&_writefds);
-				FD_CLR(_sd, &_writefds);
-				this->getClientSocket().erase(it);
-				std::cerr << "send failed: " << it->getSend().size() << std::endl;
-			} else if (valsend < static_cast<int>(it->getSend().size())) {		 // if send < size means that we didn't send all the response
-				std::string	msg = it->getSend().substr(0, valsend);
-																				 //here i'm storing all datas that weren't send in order to try to send them later
-				it->setSend(msg);												 //updating ClientManager::_send (puting only what we didn't already send)
-			} else {															 //here is what we do if we had send all the response to the client
-				this->closeClean(&_writefds);
-				this->getClientSocket().erase(it);
-																				 //at this stage the request from the client should be satisfied
-																				 //no data needs to be stored anymore (until a new request happend) and the socket need to be closed
+																					 //here we send in one time all the response (stored in ClientManager::_send) for each sockets,
+				if ((valsend = send(this->getSocketUsed(), it->getSend().c_str(),
+								it->getSend().size(), 0)) < static_cast<int>(it->getSend().size())) {					 //if send == -1 is an error
+					it->setSendOk(true);
+					it->setSend("");
+					std::cerr << "send failed: " << it->getSend().size() << std::endl;
+																					 //here i'm storing all datas that weren't send in order to try to send them later
+//					it->setSend(msg);												 //updating ClientManager::_send (puting only what we didn't already send)
+				} else {															 //here is what we do if we had send all the response to the client
+					std::cerr << "writefds, send ok" << std::endl;
+					it->setSend("");
+					it->setSendOk(true);
+																					 //at this stage the request from the client should be satisfied
+																					 //no data needs to be stored anymore (until a new request happend) and the socket need to be closed
+				}
 			}
 		}
 	}
+	for (it = this->getClientSocket().begin(); it != ite; it++) {				 //this loop is dedicated to close client fds when we're done with them
+		if (it->getReadOk() && it->getSendOk()) {
+			std::cerr << "r&w ok" << it->getFd() << std::endl;
+			FD_CLR(it->getFd(), &_writefds);
+			FD_CLR(it->getFd(), &_readfds);
+			close(it->getFd());
+			this->getClientSocket().erase(it);
+		} else if (it->getReadOk() && it->getSend() == "") {
+			std::cerr << "r ok" << it->getFd() << std::endl;
+			close(it->getFd());
+			FD_CLR(it->getFd(), &_readfds);
+			this->getClientSocket().erase(it);
+		} else if (it->getSendOk() && it->getRead() == "") {
+			std::cerr << "w ok" << it->getFd() << std::endl;
+			close(it->getFd());
+			FD_CLR(it->getFd(), &_writefds);
+			this->getClientSocket().erase(it);
+		}
+	}
+	std::cerr << "close clients fds ok" << std::endl;
 }
 
 bool	SocketServer::setUpBlockServer() {
