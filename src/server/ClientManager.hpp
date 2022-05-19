@@ -22,7 +22,7 @@ class ClientManager {
 		ClientManager(int fd, const BlockConfig &block);
 
 		void		incrementValRead(int valread);
-		void		appendRead(char *buf);
+		void		appendRead(char *buf, int valread);
 		int			isReadOk();
 
 		void		setFd(int fd);

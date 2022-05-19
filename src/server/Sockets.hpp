@@ -16,6 +16,8 @@
 #include "../http/HttpRequest.hpp"
 #include "../http/HttpResponse.hpp"
 
+#include <string.h>
+
 extern bool	g_sigbool;
 
 class Socket {

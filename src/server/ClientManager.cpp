@@ -73,8 +73,9 @@ void		ClientManager::incrementValRead(int valread) {
 	_valRead += valread;
 }
 
-void	ClientManager::appendRead(char *buf) {
-	_read.append(buf);
+void	ClientManager::appendRead(char *buf, int valread) {
+	_read.append(buf, valread);
+	// std::cout << "append: " << valread << "cur size: " << _read.size() << std::endl;
 }
 
 int		ClientManager::isReadOk() {
@@ -105,6 +106,7 @@ int		ClientManager::isReadOk() {
 	if (contentLength)
 		bodySize = _valRead - headerSize;
 	if (contentLength == bodySize)
-		_read_ok = 1;
-	return _read_ok;
+	{	_read_ok = 1;
+	// std::cerr << "contentLength: " << contentLength << "...\n";
+	}return _read_ok;
 }

@@ -3,7 +3,7 @@
 HttpRequest::HttpRequest() {
 }
 
-HttpRequest::HttpRequest(const char *buffer, const BlockConfig &conf): _conf(conf) {
+HttpRequest::HttpRequest(std::string buffer, const BlockConfig &conf): _conf(conf) {
 	std::stringstream	line;
 
 //	std::cerr << "
@@ -16,9 +16,9 @@ HttpRequest::HttpRequest(const char *buffer, const BlockConfig &conf): _conf(con
 	parseHeader(line);
 	if (_request["method"] == "POST")
 		postCheck(line);
-	std::cout << "fullPage: " << _request["fullpage"] << std::endl;
-	std::cout << "_request[\"posted\"]: " << _request["posted"] << std::endl;
-	std::cout << std::endl << "line: " << std::endl << line.str();
+	// std::cout << "fullPage: " << _request["fullpage"] << std::endl;
+	// std::cout << "_request[\"posted\"]: " << _request["posted"] << std::endl;
+	// std::cout << std::endl << "line: " << std::endl << line.str();
 }
 
 HttpRequest::HttpRequest(const HttpRequest &httprequest) {
@@ -93,7 +93,7 @@ void	HttpRequest::parseHeader(std::stringstream &line) {
 		value = getValue(buf);
 		if (key.find("Content-Type") != std::string::npos && value.find("boundary=") != std::string::npos)
 		{
-			_request["boundary"] = "--" + value.substr(value.find("boundary=") + 9) + "\r";
+			_request["boundary"] = "--" + value.substr(value.find("boundary=") + 9);
 			_request["boundaryEnd"] = "--" + value.substr(value.find("boundary=") + 9) + "--";
 			value.erase(value.find(";"));
 		}
@@ -101,57 +101,50 @@ void	HttpRequest::parseHeader(std::stringstream &line) {
 	}
 }
 
-void	HttpRequest::parseBody(std::stringstream &line) {
-	std::string							buf;
+void	HttpRequest::parseBody(std::stringstream &buf) {
+	std::string							body;
+	std::string							line;
+	std::stringstream					tmp;
 	std::string							key;
 	std::string							value;
 	std::string							filename;
 	std::map<std::string, std::string>	bodyHeader;
 	std::FILE*							file;
 
-	while (std::getline(line, buf)) {
-		if (line.eof() || line.bad() || buf == _request["boundary"])
+	body = buf.str();
+
+	std::cerr << body.size() << "...\n";
+	while (42)
+	{
+		if (body.find(_request["boundary"]) == body.find(_request["boundaryEnd"]))
 			break ;
-	}
-	while (42) {
-		if (line.eof() || line.bad() || buf == (_request["boundaryEnd"]))
-			break ;
-		else if (buf != _request["boundary"])
-			std::getline(line, buf);
-		if (buf == _request["boundary"])
-		{
-			while (std::getline(line, buf)) {
-				if (line.eof() || line.bad() || buf == "\r")
-					break ;
-				bodyHeader[getKey(buf)] = getValue(buf);
-			}
-			if (line.eof() || line.bad())
+		body = body.substr(body.find(_request["boundary"]) + _request["boundary"].size() + 2, body.size());
+		tmp << body;
+		// std::cerr << body << "...\n";
+		while (std::getline(tmp, line)) { std::cerr << line << "\n";
+			if (tmp.eof() || tmp.bad() || line == "\r"|| line == _request["boundaryEnd"])
 				break ;
-			if (buf == "\r") {
+			
+			bodyHeader[getKey(line)] = getValue(line);
+		}
+		if (tmp.eof() || tmp.bad())
+				break ;
+		if (line == "\r") {
 				filename = getFilename(bodyHeader);
 				file = fopen(filename.c_str(), "wb+");
 			}
-			std::ofstream	filest(filename.c_str());
-			while (std::getline(line, buf))
-			{
-// std::cout << buf << std::endl ;
-				if (line.eof() || line.bad() || buf == "\r"
-					|| buf == _request["boundary"] || buf == _request["boundaryEnd"])
-				{
-					filest.close();
-					break ;
-				}
-				filest << buf;
-				if (filest.fail())
-					_request["posted"] = "false";
-				if (line.peek() != '\0')
-					filest << std::endl;
-				else
-					filest << std::ends;
-			}
-		}
+		std::ofstream	filest(filename.c_str());
+		line = body.substr(body.find("\r\n\r\n") + 4, body.size());
+		// std::cerr << line.size() << " bs: "<< body.size() << "...\n";
+
+		// std::cerr << line << "...\n";
+		line = line.substr(0, line.find(_request["boundary"]) - 2);
+		// std::cerr << line.size() << "...\n";
+		// std::cerr << line << "...\n";
+		filest << line;
+		filest.close();
 	}
-	if (!line.bad() && _request["posted"] != "false")
+	if (!tmp.bad() && _request["posted"] != "false")
 		_request["posted"] = "true";
 }
 

@@ -138,7 +138,7 @@ void	SocketServer::setClientSocket(const BlockConfig &block) {
 void	SocketServer::simultaneousRead() {
 	std::vector<ClientManager>::iterator		it;
 	std::vector<ClientManager>::const_iterator	ite;
-	char	buffer[BUFFER_SIZE + 1] = {0};
+	char	buffer[BUFFER_SIZE] = {0};
 
 	ite = this->getClientSocket().end();
 	std::string	str_file = "";
@@ -148,8 +148,9 @@ void	SocketServer::simultaneousRead() {
 			long	valread = 0;
 
 																				//here we read max BUFFER_SIZE (=2048) data for each sockets,
-			if ((valread = recv(this->getSocketUsed(), buffer,
+			if ((valread = recv(this->getSocketUsed(), &buffer,
 							BUFFER_SIZE, 0)) == 0) {							 //if read == 0 means client disconnect
+				
 				this->closeClean(&_readfds);
 				this->getClientSocket().erase(it);
 			} else if (valread < 0) {											 // if read < 0 is an error
@@ -160,14 +161,16 @@ void	SocketServer::simultaneousRead() {
 				if (it->getRead() != "")
 				{	
 					// std::cerr << "buffer: " << buffer << std::endl;
-					std::cerr << "valread: " << valread << std::endl; }
+					// std::cerr << "valread       : " << valread << std::endl;
+					// std::cerr << "strlen(buffer): " << strlen(buffer) << std::endl;
+					 }
 				it->incrementValRead(valread);
-				it->appendRead(buffer); //we will append to ClientManager::_read as long as we haven't recv all the request from the client
+				it->appendRead(buffer, valread); //we will append to ClientManager::_read as long as we haven't recv all the request from the client
 				// std::cerr << "it client: " << it->getRead() << std::endl;
 				if (it->isReadOk() != 0) {
 					std::cerr << "ReadOk" << std::endl;
 					 //this is where we check if we have all the request in ClientManager::_read
-					HttpRequest	req(it->getRead().c_str(), it->getBlock());
+					HttpRequest	req(it->getRead(), it->getBlock());
 					HttpResponse	msg(_env, it->getBlock(), req.getRequest());
 					str_file = msg.getHttpResponse();
 					it->setSend(str_file);										 //this is where the response is stored

@@ -15,7 +15,7 @@ class	HttpRequest {
 
 	public:
 
-		HttpRequest(const char *buffer, const BlockConfig &conf);
+		HttpRequest(std::string buffer, const BlockConfig &conf);
 		HttpRequest(const HttpRequest &httprequest);
 		~HttpRequest();
 		HttpRequest &operator=(const HttpRequest &httprequest);
