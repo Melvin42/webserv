@@ -15,9 +15,10 @@ HttpRequest::HttpRequest(const char *buffer, const BlockConfig &conf): _conf(con
 	setFullPage();
 	parseHeader(line);
 	if (_request["method"] == "POST")
-		postCheck();
+		postCheck(line);
 	std::cout << "fullPage: " << _request["fullpage"] << std::endl;
-	// std::cout << std::endl << "line: " << std::endl << line.str();
+	std::cout << "_request[\"posted\"]: " << _request["posted"] << std::endl;
+	std::cout << std::endl << "line: " << std::endl << line.str();
 }
 
 HttpRequest::HttpRequest(const HttpRequest &httprequest) {
@@ -59,15 +60,17 @@ std::map<std::string, std::string> HttpRequest::getRequest() const {
 void	HttpRequest::setFullPage() {
 	if (_request["page"] == "/")
 		_request["fullpage"] = _conf.getDefaultIndex();
+	else if (_request["page"] == _conf.getToRedirect())
+        _request["fullpage"] = _conf.getRedirectTo();
 	else
 		_request["fullpage"] = _conf.getRoot() + _request["page"];
 }
 
-void	HttpRequest::postCheck() {
+void	HttpRequest::postCheck(std::stringstream &line) {
 
 	if (_request.find("Content-Length") == _request.end())
 		_request["posted"] = "noCL";
-	else if (getContentLength() > _conf.getBodySizeMax())
+	else if (_conf.getBodySizeMax() > 0 && getContentLength() > _conf.getBodySizeMax())
 	{
 		_request["posted"] = "tooBig";
 		 	return ;

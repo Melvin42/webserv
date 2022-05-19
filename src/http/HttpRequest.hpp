@@ -27,7 +27,7 @@ class	HttpRequest {
 		size_t								getContentLength();
 		std::map<std::string, std::string>	getRequest() const;
 
-		void								postCheck();
+		void								postCheck(std::stringstream &line);
 		void								parseHeader(std::stringstream &line);
 		void								parseBody(std::stringstream &line);
 

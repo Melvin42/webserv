@@ -102,8 +102,6 @@ int		ClientManager::isReadOk() {
 	}
 	headerSize += 2;
 	line = buf.str();
-	// if (contentLength && contentLength > _block.getBodySizeMax())
-	// 	_read_ok = -1;
 	if (contentLength)
 		bodySize = _valRead - headerSize;
 	if (contentLength == bodySize)

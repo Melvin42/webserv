@@ -267,6 +267,7 @@ void	HttpResponse::initStatus() {
 	_status.insert(std::pair<std::string, std::string>("413", "Request Entity Too Large"));
 	_status.insert(std::pair<std::string, std::string>("414", "Request-URI Too Large"));
 	_status.insert(std::pair<std::string, std::string>("415", "Unsupported Media Type"));
+	_status.insert(std::pair<std::string, std::string>("424", "Failed Dependency"));
 	_status.insert(std::pair<std::string, std::string>("500", "Internal Server Error"));
 	_status.insert(std::pair<std::string, std::string>("501", "Not Implemented"));
 	_status.insert(std::pair<std::string, std::string>("502", "Bad Gateway"));
