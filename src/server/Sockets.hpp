@@ -71,6 +71,4 @@ class SocketServer : public Socket {
 		Config	_config;
 };
 
-void	sig_handler(int signum);
-
 #endif
