@@ -199,3 +199,4 @@ std::string		HttpRequest::getFilename(std::map<std::string, std::string>	&bodyHe
 		filename = _request["fullpage"] + filename;
 	return filename;
 }
+

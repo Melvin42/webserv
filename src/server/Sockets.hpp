@@ -37,7 +37,6 @@ class Socket {
 		friend class SocketServer;
 
 		std::vector<int>			_server_fd;
-		char						**_env;
 		std::vector<ClientManager>	_clientSocket;
 		struct sockaddr_in			_address;
 
@@ -46,7 +45,7 @@ class Socket {
 
 class SocketServer : public Socket {
 	public:
-		SocketServer(char **env, const Config &conf);
+		SocketServer(const Config &conf);
 
 		int		getSocketUsed() const;
 		void	setSocketUsed(int fd);

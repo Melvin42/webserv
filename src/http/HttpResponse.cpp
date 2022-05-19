@@ -3,8 +3,8 @@
 HttpResponse::HttpResponse() {
 }
 
-HttpResponse::HttpResponse(char **env, BlockConfig config, std::map<std::string, std::string> request)
- : _env(env), _exec_argv(NULL), _conf(config), _ret(""), _request(request) {
+HttpResponse::HttpResponse(BlockConfig config, std::map<std::string, std::string> request)
+ : _env(NULL), _exec_argv(NULL), _conf(config), _ret(""), _request(request) {
 
 	initStatus();
 	// initCgi();
@@ -34,7 +34,8 @@ std::string	HttpResponse::getHttpResponse() {
 
 void	HttpResponse::methodGet() {
 	try {
-		std::ifstream	page(_request["fullpage"].c_str());
+		_request["pageNoParam"] = _request["fullpage"].substr(0, _request["fullpage"].find("?"));
+		std::ifstream page(pageNoParam.c_str());
 		if (page) {
 			if (is_cgi() == 0)
 				setPage("200", page);
@@ -49,7 +50,6 @@ void	HttpResponse::methodGet() {
 		}
 	}
 	catch (std::exception &e) {
-//			std::cout << e.what();
 			if (*(_request["fullpage"].end() - 1) != '/')
 				statusRet("301");
 			else if (_conf.getAutoindex())
@@ -111,14 +111,14 @@ void	HttpResponse::set_exec_argv(std::string cmdPath, std::string errCode) {
 		*(_exec_argv + 2) = (char *)malloc(sizeof(char) * 1);
 		*(_exec_argv + 2) = NULL;
 		*(_exec_argv + 0) = (char *)cmdPath.c_str();
-		*(_exec_argv + 1) = (char *)_request["fullpage"].c_str();
+		*(_exec_argv + 1) = (char *)_request["pageNoParam"].c_str();
 	}
 	else {
 		_exec_argv = (char **)malloc(sizeof(char *) * 5);
 		*(_exec_argv + 4) = (char *)malloc(sizeof(char) * 1);
 		*(_exec_argv + 4) = NULL;
 		*(_exec_argv + 0) = (char *)cmdPath.c_str();
-		*(_exec_argv + 1) = (char *)_request["fullpage"].c_str();
+		*(_exec_argv + 1) = (char *)_request["pageNoParam"].c_str();
 		*(_exec_argv + 2) = (char *)errCode.c_str();
 		*(_exec_argv + 3) = (char *)_status[errCode].c_str();
 	}
@@ -133,6 +133,7 @@ int	HttpResponse::is_cgi() {
 				std::string::npos, ".php", 4) == 0)
 		{
 			set_exec_argv(_cgi[_request["fullpage"].substr(_request["fullpage"].find_first_of("."))], "");
+			setCgiEnv();
 			cgi("200");
 		}
 		else
@@ -173,6 +174,10 @@ int HttpResponse::cgi(std::string statusKey) {
 		setPage(statusKey, tmpst);
 	}
 	return 0;
+}
+
+void	HttpResponse::setCgiEnv() {
+
 }
 
 void	HttpResponse::statusRet(std::string errCode) {

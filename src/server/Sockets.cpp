@@ -4,7 +4,7 @@
 
 /**** SOCKET ****/
 
-Socket::Socket() : _env(NULL) {
+Socket::Socket() {
 }
 
 Socket::~Socket() {
@@ -27,9 +27,8 @@ void	Socket::addServerFd(int fd) {
 
 /**** SOCKET SERVER ****/
 
-SocketServer::SocketServer(char **env, const Config &conf) : Socket() {
+SocketServer::SocketServer(const Config &conf) : Socket() {
 	_config = conf;
-	_env = env;
 	_sd = 0;
 	_max_sd = 0;
 }
@@ -170,8 +169,8 @@ void	SocketServer::simultaneousRead() {
 				if (it->isReadOk() != 0) {
 					std::cerr << "ReadOk" << std::endl;
 					 //this is where we check if we have all the request in ClientManager::_read
-					HttpRequest	req(it->getRead(), it->getBlock());
-					HttpResponse	msg(_env, it->getBlock(), req.getRequest());
+					HttpRequest		req(it->getRead(), it->getBlock());
+					HttpResponse	msg(it->getBlock(), req.getRequest());
 					str_file = msg.getHttpResponse();
 					it->setSend(str_file);										 //this is where the response is stored
 					str_file = "";

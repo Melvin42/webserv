@@ -1,5 +1,4 @@
-#ifndef HTTPREQUEST_HPP
-#define HTTPREQUEST_HPP
+#pragma once
 
 #include <iostream>
 #include <fstream>
@@ -44,5 +43,3 @@ class	HttpRequest {
 		std::map<std::string, std::string>	_request;
 		BlockConfig 						_conf;
 };
-
-#endif
