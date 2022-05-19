@@ -2,11 +2,12 @@
 
 /**** CONDESTRUCT ****/
 
-ClientManager::ClientManager() : _fd(1), _header_ok(false), 
+ClientManager::ClientManager() : _fd(0), _header_ok(false), 
 	_read_ok(false), _send_ok(false), _read(""), _send("") {
 }
 
-ClientManager::ClientManager(int fd, const BlockConfig &block) : _fd(fd), _header_ok(false), _read_ok(false),
+ClientManager::ClientManager(int fd, const BlockConfig &block)
+	: _fd(fd), _header_ok(false), _read_ok(false),
 	_send_ok(false), _read(""), _send(""), _block(block) {
 }
 
@@ -70,7 +71,8 @@ void	ClientManager::setSend(std::string str) {
 /**** USE ****/
 
 void	ClientManager::appendRead(char *buf) {
-	_read.append(buf);
+//	_read.append(buf);
+	_read += buf;
 }
 
 bool	ClientManager::isReadOk() {
@@ -81,31 +83,33 @@ bool	ClientManager::isReadOk() {
 	size_t				bodySize = 0;
 	size_t				contentLength = 0;
 
-	buf <<  _read;
-	while (std::getline(buf, line))
-	{
-		if (buf.eof() || buf.bad() || line == "\r")
-			break ;
-		if (line.find("Content-Length: ") != std::string::npos)
-			contentLength = std::atoi(line.substr(line.find("Content-Length: ") + 16).c_str());
-		if (line.find("boundary=") != std::string::npos)
-		{
-			boundry = "--" + line.substr(line.find("boundary=") + 9) + "\r";
-			boundryEnd = "--" + line.substr(line.find("boundary=") + 9) + "--" + "\r";
-		}
-	}
-	if (contentLength)
-	{
+//	if (_read != "") {
+		buf <<  _read;
 		while (std::getline(buf, line))
 		{
-			if (buf.eof() || buf.bad())
+			if (buf.eof() || buf.bad() || line == "\r")
 				break ;
-			bodySize += line.size() + 1;
-			if (line == boundryEnd)
-				break ;
+			if (line.find("Content-Length: ") != std::string::npos)
+				contentLength = std::atoi(line.substr(line.find("Content-Length: ") + 16).c_str());
+			if (line.find("boundary=") != std::string::npos)
+			{
+				boundry = "--" + line.substr(line.find("boundary=") + 9) + "\r";
+				boundryEnd = "--" + line.substr(line.find("boundary=") + 9) + "--" + "\r";
+			}
 		}
-	}
-	if (contentLength == bodySize)
-		_read_ok = true;
+		if (contentLength)
+		{
+			while (std::getline(buf, line))
+			{
+				if (buf.eof() || buf.bad())
+					break ;
+				bodySize += line.size() + 1;
+				if (line == boundryEnd)
+					break ;
+			}
+		}
+		if (contentLength == bodySize)
+			_read_ok = true;
+//	}
 	return _read_ok;
 }
