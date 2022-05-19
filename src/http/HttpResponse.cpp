@@ -203,16 +203,16 @@ void	HttpResponse::setCgiEnv() {
 		std::replace(key.begin(), key.end(), '-', '_');
 		env[key] = *it;
 	}
-	env["CONTENT_LENGTH"] = ;
+	env["CONTENT_LENGTH"] = _request["Content-Length"];
 	env["QUERY_STRING"] = _request["page"].substr(_request["page"].find("?") + 1);;
-	env["PATH_INFO"] = ;
-	env["CONTENT_TYPE"] = ;
+	env["PATH_INFO"] = _request["pageNoParam"];
+	env["CONTENT_TYPE"] = _request["content-type"];
 	env["REQUEST_METHOD"] = _request["method"];
 	env["SCRIPT_NAME"] = _request["page"].substr(0, _request["page"].find("?"));
 	env["SERVER_NAME"] = "webserv";
 	env["SERVER_PORT"] = _request["Port"];
 	env["SERVER_PROTOCOL"] = "HTTP/1.1";
-	env["SERVER_SOFTWARE"] = ;
+	env["SERVER_SOFTWARE"] = "webserv/1.0";
 	env["GATEWAY_INTERFACE"] = "CGI/1.1";
 }
 
