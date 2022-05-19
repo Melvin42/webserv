@@ -8,56 +8,66 @@ class Config {
 	public:
 		Config();
 		Config(const char *av);
-		Config(Config &cp);
+		Config(const Config &cp);
 		~Config();
 
 		std::vector<BlockConfig>	getConfig() const;
-		std::string					getPath() const;
-		void						addConfig();
+		void						addConfig(std::ifstream &in_file);
 
-//		void						getInFile(const std::ifstream &in);
-//		void						getLastInstruction(const std::string &instru);
-//		void						getWord(const std::string &word);
-//		void						getPath(const std::string &path);
-//		void						getBlockIndex(const int &index);
-//		void						getLocId(const int &id);
-//		void						getBlockInstruction(const int &flag);
-//		void						getConfig(const std::vector<BlockConfig> &conf);
+		bool						getNeedExit() const;
 
-//		void						setInFile(const std::ifstream in);;
+		void						setNeedExit(const bool &need_exit);
+		void						set(const bool &need_exit);
 		void						setLastInstruction(const std::string &instru);
 		void						setWord(const std::string &word);
-		void						setPath(const std::string &path);
 		void						setBlockIndex(const int &index);
 		void						setLocId(const int &id);
 		void						setBlockInstruction(const int &flag);
 		void						setConfig(const std::vector<BlockConfig> &conf);
 
-		void						concatPath();
+		void						setAllDefaultValue();
+		void						setAllDefaultServer();
 
 		std::string	checkEndOfLine(char c);
+		std::string	badEndOfLine();
 		void		checkSemiColon();
 
-		void		parsing();
+		void		parsing(const char *av);
+		void		saveLastInstruction();
+		void		parsInstruction(std::ifstream &in_file, int &location_scope);
 		void		parsPort();
 		void		parsServerName();
 		void		parsRoot();
 		void		parsIndex();
-		void		parsLocation(int &location_scope);
+		void		parsAutoindex();
+		void		parsDefaultErrorPage();
+		void		parsClientMaxBodySize();
+		void		parsDisallow();
+		void		parsRewrite();
+		void		parsLocationIndex();
+		void		parsLocationRoot();
+		void		parsLocation(std::ifstream &in_file, int &location_scope);
 		void		parsServerScope();
+		void		parsCgi(std::ifstream &in_file);
 
-		void		errorBadConf() const;
-		void		errorBadKeyword() const;
-		void		errorScopeDepth() const;
+		void		errorBadConf();
+		void		errorBadPort();
+		void		errorCantReadFile();
+		void		errorNoSemiColon();
+		void		errorBadKeyword();
+		void		errorScopeDepth();
+		void		errorBadCgi();
+		void		errorTooMuchCgi();
 
 		void	printAllConfig() const;
 
 		Config &operator=(const Config &conf);
 	private:
-		std::ifstream				_in_file;
+		bool						_is_to_redirect;
+		bool						_need_exit;
+		std::string					_check_binary;
 		std::string					_last_instruction;
 		std::string					_word;
-		std::string					_path;
 		int							_block_index;
 		int							_loc_id;
 		bool						_new_instruction;

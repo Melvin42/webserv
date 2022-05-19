@@ -6,8 +6,8 @@ ClientManager::ClientManager() : _fd(1), _header_ok(false),
 	_read_ok(false), _send_ok(false), _read(""), _send("") {
 }
 
-ClientManager::ClientManager(int fd) : _fd(fd), _header_ok(false), _read_ok(false),
-	_send_ok(false), _read(""), _send("") {
+ClientManager::ClientManager(int fd, const BlockConfig &block) : _fd(fd), _header_ok(false), _read_ok(false),
+	_send_ok(false), _read(""), _send(""), _block(block) {
 }
 
 ClientManager::~ClientManager() {
@@ -37,6 +37,10 @@ std::string	ClientManager::getRead() const {
 
 std::string	ClientManager::getSend() const {
 	return _send;
+}
+
+BlockConfig	ClientManager::getBlock() const {
+	return _block;
 }
 
 void	ClientManager::setFd(int fd) {
@@ -69,10 +73,39 @@ void	ClientManager::appendRead(char *buf) {
 	_read.append(buf);
 }
 
-bool	ClientManager::isReadOk(const std::string &path) {
-	HttpRequest	req(_read.c_str(), static_cast<int>(_read.size()), path);
-	if (req.getVersion() == "HTTP/1.1" && req.getBody().size() == req.getContentLength()) {
-		_read_ok = true;
+bool	ClientManager::isReadOk() {
+	std::stringstream 	buf;
+	std::string			line;
+	std::string			boundry;
+	std::string			boundryEnd;
+	size_t				bodySize = 0;
+	size_t				contentLength = 0;
+
+	buf <<  _read;
+	while (std::getline(buf, line))
+	{
+		if (buf.eof() || buf.bad() || line == "\r")
+			break ;
+		if (line.find("Content-Length: ") != std::string::npos)
+			contentLength = std::atoi(line.substr(line.find("Content-Length: ") + 16).c_str());
+		if (line.find("boundary=") != std::string::npos)
+		{
+			boundry = "--" + line.substr(line.find("boundary=") + 9) + "\r";
+			boundryEnd = "--" + line.substr(line.find("boundary=") + 9) + "--" + "\r";
+		}
 	}
+	if (contentLength)
+	{
+		while (std::getline(buf, line))
+		{
+			if (buf.eof() || buf.bad())
+				break ;
+			bodySize += line.size() + 1;
+			if (line == boundryEnd)
+				break ;
+		}
+	}
+	if (contentLength == bodySize)
+		_read_ok = true;
 	return _read_ok;
 }
