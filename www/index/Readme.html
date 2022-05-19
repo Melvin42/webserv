@@ -9,100 +9,100 @@
 
 	<body>
 
-		<h1>/*******	L'Haddock du Capitaine Readme	********/</h1>
+		<h1>/*******&emsp;L'Haddock du Capitaine Readme&emsp;********/</h1>
 
 		<p>
 
-		READ THIS FILE BEFORE MODIFY THE CONF FILE</br>
+&emsp;&emsp;READ THIS FILE BEFORE MODIFY THE CONF FILE</br>
 </br>
-		<h2>/***** SERVER *****/</h2>
+		<h2>&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;/*****&emsp;SERVER&emsp;*****/</h2>
 </br>
-		-"server" keyword need to be follow by a '{'</br>
+&emsp;&emsp;-"server" keyword need to be follow by a '{'</br>
 </br>
-		-each server block need to be in separate scope</br>
+&emsp;&emsp;-each server block need to be in separate scope</br>
 </br>
-		<h2>/***** INSTRUCTIONS *****/</h2>
+		<h2>&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;/*****&emsp;INSTRUCTIONS&emsp;*****/</h2>
 </br>
-		-all instructions line have to be finish by a ';' (just one ';' per line is accepted)</br>
+&emsp;&emsp;-all instructions line have to be finish by a ';' (just one ';' per line is accepted)</br>
 </br>
-		-listen instruction can have only one port (port has to be between 2000 and 65535)</br>
+&emsp;&emsp;-listen instruction can have only one port (port has to be between 2000 and 65535)</br>
 </br>
-				listen		"port";</br>
-				or</br>
-				listen		"host:port";</br>
+&emsp;&emsp;&emsp;&emsp;listen&emsp;&emsp;"port";</br>
+&emsp;&emsp;&emsp;&emsp;or</br>
+&emsp;&emsp;&emsp;&emsp;listen&emsp;&emsp;"host:port";</br>
 </br>
-		-server_name instruction takes only one string argument (whithout white_space or ';')</br>
+&emsp;&emsp;-server_name instruction takes only one string argument (whithout white_space or ';')</br>
 </br>
-				server_name	localhost;</br>
+&emsp;&emsp;&emsp;&emsp;server_name&emsp;localhost;</br>
 </br>
-		-root instruction is the absolute path to your webserver (the last of each server block will be used)</br>
+&emsp;&emsp;-root instruction is the absolute path to your webserver (the last of each server block will be used)</br>
 </br>
-				root	/data/www;</br>
+&emsp;&emsp;&emsp;&emsp;root&emsp;/data/www;</br>
 </br>
-		-index instruction can content as many index as u want, separate by space or tab;</br>
+&emsp;&emsp;-index instruction can content as many index as u want, separate by space or tab;</br>
 </br>
-				index		index.html index.php. index;</br>
+&emsp;&emsp;&emsp;&emsp;index&emsp;&emsp;index.html index.php. index;</br>
 </br>
-		-disallow instruction follow by GET, POST or DELETE to disabled the request method</br>
+&emsp;&emsp;-disallow instruction follow by GET, POST or DELETE to disabled the request method</br>
 </br>
-				disallow	POST;</br>
+&emsp;&emsp;&emsp;&emsp;disallow&emsp;POST;</br>
 </br>
-		-autoindex instruction follow by on or off to switch autoindex</br>
+&emsp;&emsp;-autoindex instruction follow by on or off to switch autoindex</br>
 </br>
-				autoindex	on;</br>
+&emsp;&emsp;&emsp;&emsp;autoindex&emsp;on;</br>
 </br>
-		-client_body_size_max instruction follow by a size_t value to set a maximum size for the client body</br>
+&emsp;&emsp;-client_body_size_max instruction follow by a size_t value to set a maximum size for the client body</br>
 </br>
-				client_body_size_max	10000000;</br>
+&emsp;&emsp;&emsp;&emsp;client_body_size_max&emsp;10000000;</br>
 </br>
-		-rewrite instruction follow by uri to redirect and just after by path redirect to</br>
+&emsp;&emsp;-rewrite instruction follow by uri to redirect and just after by path redirect to</br>
 </br>
-				rewrite		/kapouet /data/www;</br>
+&emsp;&emsp;&emsp;&emsp;rewrite&emsp;&emsp;/kapouet /data/www;</br>
 </br>
-		<h2>/***** Location *****/</h2>
+		<h2>&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;/*****&emsp;Location&emsp;*****/</h2>
 </br>
-		one server block can content as many location block as u want, you can't imbricate them</br>
+&emsp;&emsp;one server block can content as many location block as u want, you can't imbricate them</br>
 </br>
-		the root of the location need to past as an argument betweent "location" and the opening bracket "{"</br>
+&emsp;&emsp;the root of the location need to past as an argument betweent "location" and the opening bracket "{"</br>
 </br>
-		-in each location block, you can use two different instructions.</br>
+&emsp;&emsp;-in each location block, you can use two different instructions.</br>
 </br>
-				-new location index</br>
+&emsp;&emsp;&emsp;&emsp;-new location index</br>
 </br>
-				-new location cgi</br>
+&emsp;&emsp;&emsp;&emsp;-new location cgi</br>
 </br>
-		for the cgi, you have to put the path of the binary</br>
+&emsp;&emsp;for the cgi, you have to put the path of the binary</br>
 </br>
-				-cgi-bin BINARY   "path";</br>
+&emsp;&emsp;&emsp;&emsp;-cgi-bin BINARY   "path";</br>
 </br>
-		and juste follow on the next line by the extention type</br>
+&emsp;&emsp;and juste follow on the next line by the extention type</br>
 </br>
-				-cgi-bin SCRIPT_EXT   ".ext";</br>
+&emsp;&emsp;&emsp;&emsp;-cgi-bin SCRIPT_EXT   ".ext";</br>
 </br>
-		<h3>/*****	example	******/</h3>
+		<h3>&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;/*****&emsp;example&emsp;******/</h3>
 </br>
-		server {</br>
-				listen			0.0.0.0:8080;</br>
-				server_name		localhost;</br>
-				root			/data/www;</br>
+&emsp;&emsp;server {</br>
+&emsp;&emsp;&emsp;&emsp;listen&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;0.0.0.0:8080;</br>
+&emsp;&emsp;&emsp;&emsp;server_name&emsp;&emsp;&emsp;localhost;</br>
+&emsp;&emsp;&emsp;&emsp;root&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;/data/www;</br>
 </br>
-				disallow					POST;</br>
+&emsp;&emsp;&emsp;&emsp;disallow&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;POST;</br>
 </br>
-				autoindex					on;</br>
+&emsp;&emsp;&emsp;&emsp;autoindex&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;on;</br>
 </br>
-				client_body_size_max		10000000;</br>
+&emsp;&emsp;&emsp;&emsp;client_body_size_max&emsp;&emsp;10000000;</br>
 </br>
-				rewrite		/kapouet /data/www;</br>
+&emsp;&emsp;&emsp;&emsp;rewrite&emsp;&emsp;/kapouet /data/www;</br>
 </br>
-				location /index/ {</br>
-					index	index.php index.html;</br>
-				}</br>
+&emsp;&emsp;&emsp;&emsp;location /index/ {</br>
+&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;index&emsp;index.php index.html;</br>
+&emsp;&emsp;&emsp;&emsp;}</br>
 </br>
-				location /cgi_folder/ {</br>
-					cgi-bin BINARY		/usr/bin/perl;</br>
-					cgi-bin SCRIPT-EXT	.pl;</br>
-				}</br>
-		}</br>
+&emsp;&emsp;&emsp;&emsp;location /cgi_folder/ {</br>
+&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;cgi-bin BINARY&emsp;&emsp;/usr/bin/perl;</br>
+&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;cgi-bin SCRIPT-EXT&emsp;.pl;</br>
+&emsp;&emsp;&emsp;&emsp;}</br>
+&emsp;&emsp;}</br>
 </br>
 		</p>
 		<img src="img/captain.jpg">

@@ -44,6 +44,7 @@ class BlockConfig {
 		void	setNewIndex(const std::string &index);
 		void	setNewLocation(const std::string &arg);
 		void	addIndexToLocation(const std::string &index, int i);
+		void	addRootToLocation(const std::string &index, int i);
 		void	addCgiToLocationMap(const std::string &key, const std::string &value, int loc_id);
 		void	setCanPost(const bool &can_post);
 		void	setCanGet(const bool &can_get);

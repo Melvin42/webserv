@@ -12,9 +12,11 @@ class Location {
 		~Location();
 
 		std::string							getArg() const;
+		std::string							getRoot() const;
 		std::vector<std::string>			getIndex() const;
 		std::map<std::string, std::string>	getCgiMap() const;
 
+		void								setRoot(const std::string &root);
 		void								addIndex(const std::string &index);
 		void								addCgiPath(const std::string &key,
 													const std::string &value);
@@ -26,7 +28,7 @@ class Location {
 	private:
 		Location();
 		std::string							_arg;
-		std::string							_type;
+		std::string							_root;
 		std::vector<std::string>			_index;
 		std::map<std::string, std::string>	_cgi;
 };

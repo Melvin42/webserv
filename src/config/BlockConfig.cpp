@@ -151,6 +151,10 @@ void	BlockConfig::addIndexToLocation(const std::string &index, int i) {
 	this->_location.at(i).addIndex(index);
 }
 
+void	BlockConfig::addRootToLocation(const std::string &root, int i) {
+	this->_location.at(i).setRoot(root);
+}
+
 void	BlockConfig::addCgiToLocationMap(const std::string &key, const std::string &value, int loc_id) {
 	this->_location.at(loc_id).addCgiPath(key, value);
 }

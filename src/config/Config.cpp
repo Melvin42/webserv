@@ -188,11 +188,9 @@ void	Config::parsRoot() {
 }
 
 void	Config::parsLocationRoot() {
-	this->checkSemiColon();
-	if (_new_instruction)
-		_config.at(_block_index).addIndexToLocation(this->checkEndOfLine(';'), _loc_id);
-	else
-		_config.at(_block_index).addIndexToLocation(_word, _loc_id);
+//	this->checkSemiColon();
+//	if (_new_instruction)
+	_config.at(_block_index).addRootToLocation(this->badEndOfLine(), _loc_id);
 }
 
 void	Config::parsIndex() {
@@ -305,8 +303,15 @@ void	Config::parsLocation(std::ifstream &in_file, int &location_scope) {
 						_new_instruction = true;
 					}
 					this->parsLocationIndex();
-//					this->parsLocationRoot();
 				}
+			} else if (_word == "root") {
+				in_file >> _word;
+				if (isInstruction(_word)) {
+					this->errorBadConf();
+					_new_instruction = true;
+		// PAR ICI LES AMIS
+				}
+				this->parsLocationRoot();
 			} else if (_word == "cgi-bin")
 				this->parsCgi(in_file);
 		} else
@@ -495,8 +500,10 @@ void	Config::parsing(const char *av) {
 							this->saveLastInstruction();
 						else if (_new_instruction == false)
 							this->parsInstruction(in_file, location_scope);
-					} else
+					} else {
+						std::cerr << _word << std::endl;
 						this->parsLocation(in_file, location_scope);
+					}
 				}
 			}
 		}

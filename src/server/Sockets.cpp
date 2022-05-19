@@ -115,7 +115,6 @@ void	SocketServer::selectSocket() {
 		}
 		if (_sd > _max_sd)
 			_max_sd = _sd;
-//		std::cerr << _sd << std::endl;
 	}
 
 	activity = select(_max_sd + 1, &_readfds, &_writefds, NULL, &timeout);
