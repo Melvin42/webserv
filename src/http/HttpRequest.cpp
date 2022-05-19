@@ -4,7 +4,6 @@ HttpRequest::HttpRequest() {
 }
 
 HttpRequest::HttpRequest(const char *buffer, const BlockConfig &conf): _conf(conf) {
-	std::cerr << "Ici" << std::endl;
 	std::stringstream	line;
 
 //	std::cerr << "

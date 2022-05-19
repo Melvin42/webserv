@@ -94,7 +94,6 @@ void	HttpResponse::setPage(std::string statusKey, std::ifstream &page) {
 	std::string	str_page = std::string(
 			std::istreambuf_iterator<char>(page),
 			std::istreambuf_iterator<char>());
-	std::cerr << "pas crash" << std::endl;
 	if ((pos = str_page.find("status: ", 0, 7)) != std::string::npos ||
 		(pos = str_page.find("Status: ", 0, 7)) != std::string::npos||
 		(pos = str_page.find("STATUS: ", 0, 7)) != std::string::npos)
