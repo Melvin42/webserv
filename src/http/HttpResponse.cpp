@@ -154,30 +154,66 @@ int	HttpResponse::is_cgi() {
 
 int HttpResponse::cgi(std::string statusKey) {
 	int     pipefd[2] = {0, 1};
+	//int     pipefdn[2] = {0, 1};
+
+	if (pipe(pipefd) == -1)
+		std::cout << "pipe failed" <<std::endl;
+
+	write(pipefd[1], _request.body().c_str(), request.body().Length);
+	close(pipefd[1]);
+
+
 	pid_t   pid = fork();
 	std::FILE* tmp = freopen("/tmp/.tmpExecveFd", "wb+", stdout);
 	(void)tmp;
 
-	if (pipe(pipefd) == -1)
-		std::cout << "pipe failed" <<std::endl;
+
+
 	if (pid == -1)
 		std::cout << "cgi failed" <<std::endl;
 	if (pid == 0) {
+		dup2(pipefd[0], 0);
 		if (execve(_exec_argv[0], _exec_argv, _env) == -1)
 			perror("execve");
 	}
 	else {
 		waitpid(pid, 0, 0);
 		close(pipefd[0]);
-		close(pipefd[1]);
 		std::ifstream tmpst("/tmp/.tmpExecveFd");
 		setPage(statusKey, tmpst);
 	}
 	return 0;
 }
 
-void	HttpResponse::setCgiEnv() {
+std::string	HttpResponse::toUpper(std::string str) {
+	std::string::iterator	it;
+	for (it = str.begin(); it !=str.end(); ++it)
+		*it = std::toupper(*it);
+}
 
+void	HttpResponse::setCgiEnv() {
+	std::map<std::string, std::string>				env;
+	std::string										key;
+	std::string										value;
+	std::map<std::string, std::string>::iterator	it;
+
+	for (it = _request.begin(); it != _request.end(), ++it)
+	{
+		key = "HTTP_" + toUpper(it->first);
+		std::replace(key.begin(), key.end(), '-', '_');
+		env[key] = *it;
+	}
+	env["CONTENT_LENGTH"] = ;
+	env["QUERY_STRING"] = _request["page"].substr(_request["page"].find("?") + 1);;
+	env["PATH_INFO"] = ;
+	env["CONTENT_TYPE"] = ;
+	env["REQUEST_METHOD"] = _request["method"];
+	env["SCRIPT_NAME"] = _request["page"].substr(0, _request["page"].find("?"));
+	env["SERVER_NAME"] = "webserv";
+	env["SERVER_PORT"] = _request["Port"];
+	env["SERVER_PROTOCOL"] = "HTTP/1.1";
+	env["SERVER_SOFTWARE"] = ;
+	env["GATEWAY_INTERFACE"] = "CGI/1.1";
 }
 
 void	HttpResponse::statusRet(std::string errCode) {

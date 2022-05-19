@@ -12,6 +12,8 @@
 #include <cstdlib>
 #include <ios>
 #include <dirent.h>
+#include <cctype>
+	
 
 #include "../config/Config.hpp"
 
@@ -44,6 +46,7 @@ class	HttpResponse {
 		int		is_cgi();
 		int		cgi(std::string statusKey);
 		void    setCgiEnv();
+		std::string	toUpper(std::string str);
 		void	set_exec_argv(std::string cmdPath, std::string errPage);
 
 		void	setHeader(std::string statusKey);
