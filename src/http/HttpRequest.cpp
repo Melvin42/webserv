@@ -16,6 +16,8 @@ HttpRequest::HttpRequest(std::string buffer, const BlockConfig &conf): _conf(con
 	parseHeader(line);
 	if (_request["method"] == "POST")
 		postCheck(line);
+	if (_request["method"] == "DELETE")
+		deleteCheck();
 	// std::cout << "fullPage: " << _request["fullpage"] << std::endl;
 	// std::cout << "_request[\"posted\"]: " << _request["posted"] << std::endl;
 	// std::cout << std::endl << "line: " << std::endl << line.str();
@@ -69,16 +71,30 @@ void	HttpRequest::setFullPage() {
 void	HttpRequest::postCheck(std::stringstream &line) {
 
 	if (_request.find("Content-Length") == _request.end())
-		_request["posted"] = "noCL";
+		_request["posted"] = "411";
 	else if (_conf.getBodySizeMax() > 0 && getContentLength() > _conf.getBodySizeMax())
 	{
-		_request["posted"] = "tooBig";
+		_request["posted"] = "413";
 		 	return ;
 	}
 	else if (_request.find("boundary") != _request.end() && _conf.getCanPost())
 		parseBody(line);
 }
 
+void	HttpRequest::deleteCheck() {
+	int ret = 0;
+	std::ifstream	page(_request["fullpage"].c_str());
+	if (!page)
+	{
+		_request["deleted"] = "404";
+		return ;
+	}
+	ret = std::remove(_request["fullpage"].c_str());
+	if (ret == 0)
+		_request["deleted"] = "200";
+	if (ret == -1)
+		_request["deleted"] = "424";
+}
 void	HttpRequest::parseHeader(std::stringstream &line) {
 	std::string buf;
 	std::string key;
@@ -144,8 +160,11 @@ void	HttpRequest::parseBody(std::stringstream &buf) {
 		filest << line;
 		filest.close();
 	}
-	if (!tmp.bad() && _request["posted"] != "false")
-		_request["posted"] = "true";
+	if (tmp.bad())
+		_request["posted"] = "424";
+	else
+		_request["posted"] = "201";
+	
 }
 
 std::string		HttpRequest::getKey(std::string buf) {

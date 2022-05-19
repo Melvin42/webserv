@@ -28,6 +28,7 @@ class	HttpRequest {
 		std::map<std::string, std::string>	getRequest() const;
 
 		void								postCheck(std::stringstream &line);
+		void								deleteCheck();
 		void								parseHeader(std::stringstream &line);
 		void								parseBody(std::stringstream &line);
 
