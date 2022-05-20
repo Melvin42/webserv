@@ -45,6 +45,15 @@ void	HttpResponse::methodGet() {
 			if (is_cgi() == 0)
 				setPage("200", page);
 		}
+		else if (*(_request["page"].end()) == '/') {
+			if (_conf.getAutoindex())
+			{
+				_request["fullpage"] = _conf.getRoot() + _request["page"];
+				autoIndex();
+			}
+			else
+				statusRet("403");
+		}
 		else {
 			//Put the variable default_404 in ifstream page() to get the good one from the conf file
 			std::ifstream	page(_conf.getDefault404().c_str());
@@ -78,11 +87,18 @@ void	HttpResponse::methodDelete() {
 }
 
 void	HttpResponse::setHeader(std::string statusKey) {
-	if (_request["method"] == "POST")
+	if (statusKey == "301")
+		_ret = "HTTP/1.1 " + statusKey + " " + _status[statusKey] + "\r\n" 
+		+ "Location: " + _request["page"].substr(_request["page"].find("/"), _request["page"].size()) + "/" + "\r\n\r\n";
+	else if (_request["method"] == "POST")
 		_ret = "HTTP/1.1 " + statusKey + " " + _status[statusKey] + "\r\n" 
 		+ "Location: " + "http://" + _request["Host"] + _request["page"] + "\r\n\r\n";
 	else
 		_ret = "HTTP/1.1 " + statusKey + " " + _status[statusKey] + "\r\n\r\n";
+
+//*(_request["fullpage"].end() - 1)
+
+
 }
 
 void	HttpResponse::setCgiHeader(std::string statusKey) {
@@ -192,18 +208,17 @@ std::map<std::string, std::string>	HttpResponse::initEnv() {
 	std::string										value;
 	std::map<std::string, std::string>::iterator	it;
 
+	std::cout << "seoifjesjif: " << _request["page"].substr(_request["page"].find_last_of("/\\") + 1) << std::endl;
+
 	for (it = _request.begin(); it != _request.end(); ++it)
 	{
-		if (it->first == "body")
+		if (it->first == "body" || it->first == "method" 
+			|| it->first == "fullpage" || it->first == "pageNoParam")
 			continue ;
 		key = "HTTP_" + toUpper(it->first);
 		std::replace(key.begin(), key.end(), '-', '_');
 		env[key] = it->second;
 	}
-	env.erase(env.find("HTTP_METHOD"));
-	env.erase(env.find("HTTP_PAGE"));
-	env.erase(env.find("HTTP_FULLPAGE"));
-	env.erase(env.find("HTTP_PAGENOPARAM"));
 	env["CONTENT_LENGTH"] = _request["content-length"];
 		env["CONTENT_TYPE"] = _request["content-type"];
 	if (_request["page"].find("?") != std::string::npos)
@@ -212,8 +227,8 @@ std::map<std::string, std::string>	HttpResponse::initEnv() {
 	env["PATH_TRANSLATED"] = _request["page"];
 	env["SCRIPT_FILENAME"] = _request["pageNoParam"];
 	env["REQUEST_METHOD"] = _request["method"];
-	env["SCRIPT_NAME"] = _request["page"].substr(0, _request["page"].find("?"));
-	env["SERVER_NAME"] = "webserv";
+	env["SCRIPT_NAME"] = _request["page"].substr(_request["page"].find_last_of("/\\") + 1);
+	env["SERVER_NAME"] = _request["host"];
 	env["SERVER_PORT"] = _conf.getPort();
 	env["SERVER_PROTOCOL"] = "HTTP/1.1";
 	env["SERVER_SOFTWARE"] = "webserv/1.0";
