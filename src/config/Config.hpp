@@ -45,6 +45,7 @@ class Config {
 		void		parsDisallow();
 		void		parsRewrite();
 		void		parsLocationIndex();
+		void		parsLocationRoot();
 		void		parsLocation(std::ifstream &in_file, int &location_scope);
 		void		parsServerScope();
 		void		parsCgi(std::ifstream &in_file);
@@ -65,7 +66,6 @@ class Config {
 		bool						_is_to_redirect;
 		bool						_need_exit;
 		std::string					_check_binary;
-		std::ifstream				_in_file;
 		std::string					_last_instruction;
 		std::string					_word;
 		int							_block_index;

@@ -2,11 +2,12 @@
 
 /**** CONDESTRUCT ****/
 
-ClientManager::ClientManager() : _fd(1), _header_ok(false), 
-	_read_ok(0), _send_ok(false), _read(""), _send(""), _valRead(0) {
+ClientManager::ClientManager() : _fd(0), _header_ok(false), 
+	_read_ok(false), _send_ok(false), _read(""), _send(""), _valRead(0) {
 }
 
-ClientManager::ClientManager(int fd, const BlockConfig &block) : _fd(fd), _header_ok(false), _read_ok(false),
+ClientManager::ClientManager(int fd, const BlockConfig &block)
+	: _fd(fd), _header_ok(false), _read_ok(false),
 	_send_ok(false), _read(""), _send(""), _valRead(0), _block(block) {
 }
 
@@ -106,7 +107,7 @@ int		ClientManager::isReadOk() {
 	if (contentLength)
 		bodySize = _valRead - headerSize;
 	if (contentLength == bodySize)
-	{	_read_ok = 1;
+	{	_read_ok = true;
 	// std::cerr << "contentLength: " << contentLength << "...\n";
 	}return _read_ok;
 }

@@ -9,6 +9,7 @@ HttpRequest::HttpRequest(std::string buffer, const BlockConfig &conf): _conf(con
 	line << buffer;
 	line >> _request["method"];
 	line >> _request["page"];
+	std::cerr << _request["page"]  << std::endl;
 	line >> _request["version"];
 	line.ignore();
 	setFullPage();
@@ -59,7 +60,13 @@ void	HttpRequest::setFullPage() {
 	if (_request["page"] == "/")
 		_request["fullpage"] = _conf.getDefaultIndex();
 	else if (_request["page"] == _conf.getToRedirect())
-        _request["fullpage"] = _conf.getRedirectTo();
+		_request["fullpage"] = _conf.getRedirectTo();
+
+	// This is the way we intent to handle redirections,
+	// we will go further by looking in vector of redirections
+	// this way the user will be able to set up multiple
+	// redirections in the conf file 
+
 	else
 		_request["fullpage"] = _conf.getRoot() + _request["page"];
 }
@@ -181,6 +188,7 @@ std::string		HttpRequest::getValue(std::string buf) {
 
 std::string		HttpRequest::getFilename(std::map<std::string, std::string>	&bodyHeader) {
 	std::string		filename;
+
 	if (bodyHeader["Content-Disposition"].find(" filename=") != std::string::npos)
 	{
 		filename = bodyHeader["Content-Disposition"].substr(

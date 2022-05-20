@@ -54,6 +54,17 @@ void	Config::setAllDefaultValue() {
 		_config.at(i).setDefaultIndex();
 		_config.at(i).setId(i);
 	}
+	for (size_t i = 0; i < _config.size(); i++) {
+		for (size_t j = 0; j < _config.at(i).getLocation().size(); j++) {
+			if (_config.at(i).getLocation().at(j).getType() == "cgi") {
+				std::string	tmp;
+
+				tmp = _config.at(i).getLocation().at(j).getRoot()
+					+ _config.at(i).getLocation().at(j).getArg() + "/";
+				_config.at(i).setNewCgiRoot(tmp);
+			}
+		}
+	}
 }
 
 void	Config::setAllDefaultServer() {
@@ -163,7 +174,7 @@ void	Config::parsPort() {
 	size_t	found;
 
 	found = _word.find(":", 0);
-	
+
 	if (found < _word.size()) {
 		_config.at(_block_index).setNewHost(_word.substr(0, found));
 		_word = _word.substr(found + 1);
@@ -185,6 +196,10 @@ void	Config::parsServerName() {
 
 void	Config::parsRoot() {
 	_config.at(_block_index).setNewRoot(this->badEndOfLine());
+}
+
+void	Config::parsLocationRoot() {
+	_config.at(_block_index).addRootToLocation(this->badEndOfLine(), _loc_id);
 }
 
 void	Config::parsIndex() {
@@ -255,6 +270,7 @@ void	Config::parsCgi(std::ifstream &in_file) {
 	std::string valuemap;
 
 	in_file >> _word;
+	_config.at(_block_index).addTypeToLocation("cgi", _loc_id);
 	if (_word == "BINARY" && _check_binary == "SCRIPT_EXT") {
 		in_file >> _word;
 		valuemap = this->badEndOfLine();
@@ -287,7 +303,8 @@ void	Config::parsLocation(std::ifstream &in_file, int &location_scope) {
 			return ;
 		}
 		_new_instruction = false;
-		if (_word == "index" || _word == "cgi-bin" || _word == "}") {
+		if (_word == "index" || _word == "cgi-bin"
+				|| _word == "root" || _word == "}") {
 			if (_word == "index") {
 				while (!_new_instruction && !in_file.eof()) {
 					in_file >> _word;
@@ -297,8 +314,17 @@ void	Config::parsLocation(std::ifstream &in_file, int &location_scope) {
 					}
 					this->parsLocationIndex();
 				}
-			} else if (_word == "cgi-bin")
+			} else if (_word == "root") {
+				in_file >> _word;
+				if (isInstruction(_word)) {
+					this->errorBadConf();
+					_new_instruction = true;
+				}
+				this->parsLocationRoot();
+			} else if (_word == "cgi-bin") {
+				_config.at(_block_index).getLocation().at(_loc_id).setType("cgi");
 				this->parsCgi(in_file);
+			}
 		} else
 			this->errorBadConf();
 	}
@@ -366,6 +392,7 @@ void	Config::printAllConfig() const {
 		std::cout << "	Toredirect = " << _config.at(j).getToRedirect() << std::endl;
 		std::cout << "	redirectTo = " << _config.at(j).getRedirectTo() << std::endl;
 		std::cout << "	Is Default = " << _config.at(j).getIsDefault() << std::endl;
+		std::cout << "	CgiRoot = " << _config.at(j).getCgiRoot() << std::endl;
 		for (size_t i = 0; i < _config.at(j).getIndex().size(); i++) {
 			if (i == 0)
 				std::cout << "	index = ";
@@ -485,8 +512,9 @@ void	Config::parsing(const char *av) {
 							this->saveLastInstruction();
 						else if (_new_instruction == false)
 							this->parsInstruction(in_file, location_scope);
-					} else
+					} else {
 						this->parsLocation(in_file, location_scope);
+					}
 				}
 			}
 		}

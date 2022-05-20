@@ -24,6 +24,7 @@ class	HttpRequest {
 		std::string							getVersion();
 		size_t								getContentLength();
 		std::map<std::string, std::string>	getRequest() const;
+		BlockConfig							getConf();
 
 		void								postCheck(std::stringstream &line);
 		void								deleteCheck();
