@@ -14,6 +14,7 @@ HttpRequest::HttpRequest(std::string buffer, const BlockConfig &conf): _conf(con
 	line.ignore();
 	setFullPage();
 	parseHeader(line);
+	_request["body"] = buffer.substr(buffer.find("\r\n\r\n") + 4);
 	if (_request["method"] == "POST")
 		postCheck(line);
 	if (_request["method"] == "DELETE")
@@ -95,6 +96,7 @@ void	HttpRequest::deleteCheck() {
 	if (ret == -1)
 		_request["deleted"] = "424";
 }
+
 void	HttpRequest::parseHeader(std::stringstream &line) {
 	std::string buf;
 	std::string key;
@@ -130,40 +132,43 @@ void	HttpRequest::parseBody(std::stringstream &buf) {
 	body = buf.str();
 
 	std::cerr << body.size() << "...\n";
-	while (42)
+	if (body.find(_request["boundary"]) != std::string::npos)
 	{
-		if (body.find(_request["boundary"]) == body.find(_request["boundaryEnd"]))
-			break ;
-		body = body.substr(body.find(_request["boundary"]) + _request["boundary"].size() + 2, body.size());
-		tmp << body;
-		// std::cerr << body << "...\n";
-		while (std::getline(tmp, line)) { std::cerr << line << "\n";
-			if (tmp.eof() || tmp.bad() || line == "\r"|| line == _request["boundaryEnd"])
+		while (42)
+		{
+			if (body.find(_request["boundary"]) == body.find(_request["boundaryEnd"]))
 				break ;
-			
-			bodyHeader[getKey(line)] = getValue(line);
-		}
-		if (tmp.eof() || tmp.bad())
-				break ;
-		if (line == "\r") {
-				filename = getFilename(bodyHeader);
-				file = fopen(filename.c_str(), "wb+");
+			body = body.substr(body.find(_request["boundary"]) + _request["boundary"].size() + 2, body.size());
+			tmp << body;
+			// std::cerr << body << "...\n";
+			while (std::getline(tmp, line)) { std::cerr << line << "\n";
+				if (tmp.eof() || tmp.bad() || line == "\r"|| line == _request["boundaryEnd"])
+					break ;
+				
+				bodyHeader[getKey(line)] = getValue(line);
 			}
-		std::ofstream	filest(filename.c_str());
-		line = body.substr(body.find("\r\n\r\n") + 4, body.size());
-		// std::cerr << line.size() << " bs: "<< body.size() << "...\n";
+			if (tmp.eof() || tmp.bad())
+					break ;
+			if (line == "\r") {
+					filename = getFilename(bodyHeader);
+					file = fopen(filename.c_str(), "wb+");
+				}
+			std::ofstream	filest(filename.c_str());
+			line = body.substr(body.find("\r\n\r\n") + 4, body.size());
+			// std::cerr << line.size() << " bs: "<< body.size() << "...\n";
 
-		// std::cerr << line << "...\n";
-		line = line.substr(0, line.find(_request["boundary"]) - 2);
-		// std::cerr << line.size() << "...\n";
-		// std::cerr << line << "...\n";
-		filest << line;
-		filest.close();
+			// std::cerr << line << "...\n";
+			line = line.substr(0, line.find(_request["boundary"]) - 2);
+			// std::cerr << line.size() << "...\n";
+			// std::cerr << line << "...\n";
+			filest << line;
+			filest.close();
+		}
+		if (tmp.bad())
+			_request["posted"] = "424";
+		else
+			_request["posted"] = "201";
 	}
-	if (tmp.bad())
-		_request["posted"] = "424";
-	else
-		_request["posted"] = "201";
 	
 }
 

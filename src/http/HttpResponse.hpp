@@ -45,7 +45,8 @@ class	HttpResponse {
 
 		int		is_cgi();
 		int		cgi(std::string statusKey);
-		void    setCgiEnv();
+		std::map<std::string, std::string>    initEnv();
+		void	getEnv();
 		std::string	toUpper(std::string str);
 		void	set_exec_argv(std::string cmdPath, std::string errPage);
 
