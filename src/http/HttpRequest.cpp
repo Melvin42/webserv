@@ -131,6 +131,7 @@ void	HttpRequest::parseBody(std::stringstream &buf) {
 	std::map<std::string, std::string>	bodyHeader;
 	std::FILE*							file;
 
+	(void)file;
 	body = buf.str();
 
 	std::cerr << body.size() << "...\n";
