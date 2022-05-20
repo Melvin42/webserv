@@ -57,8 +57,9 @@ std::map<std::string, std::string> HttpRequest::getRequest() const {
 }
 
 void	HttpRequest::setFullPage() {
-	if (_request["page"] == "/")
-		_request["fullpage"] = _conf.getDefaultIndex();
+
+	if (*(_request["page"].end() - 1) == '/')
+		_request["fullpage"] = findIndex();
 	else if (_request["page"] == _conf.getToRedirect())
 		_request["fullpage"] = _conf.getRedirectTo();
 
@@ -69,6 +70,23 @@ void	HttpRequest::setFullPage() {
 
 	else
 		_request["fullpage"] = _conf.getRoot() + _request["page"];
+	// std::cerr << "full " << _request["fullpage"] << std::endl;
+}
+
+std::string	HttpRequest::findIndex() {
+	// std::cerr << "finding ....." << std::endl;
+	std::string	tmp;
+	for (size_t i = 0; i < _conf.getIndex().size(); i++) {
+		
+		tmp = _conf.getRoot() + _request["page"].substr( _request["page"].find_first_of('/') + 1, _request["page"].size()) + _conf.getIndex().at(i);
+std::cerr << tmp  << std::endl;
+		if (access(tmp.c_str(), R_OK) == 0) {
+			
+			return tmp;
+		}
+	}
+	tmp = _conf.getRoot() + _request["page"];
+	return tmp;
 }
 
 void	HttpRequest::postCheck(std::stringstream &line) {

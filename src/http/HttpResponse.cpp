@@ -44,6 +44,15 @@ void	HttpResponse::methodGet() {
 			if (is_cgi() == 0)
 				setPage("200", page);
 		}
+		else if (*(_request["page"].end()) == '/') {
+			if (_conf.getAutoindex())
+			{
+				_request["fullpage"] = _conf.getRoot() + _request["page"];
+				autoIndex();
+			}
+			else
+				statusRet("403");
+		}
 		else {
 			//Put the variable default_404 in ifstream page() to get the good one from the conf file
 			std::ifstream	page(_conf.getDefault404().c_str());
@@ -79,11 +88,18 @@ void	HttpResponse::methodDelete() {
 }
 
 void	HttpResponse::setHeader(std::string statusKey) {
-	if (_request["method"] == "POST")
+	if (statusKey == "301")
+		_ret = "HTTP/1.1 " + statusKey + " " + _status[statusKey] + "\r\n" 
+		+ "Location: " + _request["page"].substr(_request["page"].find("/"), _request["page"].size()) + "/" + "\r\n\r\n";
+	else if (_request["method"] == "POST")
 		_ret = "HTTP/1.1 " + statusKey + " " + _status[statusKey] + "\r\n" 
 		+ "Location: " + "http://" + _request["Host"] + _request["page"] + "\r\n\r\n";
 	else
 		_ret = "HTTP/1.1 " + statusKey + " " + _status[statusKey] + "\r\n\r\n";
+
+//*(_request["fullpage"].end() - 1)
+
+
 }
 
 void	HttpResponse::setCgiHeader(std::string statusKey) {
@@ -183,6 +199,57 @@ int HttpResponse::cgi(std::string statusKey) {
 		setPage(statusKey, tmpst);
 	}
 	return 0;
+}
+
+void		HttpResponse::getEnv() {
+	int i = 0;
+	std::map<std::string, std::string> env = initEnv();
+	std::map<std::string, std::string>::iterator	it;
+	_env = (char **)malloc(sizeof(char *) * (env.size() + 1));
+	*(_env + env.size()) = (char *)malloc(sizeof(char) * 1);
+			*(_env + env.size()) = NULL;
+	for (it = env.begin(); it != env.end(); ++it, i++)
+	{
+		std::string	str = it->first + "=" + it->second;
+		*(_env + i) = (char *)malloc(sizeof(char *) * (str.size() + 1));
+		strcpy(*(_env + i), str.c_str());
+	}
+}
+
+std::map<std::string, std::string>	HttpResponse::initEnv() {
+	std::map<std::string, std::string>				env;
+	std::string										key;
+	std::string										value;
+	std::map<std::string, std::string>::iterator	it;
+
+	std::cout << "seoifjesjif: " << _request["page"].substr(_request["page"].find_last_of("/\\") + 1) << std::endl;
+
+	for (it = _request.begin(); it != _request.end(); ++it)
+	{
+		if (it->first == "body" || it->first == "method" 
+			|| it->first == "fullpage" || it->first == "pageNoParam")
+			continue ;
+		key = "HTTP_" + toUpper(it->first);
+		std::replace(key.begin(), key.end(), '-', '_');
+		env[key] = it->second;
+	}
+	env["CONTENT_LENGTH"] = _request["content-length"];
+		env["CONTENT_TYPE"] = _request["content-type"];
+	if (_request["page"].find("?") != std::string::npos)
+		env["QUERY_STRING"] = _request["page"].substr(_request["page"].find("?") + 1, _request["page"].size());
+	env["PATH_INFO"] = _request["pageNoParam"];
+	env["PATH_TRANSLATED"] = _request["page"];
+	env["SCRIPT_FILENAME"] = _request["pageNoParam"];
+	env["REQUEST_METHOD"] = _request["method"];
+	env["SCRIPT_NAME"] = _request["page"].substr(_request["page"].find_last_of("/\\") + 1);
+	env["SERVER_NAME"] = _request["host"];
+	env["SERVER_PORT"] = _conf.getPort();
+	env["SERVER_PROTOCOL"] = "HTTP/1.1";
+	env["SERVER_SOFTWARE"] = "webserv/1.0";
+	env["GATEWAY_INTERFACE"] = "CGI/1.1";
+	env["REQUEST_URI"] = _request["fullpage"];
+	env["REDIRECT_STATUS"] = "1";
+	return env;
 }
 
 void	HttpResponse::statusRet(std::string errCode) {
