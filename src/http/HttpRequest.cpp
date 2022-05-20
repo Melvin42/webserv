@@ -6,7 +6,6 @@ HttpRequest::HttpRequest() {
 HttpRequest::HttpRequest(std::string buffer, const BlockConfig &conf): _conf(conf) {
 	std::stringstream	line;
 
-//	std::cerr << "
 	line << buffer;
 	line >> _request["method"];
 	line >> _request["page"];
@@ -48,12 +47,8 @@ std::string	HttpRequest::getVersion() {
 	return _request["version"];
 }
 
-std::string	HttpRequest::getHost() {
-	return _request["Host"];
-}
-
 size_t	HttpRequest::getContentLength(){
-	return std::atoi(_request["Content-Length"].c_str());
+	return std::atoi(_request["content-length"].c_str());
 }
 
 std::map<std::string, std::string> HttpRequest::getRequest() const {
@@ -71,7 +66,7 @@ void	HttpRequest::setFullPage() {
 
 void	HttpRequest::postCheck(std::stringstream &line) {
 
-	if (_request.find("Content-Length") == _request.end())
+	if (_request.find("content-length") == _request.end())
 		_request["posted"] = "411";
 	else if (_conf.getBodySizeMax() > 0 && getContentLength() > _conf.getBodySizeMax())
 	{
@@ -109,10 +104,10 @@ void	HttpRequest::parseHeader(std::stringstream &line) {
 			break ;
 		key = getKey(buf);
 		value = getValue(buf);
-		if (key.find("Content-Type") != std::string::npos && value.find("boundary=") != std::string::npos)
+		if (key.find("content-type") != std::string::npos && value.find("boundary=") != std::string::npos)
 		{
 			_request["boundary"] = "--" + value.substr(value.find("boundary=") + 9);
-			_request["boundaryEnd"] = "--" + value.substr(value.find("boundary=") + 9) + "--";
+			_request["boundary-end"] = "--" + value.substr(value.find("boundary=") + 9) + "--";
 			value.erase(value.find(";"));
 		}
 		_request[key] = value;
@@ -136,13 +131,13 @@ void	HttpRequest::parseBody(std::stringstream &buf) {
 	{
 		while (42)
 		{
-			if (body.find(_request["boundary"]) == body.find(_request["boundaryEnd"]))
+			if (body.find(_request["boundary"]) == body.find(_request["boundary-end"]))
 				break ;
 			body = body.substr(body.find(_request["boundary"]) + _request["boundary"].size() + 2, body.size());
 			tmp << body;
 			// std::cerr << body << "...\n";
 			while (std::getline(tmp, line)) { std::cerr << line << "\n";
-				if (tmp.eof() || tmp.bad() || line == "\r"|| line == _request["boundaryEnd"])
+				if (tmp.eof() || tmp.bad() || line == "\r"|| line == _request["boundary-end"])
 					break ;
 				
 				bodyHeader[getKey(line)] = getValue(line);
@@ -173,7 +168,7 @@ void	HttpRequest::parseBody(std::stringstream &buf) {
 }
 
 std::string		HttpRequest::getKey(std::string buf) {
-	return buf.substr(0, buf.find(":"));
+	return toLower(buf.substr(0, buf.find(":")));
 }
 
 std::string		HttpRequest::getValue(std::string buf) {
@@ -205,3 +200,10 @@ std::string		HttpRequest::getFilename(std::map<std::string, std::string>	&bodyHe
 	return filename;
 }
 
+std::string		HttpRequest::toLower(std::string str) {
+	std::string::iterator	it;
+
+	for (it = str.begin(); it !=str.end(); ++it)
+		*it = std::tolower(*it);
+	return str;
+}

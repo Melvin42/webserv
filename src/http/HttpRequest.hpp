@@ -22,7 +22,6 @@ class	HttpRequest {
 		std::string							getMethod();
 		std::string							getFullPage();
 		std::string							getVersion();
-		std::string							getHost();
 		size_t								getContentLength();
 		std::map<std::string, std::string>	getRequest() const;
 
@@ -39,6 +38,7 @@ class	HttpRequest {
 		std::string							getKey(std::string buf);
 		std::string							getValue(std::string buf);
 		bool								fileIssue(std::string filename);
+		std::string							toLower(std::string str);
 
 		std::map<std::string, std::string>	_request;
 		BlockConfig 						_conf;

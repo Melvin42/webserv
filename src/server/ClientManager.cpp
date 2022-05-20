@@ -92,8 +92,8 @@ int		ClientManager::isReadOk() {
 	{
 		if (buf.eof() || buf.bad() || line == "\r")
 			break ;
-		if (line.find("Content-Length: ") != std::string::npos)
-			contentLength = std::atoi(line.substr(line.find("Content-Length: ") + 16).c_str());
+		if (line.find("content-length: ") != std::string::npos)
+			contentLength = std::atoi(line.substr(line.find("content-length: ") + 16).c_str());
 		if (line.find("boundary=") != std::string::npos)
 		{
 			boundry = "--" + line.substr(line.find("boundary=") + 9) + "\r";
