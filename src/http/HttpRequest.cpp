@@ -9,18 +9,18 @@ HttpRequest::HttpRequest(std::string buffer, const BlockConfig &conf): _conf(con
 	line << buffer;
 	line >> _request["method"];
 	line >> _request["page"];
-	std::cerr << _request["page"]  << std::endl;
+	std::cerr << "(HttpRequest.cpp:12) request: " << _request["page"] << std::endl;
 	line >> _request["version"];
 	line.ignore();
 	setFullPage();
 	parseHeader(line);
+
 	_request["body"] = buffer.substr(buffer.find("\r\n\r\n") + 4);
 	if (_request["method"] == "POST")
 		postCheck(line);
 	if (_request["method"] == "DELETE")
 		deleteCheck();
-	// std::cout << "fullPage: " << _request["fullpage"] << std::endl;
-	// std::cout << "_request[\"posted\"]: " << _request["posted"] << std::endl;
+	 std::cout << "(HttpRequest.cpp:21) fullPage: " << _request["fullpage"] << std::endl;
 	// std::cout << std::endl << "line: " << std::endl << line.str();
 }
 
@@ -58,34 +58,29 @@ std::map<std::string, std::string> HttpRequest::getRequest() const {
 
 void	HttpRequest::setFullPage() {
 
-	if (*(_request["page"].end() - 1) == '/')
+	if (_request["page"].find(_conf.getCgiArg()) != std::string::npos)
+		_request["fullpage"] = _conf.getCgiRoot() + _request["page"];
+	else if (*(_request["page"].end() - 1) == '/')
 		_request["fullpage"] = findIndex();
 	else if (_request["page"] == _conf.getToRedirect())
 		_request["fullpage"] = _conf.getRedirectTo();
-
-	// This is the way we intent to handle redirections,
-	// we will go further by looking in vector of redirections
-	// this way the user will be able to set up multiple
-	// redirections in the conf file 
-
 	else
 		_request["fullpage"] = _conf.getRoot() + _request["page"];
 	// std::cerr << "full " << _request["fullpage"] << std::endl;
 }
 
 std::string	HttpRequest::findIndex() {
-	// std::cerr << "finding ....." << std::endl;
 	std::string	tmp;
 	for (size_t i = 0; i < _conf.getIndex().size(); i++) {
 		
-		tmp = _conf.getRoot() + _request["page"].substr( _request["page"].find_first_of('/') + 1, _request["page"].size()) + _conf.getIndex().at(i);
-std::cerr << tmp  << std::endl;
+		tmp = _conf.getRoot() + "/" + _request["page"].substr(
+			_request["page"].find_first_of('/') + 1, _request["page"].size())
+			+ _conf.getIndex().at(i);
 		if (access(tmp.c_str(), R_OK) == 0) {
-			
 			return tmp;
 		}
 	}
-	tmp = _conf.getRoot() + _request["page"];
+	tmp = _conf.getRoot() + "/" + _request["page"];
 	return tmp;
 }
 
@@ -149,10 +144,8 @@ void	HttpRequest::parseBody(std::stringstream &buf) {
 	std::map<std::string, std::string>	bodyHeader;
 	std::FILE*							file;
 
-	(void)file;
 	body = buf.str();
-
-	std::cerr << body.size() << "...\n";
+	(void)file;
 	if (body.find(_request["boundary"]) != std::string::npos)
 	{
 		while (42)
@@ -162,10 +155,10 @@ void	HttpRequest::parseBody(std::stringstream &buf) {
 			body = body.substr(body.find(_request["boundary"]) + _request["boundary"].size() + 2, body.size());
 			tmp << body;
 			// std::cerr << body << "...\n";
-			while (std::getline(tmp, line)) { std::cerr << line << "\n";
+			while (std::getline(tmp, line)) {
+				// std::cerr << line << "\n";
 				if (tmp.eof() || tmp.bad() || line == "\r"|| line == _request["boundary-end"])
 					break ;
-				
 				bodyHeader[getKey(line)] = getValue(line);
 			}
 			if (tmp.eof() || tmp.bad())
@@ -177,7 +170,6 @@ void	HttpRequest::parseBody(std::stringstream &buf) {
 			std::ofstream	filest(filename.c_str());
 			line = body.substr(body.find("\r\n\r\n") + 4, body.size());
 			// std::cerr << line.size() << " bs: "<< body.size() << "...\n";
-
 			// std::cerr << line << "...\n";
 			line = line.substr(0, line.find(_request["boundary"]) - 2);
 			// std::cerr << line.size() << "...\n";

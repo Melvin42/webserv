@@ -59,9 +59,10 @@ void	Config::setAllDefaultValue() {
 			if (_config.at(i).getLocation().at(j).getType() == "cgi") {
 				std::string	tmp;
 
-				tmp = _config.at(i).getLocation().at(j).getRoot()
-					+ _config.at(i).getLocation().at(j).getArg() + "/";
+				tmp = _config.at(i).getLocation().at(j).getRoot() + "/";
 				_config.at(i).setNewCgiRoot(tmp);
+				tmp = _config.at(i).getLocation().at(j).getArg();
+				_config.at(i).setNewCgiArg(tmp);
 			}
 		}
 	}

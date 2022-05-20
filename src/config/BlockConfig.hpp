@@ -20,6 +20,7 @@ class BlockConfig {
 		std::string					getServerName() const;
 		std::string					getRoot() const;
 		std::string					getCgiRoot() const;
+		std::string					getCgiArg() const;
 		std::vector<std::string>	getIndex() const;
 		std::vector<Location>		getLocation() const;
 		std::string					getDefaultIndex() const;
@@ -43,6 +44,7 @@ class BlockConfig {
 		void	setNewServerName(const std::string &name);
 		void	setNewRoot(const std::string &root);
 		void	setNewCgiRoot(const std::string &root);
+		void	setNewCgiArg(const std::string &arg);
 		void	setNewIndex(const std::string &index);
 		void	setNewLocation(const std::string &arg);
 		void	addIndexToLocation(const std::string &index, int i);
@@ -69,6 +71,7 @@ class BlockConfig {
 		std::string					_server_name;
 		std::string					_root;
 		std::string					_cgiRoot;
+		std::string					_cgiArg;
 		std::vector<std::string>	_index;
 		std::vector<Location>		_location;
 		bool						_can_post;

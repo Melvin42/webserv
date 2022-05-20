@@ -26,8 +26,8 @@ class	HttpResponse {
 
 	private:
 
-		char								**_exec_argv;
 		char								**_env;
+		char								**_exec_argv;
 		BlockConfig 						_conf;
 		std::string							_ret;
 		std::map<std::string, std::string>	_cgi;
@@ -37,18 +37,19 @@ class	HttpResponse {
 
 		HttpResponse();
 		void	initStatus();
-		// void	initCgi();
+		void	initCgi();
 
 		void	methodGet();
 		void	methodPost();
 		void	methodDelete();
 
 		int		is_cgi();
+		bool	findCgi();
 		int		cgi(std::string statusKey);
 		std::map<std::string, std::string>    initEnv();
 		void	getEnv();
 		std::string	toUpper(std::string str);
-		void	set_exec_argv(std::string cmdPath, std::string errCode);
+		void	set_exec_argv(std::string cmdPath);
 
 		void	setHeader(std::string statusKey);
 		void	setCgiHeader(std::string statusKey);
