@@ -60,8 +60,18 @@ class SocketServer : public Socket {
 		bool	ready(int fd, fd_set set);
 		void	setClientSocket(const BlockConfig &block);
 		void	simultaneousRead();
+		void	simultaneousWrite();
+		void	handleClient();
 		void	run();
-		void	closeClean(fd_set *fds);
+		void	closeClean();
+
+		class	SelectException : public std::exception {
+			const char	*what(void) const throw();
+		};
+
+		class	InvalidSocketException : public std::exception {
+			const char	*what(void) const throw();
+		};
 
 	private:
 		int		_sd;

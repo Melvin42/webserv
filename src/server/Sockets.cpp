@@ -13,6 +13,7 @@ Socket::~Socket() {
 	}
 }
 
+
 int	Socket::getMasterFd(size_t id) const {
 	return _server_fd.at(id);
 }
@@ -32,6 +33,15 @@ SocketServer::SocketServer(char **env, const Config &conf) : Socket() {
 	_env = env;
 	_sd = 0;
 	_max_sd = 0;
+}
+
+
+const char	*SocketServer::SelectException::what(void) const throw() {
+	return "Select failed";
+}
+
+const char	*SocketServer::InvalidSocketException::what(void) const throw() {
+	return "Invalid socket";
 }
 
 bool	SocketServer::bindSocket(const BlockConfig &block) {
@@ -83,7 +93,7 @@ int	SocketServer::acceptSocket(const BlockConfig &block) {
 
 	if ((new_socket = accept(_server_fd.at(block.getId()),
 					(struct sockaddr *)&_address, (socklen_t *)&addrlen)) < 0) {
-		throw "INVALID SOCKET";
+		throw(InvalidSocketException());
 	}
 	return new_socket;
 }
@@ -120,7 +130,7 @@ void	SocketServer::selectSocket() {
 	activity = select(_max_sd + 1, &_readfds, &_writefds, NULL, &timeout);
 
 	if ((activity < 0) && (errno != EINTR))
-		throw "SELECT FAILED";
+		throw(SelectException());
 }
 
 bool	SocketServer::ready(int fd, fd_set set) {
@@ -143,7 +153,6 @@ void	SocketServer::simultaneousRead() {
 	std::vector<ClientManager>::iterator		ite;
 	char	buffer[BUFFER_SIZE + 1] = {0};
 
-	std::string	str_file = "";
 	ite = this->getClientSocket().end();
 	for (it = this->getClientSocket().begin(); it != ite; it++) {				 //this loop is dedicated to every read fds ready for use 
 		for (int j = 0; j < BUFFER_SIZE + 1; j++) {
@@ -173,44 +182,43 @@ void	SocketServer::simultaneousRead() {
 			}
 		}
 	}
+}
+
+void	SocketServer::simultaneousWrite() {
+	std::vector<ClientManager>::iterator		it;
+	std::vector<ClientManager>::iterator		ite;
+
 	ite = this->getClientSocket().end();
+
 	for (it = this->getClientSocket().begin(); it != ite; it++) {				 //this loop is dedicated to every write fds ready for use 
+
 		this->setSocketUsed(it->getFd());
+
 		if (this->ready(this->getSocketUsed(), this->getWriteFds())) {
+
 			if (it->getReadOk() && it->getSend() != "") {											 //here we check if the socket is ready for writing
+
 				int	valsend = 0;
 																					 //here we send in one time all the response (stored in ClientManager::_send) for each sockets,
 				if ((valsend = send(this->getSocketUsed(), it->getSend().c_str(),
-								it->getSend().size(), 0)) < static_cast<int>(it->getSend().size())) {					 //if send == -1 is an error
+								it->getSend().size(), 0)) < static_cast<int>(it->getSend().size())) {					 //if send failed
+
 					it->setSendOk(true);
 					it->setSend("");
-																					 //here i'm storing all datas that weren't send in order to try to send them later
-//					it->setSend(msg);												 //updating ClientManager::_send (puting only what we didn't already send)
 				} else {															 //here is what we do if we had send all the response to the client
 					it->setSend("");
 					it->setSendOk(true);
 																					 //at this stage the request from the client should be satisfied
-																					 //no data needs to be stored anymore (until a new request happend) and the socket need to be closed
 				}
 			}
 		}
 	}
-	for (it = this->getClientSocket().begin(); it != ite; it++) {				 //this loop is dedicated to close client fds when we're done with them
-		if (it->getReadOk() && it->getSendOk()) {
-			FD_CLR(it->getFd(), &_writefds);
-			FD_CLR(it->getFd(), &_readfds);
-			close(it->getFd());
-			this->getClientSocket().erase(it);
-		} else if (it->getReadOk() && it->getSend() == "") {
-			close(it->getFd());
-			FD_CLR(it->getFd(), &_readfds);
-			this->getClientSocket().erase(it);
-		} else if (it->getSendOk() && it->getRead() == "") {
-			close(it->getFd());
-			FD_CLR(it->getFd(), &_writefds);
-			this->getClientSocket().erase(it);
-		}
-	}
+}
+
+void	SocketServer::handleClient() {
+	this->simultaneousRead();
+	this->simultaneousWrite();
+	this->closeClean();
 }
 
 bool	SocketServer::setUpBlockServer() {
@@ -234,14 +242,37 @@ void	SocketServer::run() {
 			for (size_t i = 0; i < _config.getConfig().size(); i++) {
 				this->setClientSocket(_config.getConfig().at(i));
 			}
-			this->simultaneousRead();
+			this->handleClient();
 		} catch (std::exception &e) {
 			std::cerr << e.what() << std::endl;
 		}
 	}
 }
 
-void	SocketServer::closeClean(fd_set *fds) {
-	close(_sd);
-	FD_CLR(_sd, fds);
+void	SocketServer::closeClean() {
+	std::vector<ClientManager>::iterator		it;
+	std::vector<ClientManager>::iterator		ite;
+
+	ite = this->getClientSocket().end();
+
+	for (it = this->getClientSocket().begin(); it != ite; it++) {				 //this loop is dedicated to close client fds when we're done with them
+
+		if (it->getReadOk() && it->getSendOk()) {								//this is the basic case, we read all de request and send alll the response
+
+			FD_CLR(it->getFd(), &_writefds);
+			FD_CLR(it->getFd(), &_readfds);
+			close(it->getFd());
+			this->getClientSocket().erase(it);
+		} else if (it->getReadOk() && it->getSend() == "") {					//this is the send fail case
+
+			close(it->getFd());
+			FD_CLR(it->getFd(), &_readfds);
+			this->getClientSocket().erase(it);
+		} else if (it->getSendOk()) {											//this the write only case (meaning tha the fd was only ready for writing)
+
+			close(it->getFd());
+			FD_CLR(it->getFd(), &_writefds);
+			this->getClientSocket().erase(it);
+		}
+	}
 }
