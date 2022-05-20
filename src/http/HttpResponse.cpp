@@ -116,6 +116,7 @@ void	HttpResponse::set_exec_argv(std::string cmdPath, std::string errCode) {
 		*(_exec_argv + 2) = NULL;
 		*(_exec_argv + 0) = (char *)cmdPath.c_str();
 		*(_exec_argv + 1) = (char *)_request["fullpage"].c_str();
+//		*(_exec_argv + 1) = (char *)(_config.getCgiRoot() + _request["page"]).c_str();   this is what we imagine for the cgi root
 	}
 	else {
 		_exec_argv = (char **)malloc(sizeof(char *) * 5);
@@ -123,6 +124,7 @@ void	HttpResponse::set_exec_argv(std::string cmdPath, std::string errCode) {
 		*(_exec_argv + 4) = NULL;
 		*(_exec_argv + 0) = (char *)cmdPath.c_str();
 		*(_exec_argv + 1) = (char *)_request["fullpage"].c_str();
+//		*(_exec_argv + 1) = (char *)(_config.getCgiRoot() + _request["page"]).c_str();   this is what we imagine for the cgi root
 		*(_exec_argv + 2) = (char *)errCode.c_str();
 		*(_exec_argv + 3) = (char *)_status[errCode].c_str();
 	}

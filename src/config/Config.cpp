@@ -60,10 +60,7 @@ void	Config::setAllDefaultValue() {
 				std::string	tmp;
 
 				tmp = _config.at(i).getLocation().at(j).getRoot()
-					+ _config.at(i).getLocation().at(j).getArg();
-				std::cerr << "ARG =" <<  _config.at(i).getLocation().at(j).getArg() << std::endl;
-				std::cerr << "ROOT =" << _config.at(i).getLocation().at(j).getRoot() << std::endl;
-				std::cerr << "TNP =" << tmp << std::endl;
+					+ _config.at(i).getLocation().at(j).getArg() + "/";
 				_config.at(i).setNewCgiRoot(tmp);
 			}
 		}
@@ -326,7 +323,6 @@ void	Config::parsLocation(std::ifstream &in_file, int &location_scope) {
 				this->parsLocationRoot();
 			} else if (_word == "cgi-bin") {
 				_config.at(_block_index).getLocation().at(_loc_id).setType("cgi");
-				std::cerr << _config.at(_block_index).getLocation().at(_loc_id).getType() << std::endl;
 				this->parsCgi(in_file);
 			}
 		} else
@@ -517,7 +513,6 @@ void	Config::parsing(const char *av) {
 						else if (_new_instruction == false)
 							this->parsInstruction(in_file, location_scope);
 					} else {
-						std::cerr << _word << std::endl;
 						this->parsLocation(in_file, location_scope);
 					}
 				}
