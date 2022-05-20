@@ -13,6 +13,7 @@ Socket::~Socket() {
 	}
 }
 
+
 int	Socket::getMasterFd(size_t id) const {
 	return _server_fd.at(id);
 }
@@ -32,6 +33,15 @@ SocketServer::SocketServer(char **env, const Config &conf) : Socket() {
 	_env = env;
 	_sd = 0;
 	_max_sd = 0;
+}
+
+
+const char	*SocketServer::SelectException::what(void) const throw() {
+	return "Select failed";
+}
+
+const char	*SocketServer::InvalidSocketException::what(void) const throw() {
+	return "Invalid socket";
 }
 
 bool	SocketServer::bindSocket(const BlockConfig &block) {
@@ -83,7 +93,8 @@ int	SocketServer::acceptSocket(const BlockConfig &block) {
 
 	if ((new_socket = accept(_server_fd.at(block.getId()),
 					(struct sockaddr *)&_address, (socklen_t *)&addrlen)) < 0) {
-		throw "INVALID SOCKET";
+		throw(InvalidSocketException());
+//		throw "INVALID SOCKET";
 	}
 	return new_socket;
 }
@@ -120,7 +131,8 @@ void	SocketServer::selectSocket() {
 	activity = select(_max_sd + 1, &_readfds, &_writefds, NULL, &timeout);
 
 	if ((activity < 0) && (errno != EINTR))
-		throw "SELECT FAILED";
+		throw(SelectException());
+//		throw "SELECT FAILED";
 }
 
 bool	SocketServer::ready(int fd, fd_set set) {

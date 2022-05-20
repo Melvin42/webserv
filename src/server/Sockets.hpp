@@ -65,6 +65,14 @@ class SocketServer : public Socket {
 		void	run();
 		void	closeClean();
 
+		class	SelectException : public std::exception {
+			const char	*what(void) const throw();
+		};
+
+		class	InvalidSocketException : public std::exception {
+			const char	*what(void) const throw();
+		};
+
 	private:
 		int		_sd;
 		int		_max_sd;
