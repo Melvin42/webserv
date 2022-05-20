@@ -54,6 +54,20 @@ void	Config::setAllDefaultValue() {
 		_config.at(i).setDefaultIndex();
 		_config.at(i).setId(i);
 	}
+	for (size_t i = 0; i < _config.size(); i++) {
+		for (size_t j = 0; j < _config.at(i).getLocation().size(); j++) {
+			if (_config.at(i).getLocation().at(j).getType() == "cgi") {
+				std::string	tmp;
+
+				tmp = _config.at(i).getLocation().at(j).getRoot()
+					+ _config.at(i).getLocation().at(j).getArg();
+				std::cerr << "ARG =" <<  _config.at(i).getLocation().at(j).getArg() << std::endl;
+				std::cerr << "ROOT =" << _config.at(i).getLocation().at(j).getRoot() << std::endl;
+				std::cerr << "TNP =" << tmp << std::endl;
+				_config.at(i).setNewCgiRoot(tmp);
+			}
+		}
+	}
 }
 
 void	Config::setAllDefaultServer() {
@@ -310,8 +324,11 @@ void	Config::parsLocation(std::ifstream &in_file, int &location_scope) {
 					_new_instruction = true;
 				}
 				this->parsLocationRoot();
-			} else if (_word == "cgi-bin")
+			} else if (_word == "cgi-bin") {
+				_config.at(_block_index).getLocation().at(_loc_id).setType("cgi");
+				std::cerr << _config.at(_block_index).getLocation().at(_loc_id).getType() << std::endl;
 				this->parsCgi(in_file);
+			}
 		} else
 			this->errorBadConf();
 	}
@@ -379,6 +396,7 @@ void	Config::printAllConfig() const {
 		std::cout << "	Toredirect = " << _config.at(j).getToRedirect() << std::endl;
 		std::cout << "	redirectTo = " << _config.at(j).getRedirectTo() << std::endl;
 		std::cout << "	Is Default = " << _config.at(j).getIsDefault() << std::endl;
+		std::cout << "	CgiRoot = " << _config.at(j).getCgiRoot() << std::endl;
 		for (size_t i = 0; i < _config.at(j).getIndex().size(); i++) {
 			if (i == 0)
 				std::cout << "	index = ";

@@ -34,7 +34,8 @@ std::map<std::string, std::string>	Location::getCgiMap() const {
 }
 
 void	Location::setRoot(const std::string &root) {
-	_root = root;
+	if (_root == "")
+		_root = root;
 }
 
 void	Location::setType(const std::string &type) {

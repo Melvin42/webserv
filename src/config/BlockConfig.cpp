@@ -26,6 +26,10 @@ std::string	BlockConfig::getRoot() const {
 	return _root;
 }
 
+std::string	BlockConfig::getCgiRoot() const {
+	return _cgiRoot;
+}
+
 std::vector<std::string>	BlockConfig::getIndex() const {
 	return _index;
 }
@@ -137,6 +141,10 @@ void	BlockConfig::setNewRoot(const std::string &root) {
 	_root = root;
 }
 
+void	BlockConfig::setNewCgiRoot(const std::string &root) {
+	_cgiRoot = root;
+}
+
 void	BlockConfig::setNewIndex(const std::string &index) {
 	_index.push_back(index);
 }
@@ -200,6 +208,7 @@ BlockConfig &BlockConfig::operator=(const BlockConfig &block) {
 	_port = block._port;
 	_server_name = block._server_name;
 	_root = block._root;
+	_cgiRoot = block._cgiRoot;
 	_index = block._index;
 	_location = block._location;
 	_can_post = block._can_post;
