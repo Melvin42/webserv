@@ -1,9 +1,9 @@
 #include "Location.hpp"
 
-Location::Location() : _arg(""), _root("") {
+Location::Location() : _arg(""), _root(""), _type("") {
 }
 
-Location::Location(const std::string &arg) : _arg(arg), _root("") {
+Location::Location(const std::string &arg) : _arg(arg), _root(""), _type("") {
 }
 
 Location::Location(const Location &cp) {
@@ -21,6 +21,10 @@ std::string	Location::getRoot() const {
 	return _root;
 }
 
+std::string	Location::getType() const {
+	return _type;
+}
+
 std::vector<std::string>	Location::getIndex() const {
 	return _index;
 }
@@ -31,6 +35,10 @@ std::map<std::string, std::string>	Location::getCgiMap() const {
 
 void	Location::setRoot(const std::string &root) {
 	_root = root;
+}
+
+void	Location::setType(const std::string &type) {
+	_type = type;
 }
 
 void	Location::addIndex(const std::string &index) {
@@ -53,6 +61,7 @@ void	Location::addCgiPath(const std::string &key, const std::string &value) {
 Location &Location::operator=(const Location &loc) {
 	_arg = loc._arg;
 	_root = loc._root;
+	_type = loc._type;
 	_index = loc._index;
 	_cgi = loc._cgi;
 	return *this;

@@ -10,6 +10,7 @@ HttpRequest::HttpRequest(const char *buffer, const BlockConfig &conf): _conf(con
 	line << buffer;
 	line >> _request["method"];
 	line >> _request["page"];
+	std::cerr << _request["page"]  << std::endl;
 	line >> _request["version"];
 	line.ignore();
 	setFullPage();

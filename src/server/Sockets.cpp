@@ -159,7 +159,6 @@ void	SocketServer::simultaneousRead() {
 							BUFFER_SIZE, 0)) == 0) {							 //if read == 0 means client disconnect
 				it->setReadOk(true);
 			} else if (valread < 0) {											 // if read < 0 is an error
-				std::cerr << "recv failed" << std::endl;
 				it->setReadOk(true);
 			} else {															 //here is what we do when the client send us a request
 				it->appendRead(buffer);											 //we will append to ClientManager::_read as long as we haven't recv all the request from the client
@@ -185,7 +184,6 @@ void	SocketServer::simultaneousRead() {
 								it->getSend().size(), 0)) < static_cast<int>(it->getSend().size())) {					 //if send == -1 is an error
 					it->setSendOk(true);
 					it->setSend("");
-					std::cerr << "send failed: " << it->getSend().size() << std::endl;
 																					 //here i'm storing all datas that weren't send in order to try to send them later
 //					it->setSend(msg);												 //updating ClientManager::_send (puting only what we didn't already send)
 				} else {															 //here is what we do if we had send all the response to the client

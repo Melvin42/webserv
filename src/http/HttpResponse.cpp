@@ -136,6 +136,7 @@ int	HttpResponse::is_cgi() {
 			_request["fullpage"].compare(_request["fullpage"].find_first_of("."), 
 				std::string::npos, ".php", 4) == 0)
 		{
+			std::cerr << _request["fullpage"]  << std::endl;
 			set_exec_argv(_cgi[_request["fullpage"].substr(_request["fullpage"].find_first_of("."))], "");
 			cgi("200");
 		}

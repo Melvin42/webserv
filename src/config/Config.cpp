@@ -188,8 +188,6 @@ void	Config::parsRoot() {
 }
 
 void	Config::parsLocationRoot() {
-//	this->checkSemiColon();
-//	if (_new_instruction)
 	_config.at(_block_index).addRootToLocation(this->badEndOfLine(), _loc_id);
 }
 
@@ -261,6 +259,7 @@ void	Config::parsCgi(std::ifstream &in_file) {
 	std::string valuemap;
 
 	in_file >> _word;
+	_config.at(_block_index).addTypeToLocation("cgi", _loc_id);
 	if (_word == "BINARY" && _check_binary == "SCRIPT_EXT") {
 		in_file >> _word;
 		valuemap = this->badEndOfLine();
@@ -309,7 +308,6 @@ void	Config::parsLocation(std::ifstream &in_file, int &location_scope) {
 				if (isInstruction(_word)) {
 					this->errorBadConf();
 					_new_instruction = true;
-		// PAR ICI LES AMIS
 				}
 				this->parsLocationRoot();
 			} else if (_word == "cgi-bin")
