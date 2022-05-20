@@ -19,6 +19,8 @@ HttpResponse::~HttpResponse(void) {
 			free(*(_exec_argv + i));
 		free(_exec_argv);
 	}
+	if (_env)
+		free(_env);
 }
 
 std::string	HttpResponse::getHttpResponse() {
