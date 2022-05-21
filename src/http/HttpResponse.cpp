@@ -47,7 +47,7 @@ void	HttpResponse::methodGet() {
 		else if (*(_request["pageNoParam"].end()) == '/') {
 			if (_conf.getAutoindex())
 			{
-				_request["fullpage"] = _conf.getRoot() + _request["page"];
+//				_request["fullpage"] = _conf.getRoot() + _request["page"];
 				autoIndex();
 			}
 			else
@@ -140,8 +140,15 @@ bool	HttpResponse::findCgi() {
 	std::map<std::string, std::string>::iterator ite = _cgi.end();
 	for (; it != ite; ++it)
 	{
-		if (_request["pageNoParam"].compare(_request["pageNoParam"].find_first_of("."), 
-			std::string::npos, it->first, it->first.size()) == 0)
+		std::size_t found = _request["pageNoParam"].find_first_of(".");
+		std::cerr << it->first << std::endl;
+		std::cerr << it->first.size() << std::endl;
+
+		std::cerr << "pagenoparam" << _request["fullpage"] << std::endl;
+
+//		if (_request["pageNoParam"].compare(_request["pageNoParam"].find_first_of("."), 
+//			std::string::npos, it->first, it->first.size()) == 0)
+		if (_request["pageNoParam"].compare(found, 3, ".pl", 3) == 0)
 			return true;
 	}
 	return false;
@@ -152,6 +159,8 @@ int	HttpResponse::is_cgi() {
 	{
 		if (findCgi())
 		{
+			std::cerr << "is cgii" << _request["fullpage"] << std::endl;
+			std::cerr << _cgi[_request["pageNoParam"].substr(_request["pageNoParam"].find_first_of("."))] << std::endl;
 			set_exec_argv(_cgi[_request["pageNoParam"].substr(_request["pageNoParam"].find_first_of("."))]);
 			getEnv();
 			cgi("200");
@@ -181,6 +190,7 @@ int HttpResponse::cgi(std::string statusKey) {
 
 		std::FILE* tmpOut = freopen("/tmp/.ExecOut", "wb+", stdout);
 		(void)tmpOut;
+		std::cerr << "To exec = " << _exec_argv[0] << std::endl;
 		if (execve(_exec_argv[0], _exec_argv, _env) == -1)
 			perror("execve");
 	}
@@ -215,7 +225,7 @@ std::map<std::string, std::string>	HttpResponse::initEnv() {
 
 	for (it = _request.begin(); it != _request.end(); ++it)
 	{
-		if (it->first == "body" || it->first == "method" 
+		if (it->first == "body" || it->first == "method"
 			|| it->first == "fullpage" || it->first == "pageNoParam")
 			continue ;
 		key = "HTTP_" + toUpper(it->first);

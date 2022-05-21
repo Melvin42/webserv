@@ -59,8 +59,11 @@ void	Config::setAllDefaultValue() {
 			if (_config.at(i).getLocation().at(j).getType() == "cgi") {
 				std::string	tmp;
 
+				std::cerr << _config.at(i).getLocation().at(j).getRoot()<<std::endl;
 				tmp = _config.at(i).getLocation().at(j).getRoot() + "/";
 				_config.at(i).setNewCgiRoot(tmp);
+
+				std::cerr << _config.at(i).getCgiRoot() <<std::endl;
 				tmp = _config.at(i).getLocation().at(j).getArg();
 				_config.at(i).setNewCgiArg(tmp);
 			}
@@ -283,7 +286,7 @@ void	Config::parsCgi(std::ifstream &in_file) {
 	if (_word == "SCRIPT_EXT" && _check_binary == "BINARY") {
 		in_file >> _word;
 		_check_binary = "SCRIPT_EXT";
-		_config.at(_block_index).addCgiToLocationMap(_word, valuemap, _loc_id);
+		_config.at(_block_index).addCgiToLocationMap(this->badEndOfLine(), valuemap, _loc_id);
 	} else
 		this->errorBadCgi();
 }

@@ -57,15 +57,31 @@ std::map<std::string, std::string> HttpRequest::getRequest() const {
 }
 
 void	HttpRequest::setFullPage() {
+	try {
+		std::map<std::string, std::string>::const_iterator	it = _conf.getLocation().at(0).getCgiMap().begin();
+		std::size_t	found = _request["page"].find(it->first);
 
-	if (_request["page"].find(_conf.getCgiArg()) != std::string::npos)
-		_request["fullpage"] = _conf.getCgiRoot() + _request["page"];
-	else if (*(_request["page"].end() - 1) == '/')
-		_request["fullpage"] = findIndex();
-	else if (_request["page"] == _conf.getToRedirect())
-		_request["fullpage"] = _conf.getRedirectTo();
-	else
-		_request["fullpage"] = _conf.getRoot() + _request["page"];
+		std::cerr << "test = " << _request["page"] << std::endl;
+		if (found != std::string::npos) {
+			_request["fullpage"] = _conf.getCgiRoot() + _request["page"];
+		} else if (*(_request["page"].end() - 1) == '/')
+			_request["fullpage"] = findIndex();
+		else if (_request["page"] == _conf.getToRedirect())
+			_request["fullpage"] = _conf.getRedirectTo();
+		else  {
+			 std::cerr << "full " << _request["fullpage"] << std::endl;
+			_request["fullpage"] = _conf.getRoot() + _request["page"];
+		}
+	} catch (std::exception &e) {
+		if (*(_request["page"].end() - 1) == '/')
+			_request["fullpage"] = findIndex();
+		else if (_request["page"] == _conf.getToRedirect())
+			_request["fullpage"] = _conf.getRedirectTo();
+		else  {
+			 std::cerr << "full " << _request["fullpage"] << std::endl;
+			_request["fullpage"] = _conf.getRoot() + _request["page"];
+		}
+	}
 	// std::cerr << "full " << _request["fullpage"] << std::endl;
 }
 
