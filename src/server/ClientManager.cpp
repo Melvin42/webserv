@@ -3,12 +3,12 @@
 /**** CONDESTRUCT ****/
 
 ClientManager::ClientManager() : _fd(0), _header_ok(false), 
-	_read_ok(false), _send_ok(false), _read(""), _send("") {
+	_read_ok(false), _send_ok(false), _read(""), _send(""), _valRead(0) {
 }
 
 ClientManager::ClientManager(int fd, const BlockConfig &block)
 	: _fd(fd), _header_ok(false), _read_ok(false),
-	_send_ok(false), _read(""), _send(""), _block(block) {
+	_send_ok(false), _read(""), _send(""), _valRead(0), _block(block) {
 }
 
 ClientManager::~ClientManager() {
@@ -28,7 +28,7 @@ bool	ClientManager::getSendOk() const {
 	return _send_ok;
 }
 
-bool	ClientManager::getReadOk() const {
+int		ClientManager::getReadOk() const {
 	return _read_ok;
 }
 
@@ -56,7 +56,7 @@ void	ClientManager::setSendOk(bool ok) {
 	_send_ok = ok;
 }
 
-void	ClientManager::setReadOk(bool ok) {
+void	ClientManager::setReadOk(int ok) {
 	_read_ok = ok;
 }
 
@@ -70,46 +70,44 @@ void	ClientManager::setSend(std::string str) {
 
 /**** USE ****/
 
-void	ClientManager::appendRead(char *buf) {
-//	_read.append(buf);
-	_read += buf;
+void		ClientManager::incrementValRead(int valread) {
+	_valRead += valread;
 }
 
-bool	ClientManager::isReadOk() {
+void	ClientManager::appendRead(char *buf, int valread) {
+	_read.append(buf, valread);
+	// std::cout << "append: " << valread << "cur size: " << _read.size() << std::endl;
+}
+
+int		ClientManager::isReadOk() {
 	std::stringstream 	buf;
 	std::string			line;
 	std::string			boundry;
 	std::string			boundryEnd;
+	size_t				headerSize = 0;
 	size_t				bodySize = 0;
 	size_t				contentLength = 0;
 
-//	if (_read != "") {
-		buf <<  _read;
-		while (std::getline(buf, line))
+	buf << _read;
+	while (std::getline(buf, line))
+	{
+		if (buf.eof() || buf.bad() || line == "\r")
+			break ;
+		if (line.find("content-length: ") != std::string::npos)
+			contentLength = std::atoi(line.substr(line.find("content-length: ") + 16).c_str());
+		if (line.find("boundary=") != std::string::npos)
 		{
-			if (buf.eof() || buf.bad() || line == "\r")
-				break ;
-			if (line.find("Content-Length: ") != std::string::npos)
-				contentLength = std::atoi(line.substr(line.find("Content-Length: ") + 16).c_str());
-			if (line.find("boundary=") != std::string::npos)
-			{
-				boundry = "--" + line.substr(line.find("boundary=") + 9) + "\r";
-				boundryEnd = "--" + line.substr(line.find("boundary=") + 9) + "--" + "\r";
-			}
+			boundry = "--" + line.substr(line.find("boundary=") + 9) + "\r";
+			boundryEnd = "--" + line.substr(line.find("boundary=") + 9) + "--" + "\r";
 		}
-		if (contentLength)
-		{
-			while (std::getline(buf, line))
-			{
-				if (buf.eof() || buf.bad())
-					break ;
-				bodySize += line.size() + 1;
-				if (line == boundryEnd)
-					break ;
-			}
-		}
-		if (contentLength == bodySize)
-			_read_ok = true;
-//	}
-	return _read_ok;
+		headerSize += line.size() + 1;
+	}
+	headerSize += 2;
+	line = buf.str();
+	if (contentLength)
+		bodySize = _valRead - headerSize;
+	if (contentLength == bodySize)
+	{	_read_ok = true;
+	// std::cerr << "contentLength: " << contentLength << "...\n";
+	}return _read_ok;
 }

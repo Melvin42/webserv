@@ -4,7 +4,7 @@
 
 /**** SOCKET ****/
 
-Socket::Socket() : _env(NULL) {
+Socket::Socket() {
 }
 
 Socket::~Socket() {
@@ -28,9 +28,8 @@ void	Socket::addServerFd(int fd) {
 
 /**** SOCKET SERVER ****/
 
-SocketServer::SocketServer(char **env, const Config &conf) : Socket() {
+SocketServer::SocketServer(const Config &conf) : Socket() {
 	_config = conf;
-	_env = env;
 	_sd = 0;
 	_max_sd = 0;
 }
@@ -150,8 +149,8 @@ void	SocketServer::setClientSocket(const BlockConfig &block) {
 
 void	SocketServer::simultaneousRead() {
 	std::vector<ClientManager>::iterator		it;
-	std::vector<ClientManager>::iterator		ite;
-	char	buffer[BUFFER_SIZE + 1] = {0};
+	std::vector<ClientManager>::const_iterator	ite;
+	char	buffer[BUFFER_SIZE] = {0};
 
 	ite = this->getClientSocket().end();
 	for (it = this->getClientSocket().begin(); it != ite; it++) {				 //this loop is dedicated to every read fds ready for use 
@@ -164,20 +163,24 @@ void	SocketServer::simultaneousRead() {
 			long	valread = 0;
 
 																				//here we read max BUFFER_SIZE (=2048) data for each sockets,
-			if ((valread = recv(this->getSocketUsed(), buffer,
+			if ((valread = recv(this->getSocketUsed(), &buffer,
 							BUFFER_SIZE, 0)) == 0) {							 //if read == 0 means client disconnect
-				it->setReadOk(true);
+				
+				this->closeClean();
+				this->getClientSocket().erase(it);
 			} else if (valread < 0) {											 // if read < 0 is an error
-				it->setReadOk(true);
-			} else {															 //here is what we do when the client send us a request
-				it->appendRead(buffer);											 //we will append to ClientManager::_read as long as we haven't recv all the request from the client
-				if (it->isReadOk()) {											 //this is where we check if we have all the request in ClientManager::_read
-					HttpRequest		req(it->getRead().c_str(), it->getBlock());
-					HttpResponse	msg(_env, it->getBlock(), req.getRequest());
-					it->setSend(msg.getHttpResponse());										 //this is where the response is stored
-					it->setRead("");
-																				 //at this stage the response is already stored in ClientManager::_send
-																				 //the response will be send in the second loop if the socket is ready for writing
+				std::cerr << "recv failed" << std::endl;
+				this->closeClean();
+				it->setFd(0);
+			} else { //here is what we do when the client send us a request
+				it->incrementValRead(valread);
+				it->appendRead(buffer, valread); //we will append to ClientManager::_read as long as we haven't recv all the request from the client
+				if (it->isReadOk() != 0) {
+					// std::cerr << "ReadOk" << std::endl;
+					 //this is where we check if we have all the request in ClientManager::_read
+					HttpRequest		req(it->getRead(), it->getBlock());
+					HttpResponse	msg(it->getBlock(), req.getRequest());
+					it->setSend(msg.getHttpResponse());
 				}
 			}
 		}

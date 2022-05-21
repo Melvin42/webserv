@@ -30,6 +30,10 @@ std::string	BlockConfig::getCgiRoot() const {
 	return _cgiRoot;
 }
 
+std::string	BlockConfig::getCgiArg() const {
+	return _cgiArg;
+}
+
 std::vector<std::string>	BlockConfig::getIndex() const {
 	return _index;
 }
@@ -110,7 +114,6 @@ void	BlockConfig::setDefaultIndex() {
 void	BlockConfig::setDefault404(const std::string &page) {
 	std::string	tmp = _root + "/" + page;
 
-	std::cerr << tmp << std::endl;
 	if (access(tmp.c_str(), R_OK) == 0) {
 		_default_404 = tmp;
 		return ;
@@ -143,6 +146,10 @@ void	BlockConfig::setNewRoot(const std::string &root) {
 
 void	BlockConfig::setNewCgiRoot(const std::string &root) {
 	_cgiRoot = root;
+}
+
+void	BlockConfig::setNewCgiArg(const std::string &arg) {
+	_cgiArg = arg;
 }
 
 void	BlockConfig::setNewIndex(const std::string &index) {
@@ -209,6 +216,7 @@ BlockConfig &BlockConfig::operator=(const BlockConfig &block) {
 	_server_name = block._server_name;
 	_root = block._root;
 	_cgiRoot = block._cgiRoot;
+	_cgiArg = block._cgiArg;
 	_index = block._index;
 	_location = block._location;
 	_can_post = block._can_post;

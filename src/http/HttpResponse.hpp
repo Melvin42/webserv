@@ -12,13 +12,15 @@
 #include <cstdlib>
 #include <ios>
 #include <dirent.h>
+#include <cctype>
+	
 
 #include "../config/Config.hpp"
 
 class	HttpResponse {
 	public:
 
-		HttpResponse(char **env, BlockConfig config, std::map<std::string, std::string> request);
+		HttpResponse(BlockConfig config, std::map<std::string, std::string> request);
 		~HttpResponse();
 		std::string	getHttpResponse();
 
@@ -35,15 +37,19 @@ class	HttpResponse {
 
 		HttpResponse();
 		void	initStatus();
-		// void	initCgi();
+		void	initCgi();
 
 		void	methodGet();
 		void	methodPost();
 		void	methodDelete();
 
 		int		is_cgi();
+		bool	findCgi();
 		int		cgi(std::string statusKey);
-		void	set_exec_argv(std::string cmdPath, std::string errPage);
+		std::map<std::string, std::string>    initEnv();
+		void	getEnv();
+		std::string	toUpper(std::string str);
+		void	set_exec_argv(std::string cmdPath);
 
 		void	setHeader(std::string statusKey);
 		void	setCgiHeader(std::string statusKey);

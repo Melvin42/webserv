@@ -1,5 +1,4 @@
-#ifndef HTTPREQUEST_HPP
-#define HTTPREQUEST_HPP
+#pragma once
 
 #include <iostream>
 #include <fstream>
@@ -15,7 +14,7 @@ class	HttpRequest {
 
 	public:
 
-		HttpRequest(const char *buffer, const BlockConfig &conf);
+		HttpRequest(std::string buffer, const BlockConfig &conf);
 		HttpRequest(const HttpRequest &httprequest);
 		~HttpRequest();
 		HttpRequest &operator=(const HttpRequest &httprequest);
@@ -23,11 +22,12 @@ class	HttpRequest {
 		std::string							getMethod();
 		std::string							getFullPage();
 		std::string							getVersion();
-		std::string							getHost();
 		size_t								getContentLength();
 		std::map<std::string, std::string>	getRequest() const;
 		BlockConfig							getConf();
 
+		void								postCheck(std::stringstream &line);
+		void								deleteCheck();
 		void								parseHeader(std::stringstream &line);
 		void								parseBody(std::stringstream &line);
 
@@ -35,13 +35,13 @@ class	HttpRequest {
 
 		HttpRequest();
 		void								setFullPage();
+		std::string							findIndex();
 		std::string							getFilename(std::map<std::string, std::string>	&bodyHeader);
 		std::string							getKey(std::string buf);
 		std::string							getValue(std::string buf);
 		bool								fileIssue(std::string filename);
+		std::string							toLower(std::string str);
 
 		std::map<std::string, std::string>	_request;
 		BlockConfig 						_conf;
 };
-
-#endif

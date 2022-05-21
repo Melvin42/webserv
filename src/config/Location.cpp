@@ -4,6 +4,12 @@ Location::Location() : _arg(""), _root(""), _type("") {
 }
 
 Location::Location(const std::string &arg) : _arg(arg), _root(""), _type("") {
+	for (size_t i = 0; i < _arg.size(); i++)
+	{
+		std::string::iterator it = _arg.end() - 1;
+		if (*it == '/')
+			_arg = _arg.substr(0, _arg.size() - 1);
+	}
 }
 
 Location::Location(const Location &cp) {
