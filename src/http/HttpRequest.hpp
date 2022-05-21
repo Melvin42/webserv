@@ -5,33 +5,43 @@
 #include <fstream>
 #include <sstream>
 #include <ctype.h>
+#include <limits>
+#include <stdlib.h>
+#include <sys/stat.h>
 #include "../server/ClientManager.hpp"
+#include "../config/Config.hpp"
 
 class	HttpRequest {
+
 	public:
 
-		HttpRequest(void);
-		HttpRequest(const char *buffer, int buf_size, const std::string &root);
+		HttpRequest(const char *buffer, const BlockConfig &conf);
 		HttpRequest(const HttpRequest &httprequest);
-		~HttpRequest(void);
+		~HttpRequest();
 		HttpRequest &operator=(const HttpRequest &httprequest);
 
-		std::string	getMethod() const;
-		std::string	getPage() const;
-		std::string	getVersion() const;
-		std::string	getHost() const;
-		std::string	getBody() const;
-		size_t	getContentLength() const;
+		std::string							getMethod();
+		std::string							getFullPage();
+		std::string							getVersion();
+		std::string							getHost();
+		size_t								getContentLength();
+		std::map<std::string, std::string>	getRequest() const;
+		BlockConfig							getConf();
 
-		void	readRequest(const char *buffer, int buf_size);
+		void								parseHeader(std::stringstream &line);
+		void								parseBody(std::stringstream &line);
+
 	private:
 
-		std::string	_method;
-		std::string	_page;
-		std::string	_version;
-		std::string	_host;
-		std::string	_body;
-		size_t	_content_length;
+		HttpRequest();
+		void								setFullPage();
+		std::string							getFilename(std::map<std::string, std::string>	&bodyHeader);
+		std::string							getKey(std::string buf);
+		std::string							getValue(std::string buf);
+		bool								fileIssue(std::string filename);
+
+		std::map<std::string, std::string>	_request;
+		BlockConfig 						_conf;
 };
 
 #endif

@@ -1,0 +1,86 @@
+/*******	README.conf		********/
+
+READ THIS FILE BEFORE MODIFY THE CONF FILE
+
+/***** SERVER *****/
+	
+	-"server" keyword need to be follow by a '{'
+	
+	-each server block need to be in separate scope
+	
+/***** INSTRUCTIONS *****/
+
+	-all instructions line have to be finish by a ';' (just one ';' per line is accepted)
+	
+	-listen instruction can have only one port (port has to be between 2000 and 65535)
+	
+		listen		<port>;
+			or
+		listen		<host:port>;
+	
+	-server_name instruction takes only one string argument (whithout white_space or ';')
+
+		server_name	localhost;
+	
+	-root instruction is the absolute path to your webserver (the last of each server block will be used)
+
+		root	/data/www;
+
+	-index instruction can content as many index as u want, separate by space or tab;
+
+		index		index.html index.php. index;
+	
+	-disallow instruction follow by GET, POST or DELETE to disabled the request method
+
+		disallow	POST;
+
+	-autoindex instruction follow by on or off to switch autoindex
+
+		autoindex	on;
+
+	-client_body_size_max instruction follow by a size_t value to set a maximum size for the client body
+
+		client_body_size_max	10000000;
+
+/***** Location *****/
+
+	one server block can content as many location block as u want, you can't imbricate them
+	
+	the root of the location need to past as an argument betweent "location" and the opening bracket "{"
+
+	-in each location block, you can use two different instructions.
+
+	-new location index
+
+	-new location cgi
+
+	for the cgi, you have to put the path of the binary
+
+		-cgi-bin BINARY   <path>;
+
+		and juste follow on the next line by the extention type
+
+		-cgi-bin SCRIPT_EXT   <.ext>;
+
+/*****	example	******/
+
+server {
+	listen			0.0.0.0:8080;
+	server_name		localhost;
+	root			/data/www;
+
+	disallow					POST;
+
+	autoindex					on;
+
+	client_body_size_max		10000000;
+
+	location /index/ {
+		index	index.php index.html;
+	}
+
+	location /cgi_folder/ {
+		cgi-bin BINARY		/usr/bin/perl;
+		cgi-bin SCRIPT-EXT	.pl;
+	}
+}

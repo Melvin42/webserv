@@ -3,34 +3,37 @@
 
 #include <iostream>
 #include <vector>
+#include <map>
 
 class Location {
 	public:
 		Location(const std::string &arg);
+		Location(const Location &cp);
 		~Location();
 
-		std::string					getArg() const;
-		std::vector<std::string>	getIndex() const;
-		std::vector<std::string>	getCgiBinary() const;
-		std::vector<std::string>	getCgiFilename() const;
-		int							getCgiBinaryNbr() const;
-		int							getCgiFilenameNbr() const;
+		std::string							getArg() const;
+		std::string							getRoot() const;
+		std::string							getType() const;
+		std::vector<std::string>			getIndex() const;
+		std::map<std::string, std::string>	getCgiMap() const;
 
-		void						incCgiBinaryNbr();
-		void						incCgiFilenameNbr();
-		void						addIndex(const std::string &index);
-		void						addCgiBinary(const std::string &cgi_binary);
-		void						addCgiFilename(const std::string &cgi_filename);
+		void								setRoot(const std::string &root);
+		void								setType(const std::string &type);
+		void								addIndex(const std::string &index);
+		void								addCgiPath(const std::string &key,
+													const std::string &value);
+
+		void	printCgiMap();
+
+		Location &operator=(const Location &loc);
 
 	private:
 		Location();
-		std::string					_arg;
-		std::string					_type;
-		int							_cgi_binary_nbr;
-		int							_cgi_filename_nbr;
-		std::vector<std::string>	_index;
-		std::vector<std::string>	_cgi_binary;
-		std::vector<std::string>	_cgi_filename;
+		std::string							_arg;
+		std::string							_root;
+		std::string							_type;
+		std::vector<std::string>			_index;
+		std::map<std::string, std::string>	_cgi;
 };
 
 #endif

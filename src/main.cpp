@@ -19,6 +19,8 @@
 #include "config/BlockConfig.hpp"
 #include "config/Config.hpp"
 
+bool	g_sigbool = false;
+
 int	main(int ac, char **av, char **env) {
 	if (ac > 2) {
 		std::cout << "Need a NGINX file.conf as second arg" << std::endl;
@@ -28,15 +30,15 @@ int	main(int ac, char **av, char **env) {
 
 			if (conf.getNeedExit())
 				return EXIT_FAILURE;
-			SocketServer server(env, conf, 30);
+			SocketServer server(env, conf);
 
 			server.run();
 	} else {
-			Config conf("index/simple.conf");
+			Config conf("config/simple.conf");
 
 			if (conf.getNeedExit())
 				return EXIT_FAILURE;
-			SocketServer server(env, conf, 30);
+			SocketServer server(env, conf);
 
 			server.run();
 	}

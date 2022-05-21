@@ -1,44 +1,44 @@
 #include "Config.hpp"
 
 Config::Config()
-	: _need_exit(false), _last_instruction(""), _word(""), _path(""),
+	: _is_to_redirect(false), _need_exit(false), _check_binary("SCRIPT_EXT"),
+	_last_instruction(""), _word(""),
 	_block_index(-1), _loc_id(-1), _new_instruction(true) {
-//	this->parsing();
 }
 
-Config::Config(Config &cp) {
+Config::Config(const Config &cp) {
 	*this = cp;
 }
 
 Config::Config(const char *av)
-	: _in_file(av), _last_instruction(""), _word(""), _path(""),
+	: _is_to_redirect(false), _need_exit(false), _check_binary("SCRIPT_EXT"),
+	_last_instruction(""), _word(""),
 	_block_index(-1), _loc_id(-1), _new_instruction(true) {
-	this->parsing();
-	this->concatPath();
+	this->parsing(av);
 }
 
 Config::~Config() {
 }
 
-void	Config::addConfig() {
+void	Config::addConfig(std::ifstream &in_file) {
 	BlockConfig	conf;
 
 	_block_index++;
 	_loc_id = -1;
 	_config.push_back(conf);
-	_in_file >> _word;
+	in_file >> _word;
 }
 
 std::vector<BlockConfig>	Config::getConfig() const {
 	return _config;
 }
 
-std::string	Config::getPath() const {
-	return _path;
-}
-
 bool	Config::getNeedExit() const {
 	return _need_exit;
+}
+
+void	Config::setNeedExit(const bool &need_exit) {
+	_need_exit = need_exit;
 }
 
 void	Config::setLastInstruction(const std::string &instru) {
@@ -49,12 +49,68 @@ void	Config::setWord(const std::string &word) {
 	_word = word;
 }
 
-void	Config::setPath(const std::string &path) {
-	_path = path;
+void	Config::setAllDefaultValue() {
+	for (size_t i = 0; i < _config.size(); i++) {
+		_config.at(i).setDefaultIndex();
+		_config.at(i).setId(i);
+	}
+	for (size_t i = 0; i < _config.size(); i++) {
+		for (size_t j = 0; j < _config.at(i).getLocation().size(); j++) {
+			if (_config.at(i).getLocation().at(j).getType() == "cgi") {
+				std::string	tmp;
+
+				tmp = _config.at(i).getLocation().at(j).getRoot()
+					+ _config.at(i).getLocation().at(j).getArg();
+				std::cerr << "ARG =" <<  _config.at(i).getLocation().at(j).getArg() << std::endl;
+				std::cerr << "ROOT =" << _config.at(i).getLocation().at(j).getRoot() << std::endl;
+				std::cerr << "TNP =" << tmp << std::endl;
+				_config.at(i).setNewCgiRoot(tmp);
+			}
+		}
+	}
 }
 
-void	Config::concatPath() {
-	_path = _config.at(0).getRoot();
+void	Config::setAllDefaultServer() {
+	std::vector<int>	priority;
+
+	for (size_t i = 0; i < _config.size(); i++) {
+		if (_config.at(i).getHost() != ""
+				&& std::find(priority.begin(), priority.end(),
+					_config.at(i).getPort()) == priority.end()) {
+			priority.push_back(_config.at(i).getPort());
+
+			_config.at(i).setIsDefault(true);
+		}
+	}
+	for (size_t i = 0; i < _config.size(); i++) {
+		if (_config.at(i).getServerName() != ""
+				&& std::find(priority.begin(), priority.end(),
+					_config.at(i).getPort()) == priority.end()) {
+			priority.push_back(_config.at(i).getPort());
+			_config.at(i).setIsDefault(true);
+		}
+	}
+	for (size_t i = 0; i < _config.size(); i++) {
+		if (std::find(priority.begin(), priority.end(),
+				_config.at(i).getPort()) == priority.end()) {
+			priority.push_back(_config.at(i).getPort());
+			_config.at(i).setIsDefault(true);
+		}
+	}
+	std::vector<BlockConfig>	tmp;
+
+	std::vector<BlockConfig>::iterator	it;
+	for (it = _config.begin(); it != _config.end(); it++) {
+		if (it->getIsDefault() == true)
+			tmp.push_back(*it);
+	}
+	_config.clear();
+	size_t	id = 0;
+	for (it = tmp.begin(); it != tmp.end(); it++) {
+		it->setId(id);
+		_config.push_back(*it);
+		id++;
+	}
 }
 
 void	Config::setBlockIndex(const int &index) {
@@ -109,18 +165,32 @@ void	Config::checkSemiColon() {
 bool	isInstruction(const std::string &word) {
 	if (word == "listen" || word == "server_name" || word == "root"
 		|| word == "index" || word == "location" || word == "server"
+		|| word == "autoindex" || word == "404_default" || word == "rewrite"
+		|| word == "client_body_size_max" || word == "disallow"
 		|| word == "{" || word == "}")
 		return true;
 	return false;
 }
 
 void	Config::parsPort() {
+
+	size_t	found;
+
+	found = _word.find(":", 0);
+
+	if (found < _word.size()) {
+		_config.at(_block_index).setNewHost(_word.substr(0, found));
+		_word = _word.substr(found + 1);
+	}
 	_word = this->badEndOfLine();
 	for (size_t i = 0; i < _word.size(); i++) {
 		if (!isdigit(_word[i]))
 			this->errorBadConf();
 	}
-	_config.at(_block_index).setNewPort(atoi(this->_word.c_str()));
+	int	tmp = atoi(this->_word.c_str());
+	if (tmp < 2000 || tmp == 4242 || tmp > 65535)
+		this->errorBadPort();
+	_config.at(_block_index).setNewPort(tmp);
 }
 
 void	Config::parsServerName() {
@@ -129,6 +199,10 @@ void	Config::parsServerName() {
 
 void	Config::parsRoot() {
 	_config.at(_block_index).setNewRoot(this->badEndOfLine());
+}
+
+void	Config::parsLocationRoot() {
+	_config.at(_block_index).addRootToLocation(this->badEndOfLine(), _loc_id);
 }
 
 void	Config::parsIndex() {
@@ -140,8 +214,6 @@ void	Config::parsIndex() {
 }
 
 void	Config::parsLocationIndex() {
-	std::string	tmp = _word;
-
 	this->checkSemiColon();
 	if (_new_instruction)
 		_config.at(_block_index).addIndexToLocation(this->checkEndOfLine(';'), _loc_id);
@@ -149,35 +221,84 @@ void	Config::parsLocationIndex() {
 		_config.at(_block_index).addIndexToLocation(_word, _loc_id);
 }
 
-void	Config::parsCgi() {
-	_in_file >> _word;
-	if (_word == "BINARY") {
-		_in_file >> _word;
-		_config.at(_block_index).incCgiBinaryNbrLocation(_loc_id);
-		if (_config.at(_block_index).getLocation().at(_loc_id).getCgiBinaryNbr() > 1)
-			this->errorTooMuchCgi();
-		_config.at(_block_index).addCgiBinaryToLocation(this->badEndOfLine(), _loc_id);
-	} else if (_word == "SCRIPT_FILENAME") {
-		_in_file >> _word;
-		_config.at(_block_index).incCgiFilenameNbrLocation(_loc_id);
-		if (_config.at(_block_index).getLocation().at(_loc_id).getCgiFilenameNbr() > 1)
-			this->errorTooMuchCgi();
-		_config.at(_block_index).addCgiFilenameToLocation(this->badEndOfLine(), _loc_id);
+void	Config::parsAutoindex() {
+	std::string	tmp = this->badEndOfLine();
+
+	if (tmp == "on") {
+		_config.at(_block_index).setAutoindex(true);
+	} else if (tmp == "off") {
+		_config.at(_block_index).setAutoindex(false);
 	} else {
-		this->errorBadCgi();
+		this->errorBadConf();
 	}
 }
 
-void	Config::parsLocation(int &location_scope) {
+void	Config::parsDefaultErrorPage() {
+	_config.at(_block_index).setDefault404(this->badEndOfLine());
+}
+
+void	Config::parsClientMaxBodySize() {
+	_word = this->badEndOfLine();
+
+	for (size_t i = 0; i < _word.size(); i++) {
+		if (!isdigit(_word[i]) || i > 18) {
+			this->errorBadConf();
+		}
+	}
+	_config.at(_block_index).setBodySizeMax(atoi(this->_word.c_str()));
+}
+
+void	Config::parsDisallow() {
+	std::string	tmp = this->badEndOfLine();
+	if (tmp == "POST") {
+		_config.at(_block_index).setCanPost(false);
+	} else if (tmp == "GET") {
+		_config.at(_block_index).setCanGet(false);
+	} else if (tmp == "DELETE") {
+		_config.at(_block_index).setCanDelete(false);
+	} else {
+		this->errorBadConf();
+	}
+}
+
+void	Config::parsRewrite() {
+	if (_is_to_redirect) {
+		_config.at(_block_index).setToRedirect(this->checkEndOfLine(';'));
+		_is_to_redirect = false;
+	} else
+		_config.at(_block_index).setRedirectTo(this->badEndOfLine());
+}
+
+void	Config::parsCgi(std::ifstream &in_file) {
+	std::string valuemap;
+
+	in_file >> _word;
+	_config.at(_block_index).addTypeToLocation("cgi", _loc_id);
+	if (_word == "BINARY" && _check_binary == "SCRIPT_EXT") {
+		in_file >> _word;
+		valuemap = this->badEndOfLine();
+		_check_binary = "BINARY";
+		in_file >> _word;
+	}
+	if (_word == "cgi-bin")
+		in_file >> _word;
+	if (_word == "SCRIPT_EXT" && _check_binary == "BINARY") {
+		in_file >> _word;
+		_check_binary = "SCRIPT_EXT";
+		_config.at(_block_index).addCgiToLocationMap(_word, valuemap, _loc_id);
+	} else
+		this->errorBadCgi();
+}
+
+void	Config::parsLocation(std::ifstream &in_file, int &location_scope) {
 	if (location_scope == false) {
 		_config.at(_block_index).setNewLocation(_word);
-		_in_file >> _word;
+		in_file >> _word;
 		if (_word == "{") {
 			location_scope = true;
 			_new_instruction = false;
-		} else {
+		} else
 			this->errorBadConf();
-		}
 	} else {
 		if (_word == "}") {
 			location_scope = false;
@@ -185,25 +306,43 @@ void	Config::parsLocation(int &location_scope) {
 			return ;
 		}
 		_new_instruction = false;
-		std::cerr << _word << std::endl;
-		if (_word == "index" || _word == "cgi-bin" || _word == "}") {
+		if (_word == "index" || _word == "cgi-bin"
+				|| _word == "root" || _word == "}") {
 			if (_word == "index") {
-				while (!_new_instruction) {
-					_in_file >> _word;
+				while (!_new_instruction && !in_file.eof()) {
+					in_file >> _word;
+					if (isInstruction(_word)) {
+						this->errorBadConf();
+						_new_instruction = true;
+					}
 					this->parsLocationIndex();
 				}
+			} else if (_word == "root") {
+				in_file >> _word;
+				if (isInstruction(_word)) {
+					this->errorBadConf();
+					_new_instruction = true;
+				}
+				this->parsLocationRoot();
 			} else if (_word == "cgi-bin") {
-				this->parsCgi();
+				_config.at(_block_index).getLocation().at(_loc_id).setType("cgi");
+				std::cerr << _config.at(_block_index).getLocation().at(_loc_id).getType() << std::endl;
+				this->parsCgi(in_file);
 			}
-		} else {
+		} else
 			this->errorBadConf();
-		}
 	}
 }
 
 void	Config::errorNoSemiColon() {
 	if (_need_exit == false)
-		std::cerr << "Error: Missing Semi Colon" << std::endl;
+		std::cerr << "Error: Semi Colon" << std::endl;
+	_need_exit = true;
+}
+
+void	Config::errorCantReadFile() {
+	if (_need_exit == false)
+		std::cerr << "Error: Can't read conf file." << std::endl;
 	_need_exit = true;
 }
 
@@ -213,9 +352,14 @@ void	Config::errorBadConf() {
 	_need_exit = true;
 }
 
+void	Config::errorBadPort() {
+	if (_need_exit == false)
+		std::cerr << "Error: Bad port" << std::endl;
+	_need_exit = true;
+}
+
 void	Config::errorBadKeyword() {
 	if (_need_exit == false) {
-		std::cerr << "Cursor on : \"" << _word << "\"" << std::endl;
 		std::cerr << "Error: Bad Key _word" << std::endl;
 		std::cerr << "_word = " << _word << std::endl;
 	}
@@ -224,7 +368,6 @@ void	Config::errorBadKeyword() {
 
 void	Config::errorScopeDepth() {
 	if (_need_exit == false) {
-		std::cerr << "Cursor on : \"" << _word << "\"" << std::endl;
 		std::cerr << "Error: Trying to go depth 3 scope" << std::endl;
 	}
 	_need_exit = true;
@@ -245,9 +388,15 @@ void	Config::errorTooMuchCgi() {
 void	Config::printAllConfig() const {
 	for (size_t j = 0; j < _config.size(); j++) {
 		std::cout << "\nBlock Nb : " << j+1 << '\n' << std::endl;
+		std::cout << "	host = " << _config.at(j).getHost() << std::endl;
 		std::cout << "	port = " << _config.at(j).getPort() << std::endl;
 		std::cout << "	server_name = " << _config.at(j).getServerName() << std::endl;
 		std::cout << "	root = " << _config.at(j).getRoot() << std::endl;
+		std::cout << "	404_default = " << _config.at(j).getDefault404() << std::endl;
+		std::cout << "	Toredirect = " << _config.at(j).getToRedirect() << std::endl;
+		std::cout << "	redirectTo = " << _config.at(j).getRedirectTo() << std::endl;
+		std::cout << "	Is Default = " << _config.at(j).getIsDefault() << std::endl;
+		std::cout << "	CgiRoot = " << _config.at(j).getCgiRoot() << std::endl;
 		for (size_t i = 0; i < _config.at(j).getIndex().size(); i++) {
 			if (i == 0)
 				std::cout << "	index = ";
@@ -260,101 +409,137 @@ void	Config::printAllConfig() const {
 		for (size_t i = 0; i < _config.at(j).getLocation().size(); i++) {
 			std::cout << "	location = "
 				<< _config.at(j).getLocation().at(i).getArg() << std::endl;
-			for (size_t k = 0; k < _config.at(j).getLocation().at(i).getCgiBinary().size(); k++) {
-				std::cout << "		cgi-bin BINARY = "
-					<< _config.at(j).getLocation().at(i).getCgiBinary().at(k)
-					<< std::endl;
-			}
-			for (size_t k = 0; k < _config.at(j).getLocation().at(i).getCgiFilename().size(); k++) {
-				std::cout << "		cgi-bin FILENAME = "
-					<< _config.at(j).getLocation().at(i).getCgiFilename().at(k)
-					<< std::endl;
-			}
+
+			_config.at(j).getLocation().at(i).printCgiMap();
 			for (size_t k = 0; k < _config.at(j).getLocation().at(i).getIndex().size(); k++) {
-				std::cout << "		index = "
-					<< _config.at(j).getLocation().at(i).getIndex().at(k)
-					<< std::endl;
+				if (k == 0)
+					std::cout << "		index = ";
+				std::cout << _config.at(j).getLocation().at(i).getIndex().at(k);
+				if (k == _config.at(j).getLocation().at(i).getIndex().size() - 1)
+					std::cout << std::endl;
+				else
+					std::cout << " ";
 			}
 		}
+		std::cerr << "	POST = " << _config.at(j).getCanPost() << std::endl;
+		std::cerr << "	GET = " << _config.at(j).getCanGet() << std::endl;
+		std::cerr << "	DEL = " << _config.at(j).getCanDelete() << std::endl;
+
+		if (_config.at(j).getAutoindex())
+			std::cerr << "	autoindex = " << "ON" << std::endl;
+		else
+			std::cerr << "	autoindex = " << "OFF" << std::endl;
+
+		std::cerr << "	client_body_size_max = " << _config.at(j).getBodySizeMax() << std::endl;
+
 	}
 }
 
-void	Config::parsing() {
-	if (_in_file) {
+void	Config::saveLastInstruction() {
+	if (!isInstruction(_word))
+		this->errorBadConf();
+	_new_instruction = false;
+	if (_word == "listen")
+		_last_instruction = _word;
+	else if (_word == "server_name")
+		_last_instruction = _word;
+	else if (_word == "root")
+		_last_instruction = _word;
+	else if (_word == "index")
+		_last_instruction = _word;
+	else if (_word == "autoindex")
+		_last_instruction = _word;
+	else if (_word == "404_default")
+		_last_instruction = _word;
+	else if (_word == "client_body_size_max")
+		_last_instruction = _word;
+	else if (_word == "disallow")
+		_last_instruction = _word;
+	else if (_word == "rewrite") {
+		_last_instruction = _word;
+		_is_to_redirect = true;
+	} else if (_word == "location") {
+		_loc_id++;
+		_last_instruction = _word;
+	}
+}
+
+void	Config::parsInstruction(std::ifstream &in_file, int &location_scope) {
+	if (_last_instruction == "listen")
+		this->parsPort();
+	else if (_last_instruction == "server_name")
+		this->parsServerName();
+	else if (_last_instruction == "root")
+		this->parsRoot();
+	else if (_last_instruction == "index")
+		this->parsIndex();
+	else if (_last_instruction == "autoindex")
+		this->parsAutoindex();
+	else if (_last_instruction == "404_default")
+		this->parsDefaultErrorPage();
+	else if (_last_instruction == "client_body_size_max")
+		this->parsClientMaxBodySize();
+	else if (_last_instruction == "disallow")
+		this->parsDisallow();
+	else if (_last_instruction == "rewrite")
+		this->parsRewrite();
+	else if (_last_instruction == "location")
+		this->parsLocation(in_file, location_scope);
+	else
+		this->errorBadConf();
+}
+
+void	Config::parsing(const char *av) {
+	std::ifstream	in_file(av);
+
+	if (in_file) {
 		bool	server_scope = false;
 		int		location_scope = false;
 
-		while (_in_file >> _word) {
+		while (in_file >> _word) {
 			if (server_scope == false) {
 				if (_word == "server") {
-					this->addConfig();
+					this->addConfig(in_file);
 					if (_word == "{") {
 						_new_instruction = true;
 						server_scope = true;
-					} else {
+					} else
 						this->errorBadConf();
-					}
-				} else {
+				} else
 					this->errorBadConf();
-				}
 			} else {
-				if (_word == "}" && location_scope == false) {
+				if (_word == "}" && location_scope == false)
 					server_scope = false;
-				} else {
+				else {
 					if (location_scope == false) {
-						if (_new_instruction == true) {
-							if (!isInstruction(_word)) {
-								this->errorBadConf();
-							}
-							_new_instruction = false;
-							if (_word == "listen") {
-								_last_instruction = _word;
-							} else if (_word == "server_name") {
-								_last_instruction = _word;
-							} else if (_word == "root") {
-								_last_instruction = _word;
-							} else if (_word == "index") {
-								_last_instruction = _word;
-							}
-							else if (_word == "location") {
-								_loc_id++;
-								_last_instruction = _word;
-							}
-						} else if (_new_instruction == false) {
-							if (_last_instruction == "listen") {
-								this->parsPort();
-							} else if (_last_instruction == "server_name") {
-								this->parsServerName();
-							} else if (_last_instruction == "root") {
-								this->parsRoot();
-							} else if (_last_instruction == "index") {
-								this->parsIndex();
-							} else if (_last_instruction == "location") {
-								this->parsLocation(location_scope);
-							}
-							else {
-								this->errorBadConf();
-							}
-						}
+						if (_new_instruction == true)
+							this->saveLastInstruction();
+						else if (_new_instruction == false)
+							this->parsInstruction(in_file, location_scope);
 					} else {
-						this->parsLocation(location_scope);
+						std::cerr << _word << std::endl;
+						this->parsLocation(in_file, location_scope);
 					}
 				}
 			}
 		}
-		this->printAllConfig();
 	} else {
-		std::cerr << "Can't read conf file" << std::endl;
+		this->errorCantReadFile();
+		return ;
 	}
+	this->setAllDefaultValue();
+	this->setAllDefaultServer();
+	this->printAllConfig();
 }
 
 Config &Config::operator=(const Config &conf) {
-	this->setLastInstruction(conf._last_instruction);
-	this->setWord(conf._word);
-	this->setPath(conf._path);
-	this->setBlockIndex(conf._block_index);
-	this->setLocId(conf._loc_id);
-	this->setBlockInstruction(conf._new_instruction);
-	this->setConfig(conf._config);
+	_need_exit = conf._need_exit;
+	_is_to_redirect = conf._is_to_redirect;
+	_last_instruction = conf._last_instruction;
+	_word = conf._word;
+	_block_index = conf._block_index;
+	_loc_id = conf._loc_id;
+	_new_instruction = conf._new_instruction;
+	_config = conf._config;
 	return *this;
 }

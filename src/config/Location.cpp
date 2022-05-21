@@ -1,11 +1,13 @@
 #include "Location.hpp"
 
-Location::Location() : _arg(""), _type(""),
-	_cgi_binary_nbr(0), _cgi_filename_nbr(0) {
+Location::Location() : _arg(""), _root(""), _type("") {
 }
 
-Location::Location(const std::string &arg) : _arg(arg), _type(""),
-	_cgi_binary_nbr(0), _cgi_filename_nbr(0) {
+Location::Location(const std::string &arg) : _arg(arg), _root(""), _type("") {
+}
+
+Location::Location(const Location &cp) {
+	*this = cp;
 }
 
 Location::~Location() {
@@ -15,42 +17,53 @@ std::string	Location::getArg() const {
 	return _arg;
 }
 
+std::string	Location::getRoot() const {
+	return _root;
+}
+
+std::string	Location::getType() const {
+	return _type;
+}
+
 std::vector<std::string>	Location::getIndex() const {
 	return _index;
 }
 
-std::vector<std::string>	Location::getCgiBinary() const {
-	return _cgi_binary;
+std::map<std::string, std::string>	Location::getCgiMap() const {
+	return _cgi;
 }
 
-std::vector<std::string>	Location::getCgiFilename() const {
-	return _cgi_filename;
+void	Location::setRoot(const std::string &root) {
+	if (_root == "")
+		_root = root;
 }
 
-int	Location::getCgiBinaryNbr() const {
-	return _cgi_binary_nbr;
-}
-
-int	Location::getCgiFilenameNbr() const {
-	return _cgi_filename_nbr;
+void	Location::setType(const std::string &type) {
+	_type = type;
 }
 
 void	Location::addIndex(const std::string &index) {
 	_index.push_back(index);
 }
 
-void	Location::addCgiBinary(const std::string &cgi_binary) {
-	_cgi_binary.push_back(cgi_binary);
+void	Location::printCgiMap() {
+	std::map<std::string, std::string>::const_iterator	it = _cgi.begin();
+
+	for(it = _cgi.begin(); it != _cgi.end(); it++) {
+		std::cerr << "		cgi-bin BINARY = " << it->second << "\n"
+			<< "		cgi-bin SCRIP_EXT = " << it->first << std::endl;
+	}
 }
 
-void	Location::addCgiFilename(const std::string &cgi_filename) {
-	_cgi_filename.push_back(cgi_filename);
+void	Location::addCgiPath(const std::string &key, const std::string &value) {
+	_cgi.insert(std::pair<std::string, std::string>(key, value));
 }
 
-void	Location::incCgiBinaryNbr() {
-	_cgi_binary_nbr++;
-}
-
-void	Location::incCgiFilenameNbr() {
-	_cgi_filename_nbr++;
+Location &Location::operator=(const Location &loc) {
+	_arg = loc._arg;
+	_root = loc._root;
+	_type = loc._type;
+	_index = loc._index;
+	_cgi = loc._cgi;
+	return *this;
 }
