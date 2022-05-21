@@ -9,7 +9,6 @@ HttpRequest::HttpRequest(std::string buffer, const BlockConfig &conf): _conf(con
 	line << buffer;
 	line >> _request["method"];
 	line >> _request["page"];
-	std::cerr << "(HttpRequest.cpp:12) request: " << _request["page"] << std::endl;
 	line >> _request["version"];
 	line.ignore();
 	setFullPage();
@@ -20,8 +19,6 @@ HttpRequest::HttpRequest(std::string buffer, const BlockConfig &conf): _conf(con
 		postCheck(line);
 	if (_request["method"] == "DELETE")
 		deleteCheck();
-	 std::cout << "(HttpRequest.cpp:21) fullPage: " << _request["fullpage"] << std::endl;
-	// std::cout << std::endl << "line: " << std::endl << line.str();
 }
 
 HttpRequest::HttpRequest(const HttpRequest &httprequest) {
@@ -57,39 +54,28 @@ std::map<std::string, std::string> HttpRequest::getRequest() const {
 }
 
 void	HttpRequest::setFullPage() {
-	try {
-		std::map<std::string, std::string>::const_iterator	it = _conf.getLocation().at(0).getCgiMap().begin();
-		std::size_t	found = _request["page"].find(it->first);
-
-		std::cerr << "test = " << _request["page"] << std::endl;
-		if (found != std::string::npos) {
-			_request["fullpage"] = _conf.getCgiRoot() + _request["page"];
-		} else if (*(_request["page"].end() - 1) == '/')
-			_request["fullpage"] = findIndex();
-		else if (_request["page"] == _conf.getToRedirect())
-			_request["fullpage"] = _conf.getRedirectTo();
-		else  {
-			 std::cerr << "full " << _request["fullpage"] << std::endl;
-			_request["fullpage"] = _conf.getRoot() + _request["page"];
-		}
-	} catch (std::exception &e) {
-		if (*(_request["page"].end() - 1) == '/')
-			_request["fullpage"] = findIndex();
-		else if (_request["page"] == _conf.getToRedirect())
-			_request["fullpage"] = _conf.getRedirectTo();
-		else  {
-			 std::cerr << "full " << _request["fullpage"] << std::endl;
-			_request["fullpage"] = _conf.getRoot() + _request["page"];
-		}
-	}
-	// std::cerr << "full " << _request["fullpage"] << std::endl;
+	if (*(_request["page"].end() - 1) == '/')
+		_request["fullpage"] = findIndex();
+	else if (_request["page"] == _conf.getToRedirect())
+		_request["fullpage"] = _conf.getRedirectTo();
+	else
+		_request["fullpage"] = _conf.getRoot() + _request["page"];
 }
 
 std::string	HttpRequest::findIndex() {
 	std::string	tmp;
+	std::string	root;
+
 	for (size_t i = 0; i < _conf.getIndex().size(); i++) {
-		
-		tmp = _conf.getRoot() + "/" + _request["page"].substr(
+		root = _conf.getRoot();
+		for (size_t j = 0; j < _conf.getLocation().size(); j++) {
+			tmp = _request["page"]; 
+			tmp[tmp.size() - 1] = '\0';
+			if (strcmp(_conf.getLocation().at(j).getArg().c_str(), tmp.c_str()) == 0) {
+				root = _conf.getLocation().at(j).getRoot();
+			}
+		}
+		tmp = root + "/" + _request["page"].substr(
 			_request["page"].find_first_of('/') + 1, _request["page"].size())
 			+ _conf.getIndex().at(i);
 		if (access(tmp.c_str(), R_OK) == 0) {
@@ -101,7 +87,6 @@ std::string	HttpRequest::findIndex() {
 }
 
 void	HttpRequest::postCheck(std::stringstream &line) {
-
 	if (_request.find("content-length") == _request.end())
 		_request["posted"] = "411";
 	else if (_conf.getBodySizeMax() > 0 && getContentLength() > _conf.getBodySizeMax())
@@ -116,6 +101,7 @@ void	HttpRequest::postCheck(std::stringstream &line) {
 void	HttpRequest::deleteCheck() {
 	int ret = 0;
 	std::ifstream	page(_request["fullpage"].c_str());
+
 	if (!page)
 	{
 		_request["deleted"] = "404";
@@ -170,9 +156,7 @@ void	HttpRequest::parseBody(std::stringstream &buf) {
 				break ;
 			body = body.substr(body.find(_request["boundary"]) + _request["boundary"].size() + 2, body.size());
 			tmp << body;
-			// std::cerr << body << "...\n";
 			while (std::getline(tmp, line)) {
-				// std::cerr << line << "\n";
 				if (tmp.eof() || tmp.bad() || line == "\r"|| line == _request["boundary-end"])
 					break ;
 				bodyHeader[getKey(line)] = getValue(line);
@@ -185,11 +169,7 @@ void	HttpRequest::parseBody(std::stringstream &buf) {
 				}
 			std::ofstream	filest(filename.c_str());
 			line = body.substr(body.find("\r\n\r\n") + 4, body.size());
-			// std::cerr << line.size() << " bs: "<< body.size() << "...\n";
-			// std::cerr << line << "...\n";
 			line = line.substr(0, line.find(_request["boundary"]) - 2);
-			// std::cerr << line.size() << "...\n";
-			// std::cerr << line << "...\n";
 			filest << line;
 			filest.close();
 		}
@@ -216,13 +196,11 @@ std::string		HttpRequest::getValue(std::string buf) {
 std::string		HttpRequest::getFilename(std::map<std::string, std::string>	&bodyHeader) {
 	std::string		filename;
 
-	if (bodyHeader["Content-Disposition"].find(" filename=") != std::string::npos)
-	{
+	if (bodyHeader["Content-Disposition"].find(" filename=") != std::string::npos) {
 		filename = bodyHeader["Content-Disposition"].substr(
 		bodyHeader["Content-Disposition"].find(" filename=") + 11,
 		bodyHeader["Content-Disposition"].size());
-	} else
-	{
+	} else {
 		filename = bodyHeader["Content-Disposition"].substr(
 		bodyHeader["Content-Disposition"].find(" name=") + 7,
 		bodyHeader["Content-Disposition"].size());

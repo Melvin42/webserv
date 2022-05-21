@@ -35,8 +35,10 @@ class	HttpRequest {
 
 		HttpRequest();
 		void								setFullPage();
+		void								findGoodPath();
 		std::string							findIndex();
-		std::string							getFilename(std::map<std::string, std::string>	&bodyHeader);
+		std::string							getFilename(std::map<std::string,
+												std::string>	&bodyHeader);
 		std::string							getKey(std::string buf);
 		std::string							getValue(std::string buf);
 		bool								fileIssue(std::string filename);

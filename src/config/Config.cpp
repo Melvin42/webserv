@@ -320,6 +320,8 @@ void	Config::parsLocation(std::ifstream &in_file, int &location_scope) {
 				}
 			} else if (_word == "root") {
 				in_file >> _word;
+				if (_config.at(_block_index).getLocation().at(_loc_id).getType() != "cgi")
+					_config.at(_block_index).getLocation().at(_loc_id).setType("root");
 				if (isInstruction(_word)) {
 					this->errorBadConf();
 					_new_instruction = true;

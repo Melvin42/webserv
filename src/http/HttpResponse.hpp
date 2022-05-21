@@ -43,13 +43,13 @@ class	HttpResponse {
 		void	methodPost();
 		void	methodDelete();
 
-		int		is_cgi();
+		int		is_cgi(const std::string &uri);
 		bool	findCgi();
 		int		cgi(std::string statusKey);
 		std::map<std::string, std::string>    initEnv();
 		void	getEnv();
 		std::string	toUpper(std::string str);
-		void	set_exec_argv(std::string cmdPath);
+		void	set_exec_argv(const std::string &cmdPath, const std::string &param);
 
 		void	setHeader(std::string statusKey);
 		void	setCgiHeader(std::string statusKey);
