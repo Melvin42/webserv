@@ -1,19 +1,12 @@
 #!/usr/bin/perl
 
-use CGI qw(:standardi);
-
-$q = new CGI;
-
-$num = $q->param('name');
-$msg = $q->param('email');
-
 print "<!DOCTYPE html>
 <html>
 <body>
 
-<h1> ERROR $num</h1>
+<h1> ERROR $ARGV[0]</h1>
 
-<p>$msg</p>
+<p>$ARGV[1]</p>
 </body>
 </html>";
 
