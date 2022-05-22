@@ -20,8 +20,8 @@
 #include "config/Config.hpp"
 
 int	main(int ac, char **av) {
-	if (ac > 2) {
-		std::cout << "Need a NGINX file.conf as second arg" << std::endl;
+	if (ac < 2) {
+		std::cout << "Need a file.conf as second arg" << std::endl;
 		return EXIT_FAILURE;
 	} else if (ac == 2) {
 			Config conf(av[1]);
@@ -31,14 +31,7 @@ int	main(int ac, char **av) {
 			SocketServer server(conf);
 
 			server.run();
-	} else {
-			Config conf("config/simple.conf");
-
-			if (conf.getNeedExit())
-				return EXIT_FAILURE;
-			SocketServer server(conf);
-
-			server.run();
-	}
+	} else
+		std::cout << "too many args only one accepted" << std::endl;
 	return EXIT_SUCCESS;
 }
