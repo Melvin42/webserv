@@ -154,7 +154,7 @@ void	SocketServer::simultaneousRead() {
 
 	ite = this->getClientSocket().end();
 	for (it = this->getClientSocket().begin(); it != ite; it++) {				 //this loop is dedicated to every read fds ready for use 
-		for (int j = 0; j < BUFFER_SIZE + 1; j++) {
+		for (int j = 0; j < BUFFER_SIZE; j++) {
 			buffer[j] = 0;
 		}
 
@@ -176,7 +176,6 @@ void	SocketServer::simultaneousRead() {
 				it->incrementValRead(valread);
 				it->appendRead(buffer, valread); //we will append to ClientManager::_read as long as we haven't recv all the request from the client
 				if (it->isReadOk() != 0) {
-					// std::cerr << "ReadOk" << std::endl;
 					 //this is where we check if we have all the request in ClientManager::_read
 					HttpRequest		req(it->getRead(), it->getBlock());
 					HttpResponse	msg(it->getBlock(), req.getRequest());

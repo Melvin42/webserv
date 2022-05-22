@@ -12,7 +12,7 @@ HTTP_DIR = http
 
 ## Compilating Utilities
 
-INC = $(./$(SRC_DIR)/$(CLASS_DIR)/-I%.hpp)## $(./$(SRC_DIR)/$(CLASS_DIR)/-I%.h)
+INC = $(./$(SRC_DIR)/$(CLASS_DIR)/-I%.hpp)
 
 DEBUG = -g3
 
@@ -25,12 +25,6 @@ CONFIG_FT = Config BlockConfig Location
 SERVER_FT = Sockets ClientManager
 
 HTTP_FT = HttpResponse HttpRequest
-
-#SRC_LIST = main.cpp Sockets.cpp HttpResponse.cpp HttpRequest.cpp
-#
-#SRCS = $(addprefix ${SRC_DIR}, ${SRC_LIST})
-#
-#OBJ = ${SRCS:.cpp=.o}
 
 SRC_FT = main
 

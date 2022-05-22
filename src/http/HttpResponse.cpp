@@ -18,8 +18,11 @@ HttpResponse::~HttpResponse(void) {
 			free(*(_exec_argv + i));
 		free(_exec_argv);
 	}
-	if (_env)
+	if (_env) {
+		for (int i = 0; *(_env + i) != NULL; i++)
+			free(*(_env + i));
 		free(_env);
+	}
 }
 
 std::string	HttpResponse::getHttpResponse() {
@@ -36,6 +39,7 @@ std::string	HttpResponse::getHttpResponse() {
 
 void	HttpResponse::methodGet() {
 	try {
+		std::string	filename = "";
 		std::string	tmp = _request["fullpage"];
 		std::size_t	found = _request["fullpage"].find_last_of("/");
 
@@ -47,12 +51,15 @@ void	HttpResponse::methodGet() {
 		for (std::size_t i = 0; i < _conf.getLocation().size(); i++) {
 			if (tmp2 == _conf.getLocation().at(i).getArg() || tmp2 == "") {
 				std::size_t	size = tmp.size();
-				tmp = _conf.getCgiRoot() + _request["pageNoParam"].substr(found, size + _conf.getLocation().at(i).getArg().size());
+				tmp = _conf.getCgiRoot() + _conf.getCgiArg()
+					+ _request["pageNoParam"].substr(found, size + _conf.getLocation().at(i).getArg().size());
 				break ;
 			}
 		}
 		if (!is_cgi(tmp))
 			tmp = _request["pageNoParam"];
+		else
+			_request["pageNoParam"] = tmp;
 		std::ifstream page(tmp.c_str());
 
 		if (page) {
@@ -101,7 +108,6 @@ void	HttpResponse::methodDelete() {
 }
 
 void	HttpResponse::setHeader(std::string statusKey) {
-	std::cerr << "(HttpResponse.cpp:88) " << _request["page"] << std::endl;
 	if (statusKey == "301" && *(_request["page"].end() - 1) != '?')
 		_ret = "HTTP/1.1 " + statusKey + " " + _status[statusKey] + "\r\n" 
 			+ "Location: " + _request["page"].substr(_request["page"].find("/"), _request["page"].size()) + "/" + "\r\n\r\n";
@@ -152,7 +158,7 @@ bool	HttpResponse::findCgi() {
 	std::map<std::string, std::string>::iterator it = _cgi.begin();
 	std::map<std::string, std::string>::iterator ite = _cgi.end();
 	for (; it != ite; ++it) {
-		std::size_t found = _request["pageNoParam"].find_first_of(".");
+		std::size_t found = _request["pageNoParam"].find_last_of('.');
 
 		if (_request["pageNoParam"].compare(found, it->first.size() - found,
 					it->first.c_str(), it->first.size()) == 0)
@@ -162,11 +168,14 @@ bool	HttpResponse::findCgi() {
 }
 
 int	HttpResponse::is_cgi(const std::string &uri) {
-	if (uri.find_first_of(".") != std::string::npos)
+	std::size_t	found = _request["pageNoParam"].find_last_of('.');
+	std::string	tmp = _request["pageNoParam"].substr(found);
+
+	if (_cgi[tmp] != "")
 	{
 		if (findCgi())
 		{
-			set_exec_argv(_cgi[uri.substr(uri.find_first_of(".")).c_str()], uri);
+			set_exec_argv(_cgi[tmp.c_str()], uri);
 			getEnv();
 			cgi("200");
 		}
@@ -193,15 +202,27 @@ int HttpResponse::cgi(std::string statusKey) {
 	}
 	if (pid == 0) {
 		std::FILE* tmpOut = freopen("/tmp/.ExecOut", "wb+", stdout);
+		std::FILE* tmpErr = freopen("/tmp/.ExecErr", "wb+", stderr);
 
 		(void)tmpOut;
-		if (execve(_exec_argv[0], _exec_argv, _env) == -1)
+		(void)tmpErr;
+		if (execve(_exec_argv[0], _exec_argv, _env) == -1) {
 			perror("execve");
+			exit(EXIT_FAILURE);
+		}
 	}
 	else {
-		waitpid(pid, 0, 0);
 		std::ifstream ExecOut("/tmp/.ExecOut");
-		setPage(statusKey, ExecOut);
+		std::ifstream ExecErr("/tmp/.ExecErr");
+		waitpid(pid, 0, 0);
+
+		std::string    str_err = std::string(
+				std::istreambuf_iterator<char>(ExecErr),
+				std::istreambuf_iterator<char>());
+		if (str_err.size() != 0)
+			statusRet("500");
+		else
+			setPage(statusKey, ExecOut);
 	}
 	return 0;
 }
@@ -228,7 +249,7 @@ std::map<std::string, std::string>	HttpResponse::initEnv() {
 	std::map<std::string, std::string>::iterator	it;
 
 	for (it = _request.begin(); it != _request.end(); ++it) {
-		if (it->first == "body" || it->first == "method"
+		if (it->first == "body" || it->first == "method" || it->first == "page"
 				|| it->first == "fullpage" || it->first == "pageNoParam")
 			continue ;
 		key = "HTTP_" + toUpper(it->first);
@@ -245,7 +266,7 @@ std::map<std::string, std::string>	HttpResponse::initEnv() {
 	env["REQUEST_METHOD"] = _request["method"];
 	env["SCRIPT_NAME"] = _request["page"].substr(_request["page"].find_last_of("/\\") + 1);
 	env["SERVER_NAME"] = _request["host"];
-	env["SERVER_PORT"] = _conf.getPort();
+	env["SERVER_PORT"] = _request["host"].substr(_request["host"].find(":") + 1);
 	env["SERVER_PROTOCOL"] = "HTTP/1.1";
 	env["SERVER_SOFTWARE"] = "webserv/1.0";
 	env["GATEWAY_INTERFACE"] = "CGI/1.1";
