@@ -6,12 +6,15 @@
 ### HTTP server - CGI managment - socket programation
 
 # How to use
-first step: compilation with a Makefile
-use ```make```
-second step: run your webserver with the configuration file of your choice
-use ```./webserv path_to_conf_file```
-third step: shut down your webserver in your terminal (with SIGINT for exemple)
-use ```Ctrl + C``` (in your terminal running your webserver)
+<sub>first step: compilation with a Makefile</sub>
+<sub>use ```make``` </sub>
+<sub>second step: run your webserver with the configuration file of your choice</sub>
+<sub>use ```./webserv path_to_conf_file``` </sub>
+
+<sub>third step: shut down your webserver in your terminal (with SIGINT for exemple)</sub>
+
+<sub>use ```Ctrl + C``` (in your terminal running your webserver)</sub>
+
 
 # Go further
 This webserver is meant to be used as nginx, but it is far from it.
