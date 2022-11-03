@@ -1,4 +1,4 @@
-#Weberv
+# Webserv
 
 recode a tiny nginx-like webserver.
 
