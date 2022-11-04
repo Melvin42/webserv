@@ -1,11 +1,11 @@
 # Webserv
 ##### A tiny nginx-like webserver
 
-# About the project
-##### group work - asynchronous program - configuration file
-##### HTTP server - CGI management - socket programming
+## About the project
+#### group work - asynchronous program - configuration file
+#### HTTP server - CGI management - socket programming
 
-# How to use
+## How to use
 <sub>first step: compile with the Makefile</sub>
 
 <sub>use ```make``` </sub>
@@ -19,7 +19,7 @@
 <sub>use ```Ctrl + C``` (in your terminal running your webserver)</sub>
 
 
-# Go further
+### Go further
 <su>This webserver is meant to be used as nginx, but it is far from it.</sub>
 
 <sub>Nevertheless as it was a 3 people project the code is easily handleable.</sub>
