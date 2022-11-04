@@ -23,5 +23,5 @@
 <su>This webserver is meant to be used as nginx, but it is far from it.</sub>
 
 <sub>Nevertheless as it was a 3 people project the code is easily handleable.</sub>
-<sub>If you look carefully you'll find a hided doc for our configuration files managment.</sub>
+<sub>If you look carefully you'll find a hided doc for our configuration files management.</sub>
 <sub>Make it better that nginx and enjoy being the new most used HTTP server in the world XDDDDD</sub>
