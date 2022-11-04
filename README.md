@@ -3,10 +3,10 @@
 
 # About the project
 ##### group work - asynchronous program - configuration file
-##### HTTP server - CGI managment - socket programation
+##### HTTP server - CGI management - socket programming
 
 # How to use
-<sub>first step: compilation with a Makefile</sub>
+<sub>first step: compile with the Makefile</sub>
 
 <sub>use ```make``` </sub>
 
